@@ -1,0 +1,62 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Scrollbar Styling ===== */
+
+/* width */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+/* Thumb */
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #111827;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #374151;
+}
+.boxed-card {
+  @apply rounded-lg p-4 shadow-md border transition-all duration-300
+         bg-white border-gray-200
+         dark:bg-[#0b1220] dark:border-[#243244];
+}
+
+.dark .admin-dashboard,
+.dark .admin-dashboard .bg-gray-100 {
+  background-color: #0b1220 !important;
+  color: #e5eefb !important;
+}
+
+.dark .admin-dashboard .bg-white {
+  background-color: #0b1220 !important;
+  border-color: #243244 !important;
+  color: #e5eefb !important;
+}
+
+.dark .admin-dashboard .text-gray-900,
+.dark .admin-dashboard .text-gray-800,
+.dark .admin-dashboard .text-gray-700,
+.dark .admin-dashboard .text-gray-600 {
+  color: #e5eefb !important;
+}
+
+.dark .admin-dashboard .text-gray-500,
+.dark .admin-dashboard .text-gray-400 {
+  color: #9fb0c7 !important;
+}
+
+

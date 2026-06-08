@@ -1,0 +1,9 @@
+.boxed-card {
+  @apply bg-white
+         dark:bg-[#0b1220]
+         border border-gray-200
+         dark:border-[#243244]
+         rounded-lg
+         p-4
+         shadow-md;
+}
