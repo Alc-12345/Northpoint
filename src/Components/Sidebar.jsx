@@ -56,7 +56,7 @@ const [activeMenu, setActiveMenu] = useState(null);
       {/* ================= LEFT SIDEBAR ================= */}
       <div className="w-64 h-screen fixed left-0 top-0 bg-white dark:bg-[#0b1220] text-gray-700 dark:text-slate-300 border-r dark:border-[#18a8e6]/50 flex flex-col transition-colors duration-300">
         {/* Logo */}
-        <div className="p-5 border-b dark:border-[#243244]">
+        <div className="px-5 pt-3 h-16 border-b dark:border-[#243244]">
           <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-white">
             <span className="text-[#18a8e6]">CRM</span>
           </h1>
@@ -148,9 +148,21 @@ const [activeMenu, setActiveMenu] = useState(null);
                 >
                   Add Employee
                 </NavLink>
+                
               </div>
             )}
             {activeMenu === "hr" && (
+              <div className="ml-6 mt-2 space-y-1 text-sm">
+                <NavLink
+                  to="/projects"
+                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                >
+                  Project
+                </NavLink>
+                
+              </div>
+            )}
+            {/* {activeMenu === "hr" && (
               <div className="ml-6 mt-2 space-y-1 text-sm">
                 <NavLink
                   to="/client-billing-finance"
@@ -168,8 +180,8 @@ const [activeMenu, setActiveMenu] = useState(null);
                 Salary
                  </NavLink>
               </div>
-            )}
-                  {activeMenu === "hr" && (
+            )} */}
+                  {/* {activeMenu === "hr" && (
               <div className="ml-6 mt-2 space-y-1 text-sm">
                 <NavLink
                   to="/add-task"
@@ -178,7 +190,7 @@ const [activeMenu, setActiveMenu] = useState(null);
                Add Task
                  </NavLink>
               </div>
-            )}
+            )} */}
           </div>
 {/* 
           <NavLink to="/client-billing-finance" className={linkClass}>
@@ -207,63 +219,54 @@ const [activeMenu, setActiveMenu] = useState(null);
                 >
                   All Tasks
                 </NavLink>
+                
                 <NavLink
-                  to="/tasks/completed"
+                  to="/add-task"
                   className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
                 >
-                  Completed
+                  Add Task
                 </NavLink>
+                 
               </div>
             )}
           </div>
-
-          {/* Projects */}
-          <div className="pt-2">
-            <div className="flex items-center justify-between px-1 pb-2 text-sm font-semibold text-gray-700 dark:text-white">
-              <NavLink to="/projects" className="flex items-center gap-3">
-                <FiFolder /> Projects
-              </NavLink>
-              <span className="text-lg leading-none text-slate-500 dark:text-slate-400">+</span>
-            </div>
-            <div className="space-y-2 text-sm">
-              <NavLink
-                to="/projects"
-                className="flex items-center gap-3 rounded-lg px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-[#172235]"
-              >
-                <span className="h-3 w-3 rounded bg-pink-400" />
-                Event Planning
-              </NavLink>
-              <NavLink
-                to="/projects"
-                className="flex items-center gap-3 rounded-lg px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-[#172235]"
-              >
-                <span className="h-3 w-3 rounded bg-blue-400" />
-                Breakfast Plan
-              </NavLink>
-            </div>
-            <div className="mt-4 rounded-lg border border-gray-200 p-4 dark:border-[#243244] dark:bg-[#0b1220]">
-              <p className="text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                User Summary
-              </p>
-              <div className="mt-4 flex items-center justify-between gap-3 text-xs">
-                <span className="text-gray-700 dark:text-slate-300">Admins: 12</span>
-                <span className="text-gray-700 dark:text-slate-300">Emp: 330</span>
+          <div>
+            <button
+                onClick={() => toggleMenu("Finance")}
+              className="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
+            >
+              <span className="flex items-center gap-3">
+                <FiDollarSign /> Finance
+              </span>
+              <FiChevronDown
+                  className={`transition-transform ${
+                  activeMenu === "Finance" ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {activeMenu === "Finance" && (
+              <div className="ml-6 mt-2 space-y-1 text-sm">
+                <NavLink
+                  to="/client-billing-finance"
+                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                > Finance
+                </NavLink>
               </div>
-              <div className="mt-4 flex items-center justify-between">
-                <div className="space-y-2 text-[11px] text-slate-500 dark:text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                    Active (310)
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-slate-500" />
-                    Inactive (32)
-                  </div>
-                </div>
-                <div className="h-12 w-12 rounded-full border-4 border-emerald-400 border-l-slate-600" />
+            )}
+            {activeMenu === "Finance" && (
+              <div className="ml-6 mt-2 space-y-1 text-sm">
+                <NavLink
+                  to="/payroll"
+                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                >
+                Salary
+                 </NavLink>
               </div>
-            </div>
+            )}
+            
           </div>
+
+          
 
           {/* Reports */}
           <NavLink to="/reports" className={linkClass}>
@@ -274,10 +277,7 @@ const [activeMenu, setActiveMenu] = useState(null);
             <FiUser /> Payroll
           </NavLink> */}
 
-          {/* Clients */}
-          <NavLink to="/client-dashboard" className={linkClass}>
-            <FiUser /> Client Dashboard
-          </NavLink>
+          
 
           <NavLink to="/clients" className={linkClass}>
             <FiUser /> Manage Clients
@@ -287,16 +287,10 @@ const [activeMenu, setActiveMenu] = useState(null);
           <NavLink to="/asset-management" className={linkClass}>
             <FiUser /> Asset Management
           </NavLink>
-          {/* <NavLink to="/chats" className={linkClass}>
-            <FiMessageCircle/> <span>Chats</span>
-          </NavLink> */}
-          {/* CRM */}
-           <NavLink to="/apps" className={linkClass}>
-            <FiHome /> <span>Apps</span>
-          </NavLink>
-          <NavLink to="/charts" className={linkClass}>
+         
+          {/* <NavLink to="/charts" className={linkClass}>
            <FiPieChart /> <span>Charts</span>
-          </NavLink>
+          </NavLink> */}
           <NavLink to="/help" className={linkClass}>
             <FiHelpCircle /> Help Desk
           </NavLink>
@@ -316,7 +310,7 @@ const [activeMenu, setActiveMenu] = useState(null);
             <FiMenu className="cursor-pointer text-gray-600 dark:text-gray-300" />
 
             <div className="relative">
-              <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
+              <FiSearch className="absolute left-3 top-1.5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search"
@@ -329,9 +323,9 @@ const [activeMenu, setActiveMenu] = useState(null);
           <div className="flex items-center gap-6">
             {/* Theme Toggle */}
             <div className="p-4 border-t dark:border-[#243244] flex items-center justify-between">
-              <span className="flex items-center gap-2 text-gray-700 dark:text-white">
+              <span className="flex items-center gap-5 text-gray-700 dark:text-white">
                 {theme === "dark" ? <FiMoon /> : <FiSun />}
-                {theme === "dark" ? "Dark" : "Light"}
+                {/* {theme === "dark" ? "Dark" : "Light"} */}
               </span>
 
               <button

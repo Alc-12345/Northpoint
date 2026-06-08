@@ -37,6 +37,11 @@ export default function ClientSidebar() {
       label: "Hour Bucket",
       path: "/client/hour-bucket",
     },
+    {
+      icon: <FiGrid size={18} />,
+      label: "Project Progress",
+      path: "/client/project-progress",
+    }
   ];
 
   return (

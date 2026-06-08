@@ -99,64 +99,6 @@ export default function AddTeam() {
           icon={<FiBriefcase />}
         />
       </div>
-      {/* Add Team Form */}
-<div className="bg-[#111C2D] border border-[#243244] rounded-xl p-6 mb-6">
-
-  <h2 className="text-xl font-semibold text-white mb-5">
-    Add New Team Member
-  </h2>
-
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-    <input
-      type="text"
-      placeholder="Full Name"
-      className="bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white"
-    />
-
-    <input
-      type="email"
-      placeholder="Email"
-      className="bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white"
-    />
-
-    <input
-      type="text"
-      placeholder="Phone Number"
-      className="bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white"
-    />
-
-    <select className="bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white">
-      <option>Frontend Developer</option>
-      <option>Backend Developer</option>
-      <option>UI/UX Designer</option>
-      <option>Project Manager</option>
-    </select>
-
-    <input
-      type="date"
-      className="bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white"
-    />
-
-    <select className="bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white">
-      <option>Active</option>
-      <option>Inactive</option>
-    </select>
-
-    <input
-      type="file"
-      className="bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-2 text-gray-300 md:col-span-2"
-    />
-
-    <button
-      className="bg-[#18A8E6] hover:bg-[#1394cb] text-white py-3 rounded-lg md:col-span-2"
-    >
-      Add Team Member
-    </button>
-
-  </div>
-
-</div>
 
       {/* Search */}
       <div className="bg-[#111C2D] border border-[#243244] rounded-xl p-4 mb-6">

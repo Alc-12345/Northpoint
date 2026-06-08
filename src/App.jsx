@@ -37,7 +37,8 @@ import ChatPage from "./Pages/ChatPage.jsx";
 import AddTeam from "./Pages/AddTeam.jsx";
 import ClientLayout from "./Layout/ClientLayout";
 import AssignTask from "./Pages/AssignTask.jsx";
-import Finance from "./Pages/Finance.jsx"
+import Finance from "./Pages/Finance.jsx";
+import ProjectProgress from "./Pages/ProjectProgress.jsx";
 
 
 function App() {
@@ -213,6 +214,14 @@ function App() {
   element={
     <ClientLayout>
       <Finance />
+    </ClientLayout>
+  }
+/>
+<Route
+  path="/client/project-progress"
+  element={
+    <ClientLayout>
+      <ProjectProgress />
     </ClientLayout>
   }
 />
