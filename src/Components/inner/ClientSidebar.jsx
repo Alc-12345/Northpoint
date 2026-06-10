@@ -7,6 +7,12 @@ import {
   FiClock,
   FiSettings,
   FiHelpCircle,
+  FiMessageCircle,
+   FiTrendingUp,
+  FiFolder,
+  FiCalendar,
+  FiThumbsUp,
+  FiBell,
 } from "react-icons/fi";
 import { NavLink } from "react-router-dom";
 
@@ -38,10 +44,37 @@ export default function ClientSidebar() {
       path: "/client/hour-bucket",
     },
     {
-      icon: <FiGrid size={18} />,
+      icon: < FiTrendingUp size={18} />,
       label: "Project Progress",
       path: "/client/project-progress",
-    }
+    },
+      {
+        icon: <FiFolder size={18} />,
+        label: "Deliverables",  
+        path: "/client/deliverables",
+      },
+      {
+        icon: <FiCalendar size={18} />,
+        label: "Timeline",  
+        path: "/client/Timeline",
+      },
+       {
+        icon: <FiMessageCircle size={18} />,
+        label: "Chats",  
+        path: "/client/chats",
+      },
+       {
+        icon: <FiThumbsUp size={18} />,
+        label: "Feedback",  
+        path: "/client/feedback",
+      },
+      {
+        icon: <FiBell size={18} />,
+        label: "Notification",  
+        path: "/client/Notification",
+      },
+
+      
   ];
 
   return (
@@ -58,27 +91,27 @@ export default function ClientSidebar() {
         </span>
       </div>
 
-      {/* Menu */}
-      <nav className="flex-1 p-4 space-y-2">
+      {/* Scrollable Menu */}
+  <nav className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-[#18A8E6] scrollbar-track-[#0B1220]">
 
-        {menu.map((item) => (
-          <NavLink
-            key={item.label}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive
-                  ? "bg-[#18A8E6] text-white"
-                  : "text-gray-400 hover:bg-[#172235] hover:text-white"
-              }`
-            }
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
+    {menu.map((item) => (
+      <NavLink
+        key={item.label}
+        to={item.path}
+        className={({ isActive }) =>
+          `flex items-center gap-3 px-4 py-1 rounded-lg transition-all ${
+            isActive
+              ? "bg-[#18A8E6] text-white"
+              : "text-gray-400 hover:bg-[#172235] hover:text-white"
+          }`
+        }
+      >
+        {item.icon}
+        <span>{item.label}</span>
+      </NavLink>
+    ))}
 
-      </nav>
+  </nav>
 
       {/* Footer */}
       <div className="border-t border-[#243244] p-4 space-y-2">

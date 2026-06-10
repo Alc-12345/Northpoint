@@ -18,7 +18,7 @@ import ClientDashboard from "./Pages/ClientDashboard";
 import AddClient from "./Pages/AddClient";  
 import ProjectDetails from "./Pages/ProjectDetails";
 import AddEmployee from "./Pages/AddEmployee";  
-import Apps from "./Pages/Apps";
+
 import Charts from "./Pages/Charts";
 
 import Tables from "./Pages/Tables";
@@ -39,6 +39,11 @@ import ClientLayout from "./Layout/ClientLayout";
 import AssignTask from "./Pages/AssignTask.jsx";
 import Finance from "./Pages/Finance.jsx";
 import ProjectProgress from "./Pages/ProjectProgress.jsx";
+import DeliverablesPage from "./Pages/DeliverablesPage.jsx";
+import TimelinePage from "./Pages/Timeline.jsx";
+import Feedback from "./Pages/Feedback.jsx";
+import Notification from "./Pages/Notifications.jsx"
+
 
 
 function App() {
@@ -225,7 +230,46 @@ function App() {
     </ClientLayout>
   }
 />
-
+<Route
+  path="/client/deliverables"
+  element={
+    <ClientLayout>
+      <DeliverablesPage />
+    </ClientLayout>
+  }
+/>  
+<Route
+  path="/client/Timeline"
+  element={
+    <ClientLayout>
+      <TimelinePage />
+    </ClientLayout>
+  }
+/> 
+ <Route
+        path="/client/chats"
+        element={
+          <ClientLayout>
+            <ChatPage />
+          </ClientLayout>
+        }
+       /> 
+        <Route
+        path="/client/Feedback"
+        element={
+          <ClientLayout>
+            <Feedback />
+          </ClientLayout>
+        }
+       /> 
+<Route
+        path="/client/Notification"
+        element={
+          <ClientLayout>
+            <Notification />
+          </ClientLayout>
+        }
+       /> 
 {/* <Route
   path="/client/hour-bucket"
   element={
@@ -250,14 +294,7 @@ function App() {
           </MainLayout>
         }
        />  
-        <Route
-        path="/apps"
-        element={
-          <MainLayout>
-            <Apps />
-          </MainLayout>
-        }
-       />  
+       
         <Route
         path="/charts"
         element={

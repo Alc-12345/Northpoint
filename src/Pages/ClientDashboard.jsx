@@ -29,29 +29,25 @@ const files = [
 
 export default function ClientDashboard() {
   return (
-    <div className="min-h-screen bg-slate-100 p-6 dark:bg-[#07111f]">
+    <div className="min-h-screen bg-[#0B1220] p-6 dark:bg-[#0B1220]">
 
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.25em] text-slate-500">
+          <p className="text-xs uppercase tracking-[0.25em] text-gray-500">
             Client Dashboard
           </p>
 
-          <h1 className="mt-1 text-2xl font-semibold dark:text-white">
+          <h1 className="mt-1 text-2xl font-semibold text-white">
             Project Portal
           </h1>
         </div>
 
-        <button className="flex items-center gap-2 rounded-lg bg-[#18a8e6] px-4 py-2 text-sm font-semibold text-white">
-          <FiPlus />
-          New Request
-        </button>
+       
       </div>
 
-      <div className="grid grid-cols-12 gap-5">
+      <div className="grid grid-cols-12 gap-5 ">
 
         <Panel className="col-span-12 lg:col-span-8" title="Project Progress">
-
           <div className="grid md:grid-cols-[180px_1fr] gap-5">
 
             <div className="flex justify-center items-center">
