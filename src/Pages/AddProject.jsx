@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { projectApi } from "../services/api";
 
 export default function AddProject() {
   const navigate = useNavigate();
@@ -29,6 +30,8 @@ export default function AddProject() {
     milestone: "",
     description: "",
   });
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -37,10 +40,27 @@ export default function AddProject() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
-    navigate("/projects");
+    setError("");
+    setIsSubmitting(true);
+
+    const payload = { ...formData };
+    ["storyPoints", "estimatedHours", "budget"].forEach((field) => {
+      if (!payload[field]) delete payload[field];
+    });
+    ["startDate", "endDate"].forEach((field) => {
+      if (!payload[field]) delete payload[field];
+    });
+
+    try {
+      await projectApi.create(payload);
+      navigate("/projects");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -62,6 +82,11 @@ export default function AddProject() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-10">
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+              {error}
+            </div>
+          )}
 
           {/* ================= BASIC INFO ================= */}
           <div>
@@ -229,9 +254,10 @@ export default function AddProject() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600"
             >
-              Create Project
+              {isSubmitting ? "Creating..." : "Create Project"}
             </button>
           </div>
 

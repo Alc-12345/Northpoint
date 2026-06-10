@@ -1,52 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiChevronDown, FiMoreVertical } from "react-icons/fi";
+import { employeeApi } from "../../services/api";
 
 export default function EmployeeGridSection({ view }) {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(8);
+  const [employees, setEmployees] = useState([]);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const employees = [
-    {
-      id: 1,
-      name: "Anthony Lewis",
-      role: "Software Developer",
-      email: "anthony@example.com",
-      phone: "+91 9876543210",
-      projects: 20,
-      done: 13,
-      progress: 7,
-      productivity: 65,
-      color: "bg-purple-500",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    {
-      id: 2,
-      name: "Brian Villalobos",
-      role: "Developer",
-      email: "brian@example.com",
-      phone: "+91 9876543211",
-      projects: 30,
-      done: 10,
-      progress: 20,
-      productivity: 30,
-      color: "bg-yellow-500",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    },
-    {
-      id: 3,
-      name: "Harvey Smith",
-      role: "Developer",
-      email: "harvey@example.com",
-      phone: "+91 9876543212",
-      projects: 25,
-      done: 7,
-      progress: 18,
-      productivity: 20,
-      color: "bg-red-500",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-    },
-  ];
+  useEffect(() => {
+    const loadEmployees = async () => {
+      try {
+        const data = await employeeApi.getAll();
+        setEmployees(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadEmployees();
+  }, []);
 
   return (
     <div className="bg-white dark:bg-[#0b1220] border dark:border-[#243244] rounded-xl">
@@ -65,6 +42,17 @@ export default function EmployeeGridSection({ view }) {
 
       {/* CONTENT */}
       <div className="p-6">
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        {isLoading && (
+          <div className="text-sm text-gray-500">Loading employees...</div>
+        )}
+        {!isLoading && employees.length === 0 && !error && (
+          <div className="text-sm text-gray-500">No employees found.</div>
+        )}
 
         <div
           className={`${
@@ -77,9 +65,9 @@ export default function EmployeeGridSection({ view }) {
           {employees.slice(0, visible).map((emp) => (
 
             <div
-              key={emp.id}
+              key={emp._id}
               onClick={() =>
-                navigate(`/employees/${emp.id}`, {
+                navigate(`/employees/${emp._id}`, {
                   state: emp,
                 })
               }
@@ -106,7 +94,12 @@ export default function EmployeeGridSection({ view }) {
                   />
 
                   <img
-                    src={emp.avatar}
+                    src={
+                      emp.photo ||
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        emp.name
+                      )}&background=f97316&color=fff`
+                    }
                     alt={emp.name}
                     className="w-12 h-12 rounded-full border-2 border-orange-500"
                   />
@@ -119,7 +112,7 @@ export default function EmployeeGridSection({ view }) {
                   </h3>
 
                   <span className="text-xs bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300 px-2 py-1 rounded">
-                    {emp.role}
+                    {emp.role || "Employee"}
                   </span>
 
                   {view === "list" && (
@@ -138,17 +131,17 @@ export default function EmployeeGridSection({ view }) {
                   <div className="grid grid-cols-3 text-center mt-4">
                     <div>
                       <p className="text-xs text-gray-500">Projects</p>
-                      <p className="font-semibold">{emp.projects}</p>
+                      <p className="font-semibold">{emp.project ? 1 : 0}</p>
                     </div>
 
                     <div>
                       <p className="text-xs text-gray-500">Done</p>
-                      <p className="font-semibold">{emp.done}</p>
+                      <p className="font-semibold">0</p>
                     </div>
 
                     <div>
                       <p className="text-xs text-gray-500">Progress</p>
-                      <p className="font-semibold">{emp.progress}</p>
+                      <p className="font-semibold">{emp.status}</p>
                     </div>
                   </div>
 
@@ -156,13 +149,13 @@ export default function EmployeeGridSection({ view }) {
                   <div className="mt-4">
                     <div className="flex justify-between text-xs">
                       <span>Productivity</span>
-                      <span>{emp.productivity}%</span>
+                      <span>{emp.status === "Active" ? 75 : 25}%</span>
                     </div>
 
                     <div className="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full">
                       <div
                         className={`${emp.color} h-1.5 rounded-full`}
-                        style={{ width: `${emp.productivity}%` }}
+                        style={{ width: emp.status === "Active" ? "75%" : "25%" }}
                       />
                     </div>
                   </div>
@@ -172,7 +165,7 @@ export default function EmployeeGridSection({ view }) {
               {/* LIST RIGHT SIDE */}
               {view === "list" && (
                 <div className="text-sm text-gray-500 whitespace-nowrap">
-                  {emp.productivity}%
+                  {emp.status}
                 </div>
               )}
 
@@ -181,6 +174,17 @@ export default function EmployeeGridSection({ view }) {
           ))}
 
         </div>
+
+        {employees.length > visible && (
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={() => setVisible((current) => current + 8)}
+              className="rounded-lg bg-orange-500 px-5 py-2 text-sm text-white hover:bg-orange-600"
+            >
+              Load More
+            </button>
+          </div>
+        )}
 
       </div>
     </div>

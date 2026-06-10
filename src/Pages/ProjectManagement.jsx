@@ -1,6 +1,27 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { projectApi } from "../services/api";
 
 export default function ProjectDashboard() {
+  const [projects, setProjects] = useState([]);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const data = await projectApi.getAll();
+        setProjects(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProjects();
+  }, []);
+
   return (
     <div className="p-6 bg-gray-100 dark:bg-[#0b1220] min-h-screen text-gray-800 dark:text-gray-200">
       <div className="flex justify-between items-center mb-6">
@@ -15,19 +36,28 @@ export default function ProjectDashboard() {
       </div>
 
       {/* Project Cards */}
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+          {error}
+        </div>
+      )}
+      {isLoading && (
+        <div className="text-sm text-gray-500">Loading projects...</div>
+      )}
+      {!isLoading && projects.length === 0 && !error && (
+        <div className="text-sm text-gray-500">No projects found.</div>
+      )}
       <div className="grid md:grid-cols-3 gap-6">
-        <ProjectCard
-          name="ERP System"
-          manager="Rahul Sharma"
-          progress="70%"
-          health="Good"
-        />
-        <ProjectCard
-          name="E-commerce Platform"
-          manager="Priya Singh"
-          progress="40%"
-          health="At Risk"
-        />
+        {projects.map((project) => (
+          <ProjectCard
+            key={project._id}
+            id={project._id}
+            name={project.name}
+            manager={project.manager || "Not assigned"}
+            progress={project.storyPoints ? `${project.storyPoints} pts` : "0%"}
+            health={project.endDate ? "Scheduled" : "Good"}
+          />
+        ))}
       </div>
     </div>
   );

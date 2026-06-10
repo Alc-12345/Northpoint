@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { clientApi } from "../services/api";
 
 export default function AddClient() {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ export default function AddClient() {
     phone: "",
     status: "Active",
   });
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -20,14 +23,19 @@ export default function AddClient() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setIsSubmitting(true);
 
-    console.log("New Client:", formData);
-
-    // 🔥 Later connect to backend API here
-
-    navigate("/clients"); // Redirect back to client list
+    try {
+      await clientApi.create(formData);
+      navigate("/clients");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -36,6 +44,11 @@ export default function AddClient() {
 
       <div className="bg-white dark:bg-[#0b1220] p-6 rounded-xl shadow border border-gray-200 dark:border-[#243244] max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+              {error}
+            </div>
+          )}
 
           {/* Company Name */}
           <div>
@@ -128,9 +141,10 @@ export default function AddClient() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
-              Save Client
+              {isSubmitting ? "Saving..." : "Save Client"}
             </button>
           </div>
 

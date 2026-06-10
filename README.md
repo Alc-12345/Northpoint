@@ -14,3 +14,25 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Backend
+
+The backend is set up with Express and MongoDB using a controller, route, and model structure.
+
+Create `backend/.env` using `backend/.env.example`, then start MongoDB and run:
+
+```bash
+npm run server
+```
+
+The frontend axios client uses `VITE_API_URL`. Create `.env` from `.env.example` if you need to change the API base URL.
+
+Available API resources:
+
+- `GET /api/health`
+- `/api/employees`
+- `/api/clients`
+- `/api/projects`
+- `/api/tasks`
+
+Each resource supports `GET /`, `POST /`, `GET /:id`, `PUT /:id`, and `DELETE /:id`.

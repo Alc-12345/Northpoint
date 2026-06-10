@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { taskApi } from "../services/api";
 
 export default function AddTask() {
   const navigate = useNavigate();
@@ -13,6 +14,8 @@ export default function AddTask() {
     assignedTo: "",
     dueDate: "",
   });
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -21,12 +24,22 @@ export default function AddTask() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+    setError("");
+    setIsSubmitting(true);
 
-    // After submit redirect to dashboard
-    navigate("/task-management");
+    const payload = { ...formData };
+    if (!payload.dueDate) delete payload.dueDate;
+
+    try {
+      await taskApi.create(payload);
+      navigate("/tasks");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -47,6 +60,11 @@ export default function AddTask() {
         "
       >
         <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+            {error}
+          </div>
+        )}
         <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
           Add New Task
@@ -168,9 +186,10 @@ export default function AddTask() {
           <div className="flex justify-end pt-4">
             <button
               type="submit"
+              disabled={isSubmitting}
               className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition"
             >
-              Create Task
+              {isSubmitting ? "Creating..." : "Create Task"}
             </button>
           </div>
 

@@ -1,49 +1,41 @@
+import { useEffect, useMemo, useState } from "react";
 import { FiGrid, FiUsers, FiCheckCircle, FiClock } from "react-icons/fi";
 import { Link } from "react-router-dom";
-
-const stats = [
-  { title: "Total Tasks", value: 300, change: "+10.8%", icon: <FiGrid /> },
-  { title: "Active Tasks", value: 270, change: "+9.5%", icon: <FiClock /> },
-  { title: "In Review", value: 30, change: "+4.1%", icon: <FiUsers /> },
-  { title: "Completed", value: 200, change: "+18.9%", icon: <FiCheckCircle /> },
-];
-
-const tasks = [
-  {
-    id: 1,
-    name: "Build Login API",
-    role: "Backend Dev",
-    project: "ERP System",
-    progress: 80,
-    company: "BrightWave Innovations",
-  },
-  {
-    id: 2,
-    name: "Design Dashboard UI",
-    role: "UI/UX Designer",
-    project: "Admin Panel",
-    progress: 40,
-    company: "Stellar Dynamics",
-  },
-  {
-    id: 3,
-    name: "Setup CI/CD",
-    role: "DevOps",
-    project: "Education Platform",
-    progress: 15,
-    company: "Quantum Nexus",
-  },
-  {
-    id: 4,
-    name: "Navigation Module",
-    role: "Frontend Dev",
-    project: "Safety App",
-    progress: 85,
-    company: "Evolvion Enterprises",
-  },
-];
+import { taskApi } from "../services/api";
 
 export default function TaskManagement() {
+  const [tasks, setTasks] = useState([]);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        const data = await taskApi.getAll();
+        setTasks(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTasks();
+  }, []);
+
+  const stats = useMemo(() => {
+    const completed = tasks.filter((task) => task.status === "Completed").length;
+    const active = tasks.filter((task) => task.status === "In Progress").length;
+    const pending = tasks.filter((task) => task.status === "Pending").length;
+
+    return [
+      { title: "Total Tasks", value: tasks.length, change: "+0%", icon: <FiGrid /> },
+      { title: "Active Tasks", value: active, change: "+0%", icon: <FiClock /> },
+      { title: "Pending", value: pending, change: "+0%", icon: <FiUsers /> },
+      { title: "Completed", value: completed, change: "+0%", icon: <FiCheckCircle /> },
+    ];
+  }, [tasks]);
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-[#0b1220] p-8 transition-colors duration-300">
       
@@ -141,10 +133,21 @@ export default function TaskManagement() {
         </div>
 
         {/* Task Grid */}
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        {isLoading && (
+          <div className="text-sm text-gray-500">Loading tasks...</div>
+        )}
+        {!isLoading && tasks.length === 0 && !error && (
+          <div className="text-sm text-gray-500">No tasks found.</div>
+        )}
         <div className="grid grid-cols-4 gap-6">
           {tasks.map((task) => (
             <div
-              key={task.id}
+              key={task._id}
               className="
               bg-white dark:bg-[#262626]
               border border-gray-200 dark:border-[#243244]
@@ -156,32 +159,32 @@ export default function TaskManagement() {
             >
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold text-gray-800 dark:text-white">
-                  {task.name}
+                  {task.title}
                 </h3>
 
                 <span className="text-xs bg-orange-500 text-white px-2 py-1 rounded">
-                  {task.role}
+                  {task.priority}
                 </span>
               </div>
 
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                Project: {task.project}
+                Project: {task.project || "Not assigned"}
               </p>
 
               {/* Progress */}
               <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full mb-2">
                 <div
                   className="bg-orange-500 h-2 rounded-full"
-                  style={{ width: `${task.progress}%` }}
+                  style={{ width: task.status === "Completed" ? "100%" : "35%" }}
                 ></div>
               </div>
 
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {task.progress}% Complete
+                {task.status}
               </p>
 
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
-                Company: {task.company}
+                Assigned To: {task.assignedTo || "Unassigned"}
               </p>
             </div>
           ))}

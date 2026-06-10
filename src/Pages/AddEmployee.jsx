@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { employeeApi } from "../services/api";
 
 export default function AddEmployee() {
   const navigate = useNavigate();
@@ -28,6 +29,8 @@ export default function AddEmployee() {
     status: "Active",
     photo: null,
   });
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -46,10 +49,27 @@ export default function AddEmployee() {
       });
     }
   };
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
-    navigate("/employees");
+    setError("");
+    setIsSubmitting(true);
+
+    const payload = {
+      ...formData,
+      photo: formData.photo ? formData.photo.name : "",
+    };
+
+    if (!payload.salary) delete payload.salary;
+    if (!payload.joiningDate) delete payload.joiningDate;
+
+    try {
+      await employeeApi.create(payload);
+      navigate("/employees/all");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -63,6 +83,11 @@ export default function AddEmployee() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-10">
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+              {error}
+            </div>
+          )}
           {/* ================= BASIC INFO ================= */}
           <div>
             <h2 className={sectionTitle}>Basic Information</h2>
@@ -237,9 +262,10 @@ export default function AddEmployee() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
             >
-              Create Employee
+              {isSubmitting ? "Creating..." : "Create Employee"}
             </button>
           </div>
         </form>

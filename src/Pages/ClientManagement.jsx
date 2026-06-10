@@ -1,31 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import { clientApi } from "../services/api";
 
 export default function ClientManagementPage() {
-  const [clients, setClients] = useState([
-    {
-      id: 1,
-      name: "TechNova Solutions",
-      industry: "FinTech",
-      contact: "Rahul Mehta",
-      email: "rahul@technova.com",
-      phone: "+91 9876543210",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Skyline Retail",
-      industry: "E-commerce",
-      contact: "Priya Sharma",
-      email: "priya@skyline.com",
-      phone: "+91 9123456780",
-      status: "Inactive",
-    },
-  ]);
+  const [clients, setClients] = useState([]);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleDelete = (id) => {
-    setClients(clients.filter((client) => client.id !== id));
+  useEffect(() => {
+    const loadClients = async () => {
+      try {
+        const data = await clientApi.getAll();
+        setClients(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadClients();
+  }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      await clientApi.remove(id);
+      setClients(clients.filter((client) => client._id !== id));
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -43,6 +47,17 @@ export default function ClientManagementPage() {
       </div>
 
       <div className="bg-white dark:bg-[#0b1220] rounded-xl shadow-sm border border-gray-200 dark:border-[#243244] overflow-x-auto">
+        {error && (
+          <div className="m-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        {isLoading && (
+          <div className="p-6 text-sm text-gray-500">Loading clients...</div>
+        )}
+        {!isLoading && clients.length === 0 && !error && (
+          <div className="p-6 text-sm text-gray-500">No clients found.</div>
+        )}
         <table className="w-full text-sm">
           <thead className="bg-gray-100 dark:bg-[#2a2a2a]">
             <tr>
@@ -59,7 +74,7 @@ export default function ClientManagementPage() {
           <tbody>
             {clients.map((client) => (
               <tr
-                key={client.id}
+                key={client._id}
                 className="border-t border-gray-200 dark:border-[#243244]"
               >
                 <td className="p-3 font-medium">{client.name}</td>
@@ -84,7 +99,7 @@ export default function ClientManagementPage() {
                     <FiEdit />
                   </button>
                   <button
-                    onClick={() => handleDelete(client.id)}
+                    onClick={() => handleDelete(client._id)}
                     className="text-red-600 hover:text-red-800"
                   >
                     <FiTrash2 />
