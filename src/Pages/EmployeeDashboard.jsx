@@ -83,7 +83,7 @@ const EmployeeDashboard = () => {
 
         {/* ===== PROFILE ===== */}
 
-        <div className="col-span-12 lg:col-span-4 bg-white dark:bg-[#2A2A2A] p-6 rounded-xl shadow text-center">
+        <div className="col-span-12 lg:col-span-4 bg-white dark:bg-[#0b1220] border border-[#243244] p-6 rounded-xl shadow text-center">
 
           <div className="w-20 h-20 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
             <FiUser />
@@ -111,7 +111,7 @@ const EmployeeDashboard = () => {
 
         {/* ===== PROJECTS ===== */}
 
-        <div className="col-span-12 lg:col-span-8 bg-white dark:bg-[#2A2A2A] p-6 rounded-xl shadow">
+        <div className="col-span-12 lg:col-span-8 bg-white  dark:bg-[#0b1220] border border-[#243244] p-6 rounded-xl shadow">
 
           <div className="flex justify-between mb-4">
             <h2 className="font-semibold text-gray-800 dark:text-white">
@@ -136,7 +136,7 @@ const EmployeeDashboard = () => {
                   </span>
                 </div>
 
-                <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded">
+                <div className="w-full bg-gray-200  dark:bg-[#0b1220] border border-[#243244] h-2 rounded">
                   <div
                     className="bg-blue-600 h-2 rounded"
                     style={{ width: `${project.progress}%` }}
@@ -155,7 +155,7 @@ const EmployeeDashboard = () => {
 
         {/* ===== TASKS ===== */}
 
-        <div className="col-span-12 lg:col-span-6 bg-white dark:bg-[#2A2A2A] p-6 rounded-xl shadow">
+        <div className="col-span-12 lg:col-span-6 bg-white  dark:bg-[#0b1220] border border-[#243244] p-6 rounded-xl shadow">
 
           <div className="flex justify-between mb-4">
             <h2 className="font-semibold text-gray-800 dark:text-white">
@@ -198,7 +198,7 @@ const EmployeeDashboard = () => {
 
         {/* ===== ACTIVITY ===== */}
 
-        <div className="col-span-12 lg:col-span-6 bg-white dark:bg-[#2A2A2A] p-6 rounded-xl shadow">
+        <div className="col-span-12 lg:col-span-6 bg-white  dark:bg-[#0b1220] border border-[#243244] p-6 rounded-xl shadow">
 
           <div className="flex items-center gap-2 mb-4">
             <FiActivity className="text-blue-600" />

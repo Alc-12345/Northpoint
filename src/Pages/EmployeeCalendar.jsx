@@ -49,7 +49,7 @@ const EmployeeCalendar = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen dark:bg-gray-900">
+    <div className="admin-dashboard p-6 bg-gray-100 min-h-screen dark:bg-[#0b1220] transition-colors duration-300">
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">

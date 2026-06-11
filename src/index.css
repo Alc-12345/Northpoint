@@ -59,4 +59,28 @@
   color: #9fb0c7 !important;
 }
 
+/* react-big-calendar dark theme overrides */
+.rbc-event {
+  background-color: #2563eb !important;
+  color: #fff !important;
+  border: none !important;
+}
+.rbc-toolbar button,
+.rbc-toolbar select,
+.rbc-toolbar label {
+  color: #e5eefb !important;
+}
+.rbc-toolbar button:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+.rbc-day-bg,
+.rbc-time-content,
+.rbc-month-row .rbc-date-cell {
+  background-color: transparent !important;
+}
+.rbc-day-slot .rbc-event,
+.rbc-time-view .rbc-event {
+  color: #fff !important;
+}
+
 

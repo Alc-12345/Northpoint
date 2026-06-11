@@ -33,7 +33,7 @@ export default function ClientManagementPage() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 dark:bg-[#121212] min-h-screen text-gray-800 dark:text-gray-200 transition">
+    <div className="admin-dashboard p-6 bg-gray-100 dark:bg-[#0b1220] min-h-screen text-gray-800 dark:text-gray-200 transition-colors duration-300">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Client Management</h2>
 

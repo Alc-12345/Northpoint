@@ -68,11 +68,11 @@ export default function ClientSidebar() {
         label: "Feedback",  
         path: "/client/feedback",
       },
-      {
-        icon: <FiBell size={18} />,
-        label: "Notification",  
-        path: "/client/Notification",
-      },
+      // {
+      //   icon: <FiBell size={18} />,
+      //   label: "Notification",  
+      //   path: "/client/Notification",
+      // },
 
       
   ];
