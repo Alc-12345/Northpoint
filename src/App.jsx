@@ -18,9 +18,7 @@ import ClientDashboard from "./Pages/ClientDashboard";
 import AddClient from "./Pages/AddClient";  
 import ProjectDetails from "./Pages/ProjectDetails";
 import AddEmployee from "./Pages/AddEmployee";  
-
 import Charts from "./Pages/Charts";
-
 import Tables from "./Pages/Tables";
 import Forms from "./Pages/Forms";
 import EmployeeDashboard from "./Pages/EmployeeDashboard";
@@ -43,7 +41,10 @@ import DeliverablesPage from "./Pages/DeliverablesPage.jsx";
 import TimelinePage from "./Pages/Timeline.jsx";
 import Feedback from "./Pages/Feedback.jsx";
 import Notification from "./Pages/Notifications.jsx"
-
+import CalendarManager from "./Pages/CalendarManager.jsx";
+import ETL from "./Pages/ETL.jsx";
+import Task from "./Pages/Task.jsx";
+import HourBucket from "./Pages/Bucket.jsx"
 
 
 function App() {
@@ -186,7 +187,31 @@ function App() {
           </MainLayout>
         }
        /> 
-    
+       <Route
+       path="/manage-calendar"
+       element={
+         <MainLayout>
+           <CalendarManager />
+         </MainLayout>
+       }
+     />
+     <Route
+  path="/assign-task"
+  element={
+    <MainLayout>
+      <AssignTask />
+    </MainLayout>
+  }
+/>
+     <Route
+       path="/etl"
+       element={
+        
+           <ETL />
+         
+       }
+     />
+
 <Route
   path="/client/dashboard"
   element={
@@ -206,10 +231,10 @@ function App() {
 />
 
  <Route
-  path="/client/assign-task"
+  path="/client/tasks"
   element={
     <ClientLayout>
-      <AssignTask />
+      <Task />
     </ClientLayout>
   }
 />
@@ -270,14 +295,14 @@ function App() {
           </ClientLayout>
         }
        /> 
-{/* <Route
+<Route
   path="/client/hour-bucket"
   element={
     <ClientLayout>
       <HourBucket />
     </ClientLayout>
   }
-/>     */}
+/>    
   <Route
         path="/projects/:id"
         element={

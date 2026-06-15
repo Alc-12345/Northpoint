@@ -84,3 +84,21 @@
 }
 
 
+/* Light Mode */
+.rbc-toolbar button,
+.rbc-toolbar select,
+.rbc-toolbar label {
+  color: #111827 !important;
+}
+
+/* Dark Mode */
+.dark .rbc-toolbar button,
+.dark .rbc-toolbar select,
+.dark .rbc-toolbar label {
+  color: #5a5757 !important;
+}
+
+.dark .rbc-toolbar button:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+} 
+

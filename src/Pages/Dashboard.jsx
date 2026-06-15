@@ -14,7 +14,6 @@ import Employees from "../components/inner/Employees";
 export default function Dashboard() {
   return (
     <div className=" admin-dashboard min-h-screen bg-gray-100 text-gray-900 dark:bg-[#0b1220] dark:text-white">
-      <DashboardHeader />
     
       <div className="w-full px-6 py-8 bg-gray-100 dark:bg-[#0b1220]">
         <div className="grid grid-cols-12 gap-6">
@@ -49,9 +48,7 @@ export default function Dashboard() {
             <Employees />
           </div>
 
-          <div className="col-span-4">
-            <ActiveUser />
-          </div>
+       
 
          
 

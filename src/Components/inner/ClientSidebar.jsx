@@ -31,7 +31,7 @@ export default function ClientSidebar() {
     {
       icon: <FiCheckSquare size={18} />,
       label: "Assign Task",
-      path: "/client/assign-task",
+      path: "/client/tasks",
     },
     {
       icon: <FiDollarSign size={18} />,

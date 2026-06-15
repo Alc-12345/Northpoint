@@ -8,7 +8,16 @@ import {
   FiMessageSquare,
   FiUpload,
   FiSettings,
+  FiPlus,
 } from "react-icons/fi";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { useNavigate } from "react-router-dom";
 
 export default function ClientDashboard() {
@@ -21,7 +30,15 @@ const navigate = useNavigate();
   const handleSettingsClick = () => {
     navigate("/client/Settings");
   };
-
+const handleAddHours = (task) => {
+  navigate("/client/hour-bucket", {
+    state: {
+      taskId: task.id,
+      taskName: task.name,
+      currentHours: task.hoursRemaining,
+    },
+  });
+};
   const [dashboardData, setDashboardData] = useState({
     projects: [],
     deadlines: [],
@@ -36,6 +53,39 @@ const navigate = useNavigate();
     },
     progressPercentage: 0,
   });
+  const addHours = (taskId) => {
+  const hours = Number(prompt("Add hours"));
+
+  if (!hours || hours <= 0) return;
+
+  setTasks((prev) =>
+    prev.map((task) =>
+      task.id === taskId
+        ? {
+            ...task,
+            hoursRemaining: task.hoursRemaining + hours,
+          }
+        : task
+    )
+  );
+};
+const [tasks, setTasks] = useState([
+  {
+    id: 1,
+    name: "Website Design",
+    hoursRemaining: 40,
+  },
+  {
+    id: 2,
+    name: "API Development",
+    hoursRemaining: 28,
+  },
+  {
+    id: 3,
+    name: "Testing",
+    hoursRemaining: 15,
+  },
+]);
 
   useEffect(() => {
     // Simulate API call - Replace with real API when available
@@ -147,6 +197,8 @@ const navigate = useNavigate();
             </div>
           </div>
         </Panel>
+        
+       
         <Panel className="col-span-12 lg:col-span-4" title="Financials">
           <MoneyRow label="Project Value" value={dashboardData.financials.projectValue} />
           <MoneyRow label="Amount Paid" value={dashboardData.financials.amountPaid} />
@@ -165,6 +217,42 @@ const navigate = useNavigate();
             ))}
           </div>
         </Panel>
+        <Panel
+  className="col-span-12 md:col-span-6"
+  title="Hour Buckets"
+>
+  <div className="grid grid-cols-2 gap-3">
+    {tasks.map((task) => (
+      <div
+        key={task.id}
+        className="relative rounded-xl border border-slate-700 bg-[#111827] p-4"
+      >
+        <button
+  onClick={() => handleAddHours(task)}
+  className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-cyan-500 flex items-center justify-center"
+>
+  <FiPlus />
+</button>
+
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-medium">{task.name}</h3>
+          <span className="text-cyan-400 font-bold">
+            {task.hoursRemaining}h
+          </span>
+        </div>
+
+        <div className="w-full bg-slate-800 rounded-full h-2">
+          <div
+            className="h-2 rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500"
+            style={{
+              width: `${Math.min(task.hoursRemaining, 100)}%`,
+            }}
+          />
+        </div>
+      </div>
+    ))}
+  </div>
+</Panel>
         <Panel
           className="col-span-12 md:col-span-6"
           title="Recent Deliverables"

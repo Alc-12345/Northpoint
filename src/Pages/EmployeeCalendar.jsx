@@ -62,7 +62,7 @@ const EmployeeCalendar = () => {
       <div className="grid grid-cols-12 gap-6">
 
         {/* Calendar Section */}
-        <div className="col-span-12 lg:col-span-9 bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
+       <div className="col-span-12 lg:col-span-9 bg-white dark:bg-[#0b1220] border dark:border-[#243244] p-6 rounded-xl shadow overflow-hidden">
 
           <Calendar
             localizer={localizer}

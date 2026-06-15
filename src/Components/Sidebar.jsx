@@ -20,6 +20,7 @@ import {
   FiPieChart,
   FiEdit,
   FiHelpCircle,
+  FiCalendar,
 } from "react-icons/fi";
 
 const Sidebar = ({ children }) => {
@@ -226,7 +227,12 @@ const [activeMenu, setActiveMenu] = useState(null);
                 >
                   Add Task
                 </NavLink>
-                 
+                <NavLink
+                  to="/assign-task"
+                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                >
+                  Assign Task
+                </NavLink>
               </div>
             )}
           </div>
@@ -276,11 +282,15 @@ const [activeMenu, setActiveMenu] = useState(null);
           {/* <NavLink to="/payroll" className={linkClass}>
             <FiUser /> Payroll
           </NavLink> */}
-
-          
+          <NavLink to="/manage-calendar" className={linkClass}>
+            <FiCalendar />Calendar
+          </NavLink>
 
           <NavLink to="/clients" className={linkClass}>
             <FiUser /> Manage Clients
+          </NavLink>
+           <NavLink to="/etl" className={linkClass}>
+            <FiUser /> ETL
           </NavLink>
 
           {/* Asset Management */}
@@ -310,7 +320,7 @@ const [activeMenu, setActiveMenu] = useState(null);
             <FiMenu className="cursor-pointer text-gray-600 dark:text-gray-300" />
 
             <div className="relative">
-              <FiSearch className="absolute left-3 top-1.5 text-gray-400" />
+              <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search"

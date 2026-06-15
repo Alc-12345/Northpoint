@@ -1,7 +1,9 @@
 import React from "react";
 import { FiCheckSquare, FiClock, FiFlag, FiCheckCircle } from "react-icons/fi";
+import {useNavigate} from "react-router-dom";
 
 const EmployeeTasks = () => {
+  const navigate = useNavigate();
   const tasks = [
     {
       id: 1,
@@ -127,7 +129,7 @@ const EmployeeTasks = () => {
 
             {/* Action Button */}
             {task.status !== "Completed" && (
-              <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+              <button onClick={() => navigate(`/tasks/${task.id}`)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
                 <FiCheckCircle />
                 Mark Complete
               </button>
