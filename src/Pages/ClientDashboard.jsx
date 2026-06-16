@@ -310,7 +310,7 @@ const [tasks, setTasks] = useState([
             );
           })}
         </Panel>
-        <Panel className="col-span-12" title="Notifications">
+        <Panel className="col-span-6" title="Notifications">
           {dashboardData.notifications.map((n) => (
             <div
               key={n}
