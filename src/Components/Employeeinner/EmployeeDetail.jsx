@@ -1,22 +1,54 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
+import { employeeApi } from "../../services/api";
 
 export default function EmployeeDetailsPage() {
-
   const navigate = useNavigate();
-  const location = useLocation();
-  const emp = location.state;
-
+  const { id } = useParams();
+  const [emp, setEmp] = useState(null);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [tab, setTab] = useState("projects");
-
-  // BLOCK STATE
   const [blocked, setBlocked] = useState(false);
+
+  useEffect(() => {
+    const loadEmployee = async () => {
+      try {
+        const data = await employeeApi.getById(id);
+        setEmp(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      loadEmployee();
+    }
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="p-6 text-gray-500 dark:text-gray-400">
+        Loading employee details...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-red-600 dark:text-red-400">
+        {error}
+      </div>
+    );
+  }
 
   if (!emp) {
     return (
       <div className="p-6 text-gray-500 dark:text-gray-400">
-        No employee data
+        Employee not found.
       </div>
     );
   }
@@ -70,19 +102,24 @@ export default function EmployeeDetailsPage() {
             <div className="flex flex-col items-center -mt-12 p-6">
 
               <img
-                src={emp.avatar}
+                src={
+                  emp.photo ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    emp.name || "Employee"
+                  )}&background=F97316&color=fff`
+                }
+                alt={emp.name}
                 className="w-20 h-20 rounded-full border-4 border-white dark:border-[#0b1220]"
               />
 
               <h2 className="mt-3 text-gray-900 dark:text-white font-semibold">
-                {emp.name}
+                {emp.name || "Employee Name"}
               </h2>
 
               <span className="bg-purple-100 dark:bg-purple-600 text-purple-600 dark:text-white text-xs px-3 py-1 rounded mt-2">
-                {emp.role}
+                {emp.role || "Employee"}
               </span>
 
-              {/* STATUS BADGE */}
               <span
                 className={`text-xs px-3 py-1 rounded mt-2 
                 ${blocked
@@ -90,7 +127,7 @@ export default function EmployeeDetailsPage() {
                   : "bg-green-100 text-green-600 dark:bg-green-600 dark:text-white"
                 }`}
               >
-                {blocked ? "Blocked" : "Active"}
+                {blocked ? "Blocked" : emp.status || "Active"}
               </span>
 
             </div>
@@ -98,16 +135,22 @@ export default function EmployeeDetailsPage() {
 
             <div className="px-6 pb-6 space-y-3">
 
-              <InfoRow label="Employee ID" value="EMP-0001"/>
-              <InfoRow label="Team" value="UI/UX Design"/>
-              <InfoRow label="Date Of Join" value="1st Jan 2023"/>
-              <InfoRow label="Report Office" value="Douglas Martini"/>
+              <InfoRow label="Employee ID" value={emp._id || "N/A"} />
+              <InfoRow label="Team" value={emp.project || "Not assigned"} />
+              <InfoRow
+                label="Date Of Join"
+                value={
+                  emp.joiningDate
+                    ? new Date(emp.joiningDate).toLocaleDateString()
+                    : "Not set"
+                }
+              />
+              <InfoRow label="Department" value={emp.department || "Not set"} />
 
               <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg mt-3">
                 Message
               </button>
 
-              {/* BLOCK BUTTON */}
               <button
                 onClick={() => setBlocked(!blocked)}
                 className={`w-full py-2 rounded-lg text-white
@@ -124,14 +167,13 @@ export default function EmployeeDetailsPage() {
           </div>
 
 
-          {/* BASIC INFORMATION */}
           <Card title="Basic information">
 
-            <InfoRow label="Phone" value="+1 458 787 878"/>
-            <InfoRow label="Email" value="peralt12@example.com" blue/>
-            <InfoRow label="Gender" value="Male"/>
-            <InfoRow label="Birthday" value="24th July 2000"/>
-            <InfoRow label="Address" value="Manchester, NJ"/>
+            <InfoRow label="Phone" value={emp.phone || "Not set"} />
+            <InfoRow label="Email" value={emp.email || "Not set"} blue />
+            <InfoRow label="Role" value={emp.role || "Not set"} />
+            <InfoRow label="Status" value={emp.status || "Not set"} />
+            <InfoRow label="Salary" value={emp.salary ? `₹${emp.salary}` : "Not set"} />
 
           </Card>
 

@@ -1,0 +1,430 @@
+{
+  "name": "Northpoint API Tests",
+  "description": "Complete API test collection for Northpoint application",
+  "base_url": "http://localhost:5000",
+  "env": {
+    "base_url": "http://localhost:5000",
+    "employee_id": "65abc123def456ghi789",
+    "client_id": "65abc456def789ghi123",
+    "project_id": "65abc789def123ghi456",
+    "task_id": "65abcdef123456ghi789"
+  },
+  "requests": [
+    {
+      "id": "1",
+      "name": "Health Check - Root",
+      "method": "GET",
+      "url": "{{base_url}}/",
+      "description": "Check if API is running",
+      "headers": [],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Has message': res.body.message !== undefined\n};"
+    },
+    {
+      "id": "2",
+      "name": "Health Check - API",
+      "method": "GET",
+      "url": "{{base_url}}/api/health",
+      "description": "Check API health status",
+      "headers": [],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Status is ok': res.body.status === 'ok'\n};"
+    },
+    {
+      "id": "3",
+      "name": "Get All Employees",
+      "method": "GET",
+      "url": "{{base_url}}/api/employees",
+      "description": "Retrieve all employees",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Response is array': Array.isArray(res.body)\n};"
+    },
+    {
+      "id": "4",
+      "name": "Create Employee",
+      "method": "POST",
+      "url": "{{base_url}}/api/employees",
+      "description": "Create a new employee",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "data": {
+          "name": "John Doe",
+          "email": "john.doe@example.com",
+          "phone": "+1-555-0123",
+          "position": "Software Engineer",
+          "department": "Engineering",
+          "salary": 85000,
+          "joinDate": "2024-01-15",
+          "status": "Active"
+        }
+      },
+      "tests": "tests = {\n  'Status is 201': res.status === 201,\n  'Has _id': res.body._id !== undefined,\n  'Name matches': res.body.name === 'John Doe'\n};"
+    },
+    {
+      "id": "5",
+      "name": "Get Employee by ID",
+      "method": "GET",
+      "url": "{{base_url}}/api/employees/{{employee_id}}",
+      "description": "Retrieve a specific employee by ID",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Has _id': res.body._id !== undefined\n};"
+    },
+    {
+      "id": "6",
+      "name": "Update Employee",
+      "method": "PUT",
+      "url": "{{base_url}}/api/employees/{{employee_id}}",
+      "description": "Update an existing employee",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "data": {
+          "name": "John Doe Updated",
+          "position": "Senior Software Engineer",
+          "salary": 95000
+        }
+      },
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Name updated': res.body.name === 'John Doe Updated'\n};"
+    },
+    {
+      "id": "7",
+      "name": "Delete Employee",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/employees/{{employee_id}}",
+      "description": "Delete an employee",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200\n};"
+    },
+    {
+      "id": "8",
+      "name": "Get All Clients",
+      "method": "GET",
+      "url": "{{base_url}}/api/clients",
+      "description": "Retrieve all clients",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Response is array': Array.isArray(res.body)\n};"
+    },
+    {
+      "id": "9",
+      "name": "Create Client",
+      "method": "POST",
+      "url": "{{base_url}}/api/clients",
+      "description": "Create a new client",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "data": {
+          "name": "Acme Corporation",
+          "email": "contact@acme.com",
+          "phone": "+1-555-0100",
+          "address": "123 Business St, City, State 12345",
+          "industry": "Technology",
+          "status": "Active",
+          "contactPerson": "Jane Smith"
+        }
+      },
+      "tests": "tests = {\n  'Status is 201': res.status === 201,\n  'Has _id': res.body._id !== undefined,\n  'Name matches': res.body.name === 'Acme Corporation'\n};"
+    },
+    {
+      "id": "10",
+      "name": "Get Client by ID",
+      "method": "GET",
+      "url": "{{base_url}}/api/clients/{{client_id}}",
+      "description": "Retrieve a specific client by ID",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Has _id': res.body._id !== undefined\n};"
+    },
+    {
+      "id": "11",
+      "name": "Update Client",
+      "method": "PUT",
+      "url": "{{base_url}}/api/clients/{{client_id}}",
+      "description": "Update an existing client",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "data": {
+          "name": "Acme Corporation Updated",
+          "phone": "+1-555-0101"
+        }
+      },
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Name updated': res.body.name === 'Acme Corporation Updated'\n};"
+    },
+    {
+      "id": "12",
+      "name": "Delete Client",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/clients/{{client_id}}",
+      "description": "Delete a client",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200\n};"
+    },
+    {
+      "id": "13",
+      "name": "Get All Projects",
+      "method": "GET",
+      "url": "{{base_url}}/api/projects",
+      "description": "Retrieve all projects",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Response is array': Array.isArray(res.body)\n};"
+    },
+    {
+      "id": "14",
+      "name": "Create Project",
+      "method": "POST",
+      "url": "{{base_url}}/api/projects",
+      "description": "Create a new project",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "data": {
+          "name": "Website Redesign",
+          "description": "Complete redesign of company website",
+          "client": "Acme Corporation",
+          "startDate": "2024-06-01",
+          "endDate": "2024-09-30",
+          "budget": 50000,
+          "status": "In Progress",
+          "team": ["John Doe", "Jane Smith"],
+          "priority": "High"
+        }
+      },
+      "tests": "tests = {\n  'Status is 201': res.status === 201,\n  'Has _id': res.body._id !== undefined,\n  'Name matches': res.body.name === 'Website Redesign'\n};"
+    },
+    {
+      "id": "15",
+      "name": "Get Project by ID",
+      "method": "GET",
+      "url": "{{base_url}}/api/projects/{{project_id}}",
+      "description": "Retrieve a specific project by ID",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Has _id': res.body._id !== undefined\n};"
+    },
+    {
+      "id": "16",
+      "name": "Update Project",
+      "method": "PUT",
+      "url": "{{base_url}}/api/projects/{{project_id}}",
+      "description": "Update an existing project",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "data": {
+          "name": "Website Redesign Phase 2",
+          "status": "Completed",
+          "budget": 55000
+        }
+      },
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Status updated': res.body.status === 'Completed'\n};"
+    },
+    {
+      "id": "17",
+      "name": "Delete Project",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/projects/{{project_id}}",
+      "description": "Delete a project",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200\n};"
+    },
+    {
+      "id": "18",
+      "name": "Get All Tasks",
+      "method": "GET",
+      "url": "{{base_url}}/api/tasks",
+      "description": "Retrieve all tasks",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Response is array': Array.isArray(res.body)\n};"
+    },
+    {
+      "id": "19",
+      "name": "Create Task",
+      "method": "POST",
+      "url": "{{base_url}}/api/tasks",
+      "description": "Create a new task",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "data": {
+          "title": "Design Homepage",
+          "description": "Create mockups and design for homepage",
+          "project": "Website Redesign",
+          "assignee": "John Doe",
+          "dueDate": "2024-07-15",
+          "priority": "High",
+          "status": "In Progress",
+          "estimatedHours": 40
+        }
+      },
+      "tests": "tests = {\n  'Status is 201': res.status === 201,\n  'Has _id': res.body._id !== undefined,\n  'Title matches': res.body.title === 'Design Homepage'\n};"
+    },
+    {
+      "id": "20",
+      "name": "Get Task by ID",
+      "method": "GET",
+      "url": "{{base_url}}/api/tasks/{{task_id}}",
+      "description": "Retrieve a specific task by ID",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Has _id': res.body._id !== undefined\n};"
+    },
+    {
+      "id": "21",
+      "name": "Update Task",
+      "method": "PUT",
+      "url": "{{base_url}}/api/tasks/{{task_id}}",
+      "description": "Update an existing task",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "data": {
+          "status": "Completed",
+          "completedDate": "2024-07-15"
+        }
+      },
+      "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Status updated': res.body.status === 'Completed'\n};"
+    },
+    {
+      "id": "22",
+      "name": "Delete Task",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/tasks/{{task_id}}",
+      "description": "Delete a task",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": null,
+      "tests": "tests = {\n  'Status is 200': res.status === 200\n};"
+    }
+  ]
+}
