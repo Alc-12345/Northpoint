@@ -44,7 +44,8 @@ import Notification from "./Pages/Notifications.jsx"
 import CalendarManager from "./Pages/CalendarManager.jsx";
 import ETL from "./Pages/ETL.jsx";
 import Task from "./Pages/Task.jsx";
-import HourBucket from "./Pages/Bucket.jsx"
+import HourBucket from "./Pages/Bucket.jsx";
+import Login from "./Pages/Login.jsx";
 
 
 function App() {
@@ -344,7 +345,15 @@ function App() {
             <Forms />
           </MainLayout>
         }
-       />     
+       /> 
+        <Route
+        path="/employeelogin"
+        element={
+          
+            <Login/>
+        
+        }
+        />     
        <Route
         path="/employee-dashboard"
         element={
