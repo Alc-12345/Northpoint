@@ -49,20 +49,31 @@ export default function AddEmployee() {
       });
     }
   };
+
+  const fileToDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setIsSubmitting(true);
 
-    const payload = {
-      ...formData,
-      photo: formData.photo ? formData.photo.name : "",
-    };
-
-    if (!payload.salary) delete payload.salary;
-    if (!payload.joiningDate) delete payload.joiningDate;
-
     try {
+      const photoValue = formData.photo ? await fileToDataUrl(formData.photo) : "";
+      const payload = {
+        ...formData,
+        photo: photoValue,
+      };
+
+      if (!payload.salary) delete payload.salary;
+      if (!payload.joiningDate) delete payload.joiningDate;
+      if (!payload.photo) delete payload.photo;
+
       await employeeApi.create(payload);
       navigate("/employees/all");
     } catch (err) {

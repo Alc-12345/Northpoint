@@ -13,7 +13,6 @@ import notFound from "./middleware/notFound.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
@@ -32,7 +31,6 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// API Routes
 app.use("/api/employees", employeeRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/projects", projectRoutes);
@@ -40,16 +38,5 @@ app.use("/api/tasks", taskRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
-
-connectDB()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error(`MongoDB connection failed: ${error.message}`);
-    process.exit(1);
-  });
 
 export default app;
