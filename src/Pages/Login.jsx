@@ -1,152 +1,96 @@
 import React, { useState } from "react";
-import { FiMail, FiLock, FiLogIn } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import {
+  FiMail,
+  FiLock,
+  FiEye,
+  FiEyeOff,
+  FiShield,
+} from "react-icons/fi";
+import logo from "../assets/logo.png"; // Adjust the path to your logo image
 
-export default function EmployeeLogin() {
-  const navigate = useNavigate();
-
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    console.log(form);
-
-    // API Call Here
-
-    navigate("/employee/dashboard");
-  };
+export default function AdminLogin() {
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#0b1220] flex items-center justify-center px-5">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[#0b1220] flex items-center justify-center relative overflow-hidden">
+
+      {/* Background Blur */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-600/20 rounded-full blur-[140px]" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-500/20 rounded-full blur-[140px]" />
+
+      {/* Login Card */}
+      <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-8">
 
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="h-20 w-20 rounded-full bg-blue-600 flex items-center justify-center mx-auto text-3xl font-bold text-white shadow-lg">
-            E
-          </div>
-
-          <h1 className="text-white text-3xl font-bold mt-5">
-            Employee Login
-          </h1>
-
-          <p className="text-gray-400 mt-2">
-            Login to access your dashboard
-          </p>
+        <div className="flex justify-center mb-5">
+          
+            <img src={logo} alt="Logo" className="w-20 h-45" />
+         
         </div>
 
-        {/* Card */}
 
-        <div className="bg-[#111827] rounded-2xl p-8 shadow-2xl border border-gray-800">
+        <p className="text-center text-gray-400 mt-2 mb-8">
+          Welcome Back! Please login to continue.
+        </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Email */}
+        <div className="mb-5">
+          <label className="text-gray-300 text-sm mb-2 block">
+            Email Address
+          </label>
 
-            {/* Email */}
+          <div className="flex items-center bg-[#111827] border border-gray-700 rounded-xl px-4 h-14">
+            <FiMail className="text-gray-400 text-xl" />
+            <input
+              type="email"
+              placeholder="admin@example.com"
+              className="flex-1 bg-transparent outline-none text-white px-3 placeholder-gray-500"
+            />
+          </div>
+        </div>
 
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">
-                Email Address
-              </label>
+        {/* Password */}
+        <div className="mb-6">
+          <label className="text-gray-300 text-sm mb-2 block">
+            Password
+          </label>
 
-              <div className="flex items-center bg-[#1f2937] rounded-lg px-4 border border-gray-700">
+          <div className="flex items-center bg-[#111827] border border-gray-700 rounded-xl px-4 h-14">
+            <FiLock className="text-gray-400 text-xl" />
 
-                <FiMail className="text-gray-400" />
-
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Enter Email"
-                  value={form.email}
-                  onChange={handleChange}
-                  className="
-    w-full
-    bg-transparent
-    text-white
-    placeholder:text-gray-400
-    p-3
-    outline-none
-    border-none
-    autofill:bg-transparent
-  "
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">
-                Password
-              </label>
-
-              <div className="flex items-center bg-[#1f2937] rounded-lg px-4 border border-gray-700">
-
-                <FiLock className="text-gray-400" />
-
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Enter Password"
-                  value={form.password}
-                  onChange={handleChange}
-                  className="
-    w-full
-    bg-transparent
-    text-white
-    placeholder:text-gray-400
-    p-3
-    outline-none
-    border-none
-    autofill:bg-transparent
-  "
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Remember */}
-
-            <div className="flex justify-between text-sm">
-              <label className="flex items-center gap-2 text-gray-400">
-                <input type="checkbox" />
-                Remember Me
-              </label>
-
-              <button
-                type="button"
-                className="text-blue-400 hover:text-blue-500"
-              >
-                Forgot Password?
-              </button>
-            </div>
-
-            {/* Login */}
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter Password"
+              className="flex-1 bg-transparent outline-none text-white px-3 placeholder-gray-500"
+            />
 
             <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 transition-all py-3 rounded-lg text-white font-semibold flex justify-center items-center gap-2"
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
             >
-              <FiLogIn size={18} />
-              Login
+              {showPassword ? (
+                <FiEyeOff className="text-gray-400 text-xl" />
+              ) : (
+                <FiEye className="text-gray-400 text-xl" />
+              )}
             </button>
-          </form>
-
-          <div className="mt-6 text-center text-gray-500 text-sm">
-            © 2026 Employee Management System
           </div>
         </div>
+
+        {/* Login Button */}
+        <button
+          className="w-full h-14 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500
+          hover:from-blue-700 hover:to-cyan-600
+          text-white font-semibold text-lg transition-all duration-300
+          shadow-lg hover:shadow-cyan-500/30"
+        >
+          Login
+        </button>
+
+        {/* Footer */}
+        <p className="text-center text-gray-500 text-sm mt-8">
+          © 2026 Admin Dashboard
+        </p>
       </div>
     </div>
   );

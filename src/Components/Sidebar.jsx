@@ -22,6 +22,7 @@ import {
   FiHelpCircle,
   FiCalendar,
 } from "react-icons/fi";
+import logo from "../assets/logo.png"; // Adjust the path to your logo image
 
 const Sidebar = ({ children }) => {
 const [activeMenu, setActiveMenu] = useState(null);
@@ -57,11 +58,19 @@ const [activeMenu, setActiveMenu] = useState(null);
       {/* ================= LEFT SIDEBAR ================= */}
       <div className="w-64 h-screen fixed left-0 top-0 bg-white dark:bg-[#0b1220] text-gray-700 dark:text-slate-300 border-r dark:border-[#18a8e6]/50 flex flex-col transition-colors duration-300">
         {/* Logo */}
-        <div className="px-5 pt-3 h-16 border-b dark:border-[#243244]">
+       <div className="flex justify-center mb-1 mt-2 ">
+  <img
+    src={logo}
+    alt="Logo"
+    className="w-20 h-auto"
+  />
+</div>
+        {/* <div className="px-5 pt-3 h-16 border-b dark:border-[#243244]">
+        
           <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-white">
             <span className="text-[#18a8e6]">CRM</span>
           </h1>
-        </div>
+        </div> */}
 
         {/* Scrollable Menu */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
@@ -301,7 +310,7 @@ const [activeMenu, setActiveMenu] = useState(null);
           {/* <NavLink to="/charts" className={linkClass}>
            <FiPieChart /> <span>Charts</span>
           </NavLink> */}
-          <NavLink to="/help" className={linkClass}>
+          <NavLink to="/help-desk" className={linkClass}>
             <FiHelpCircle /> Help Desk
           </NavLink>
 

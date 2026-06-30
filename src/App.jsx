@@ -46,6 +46,7 @@ import ETL from "./Pages/ETL.jsx";
 import Task from "./Pages/Task.jsx";
 import HourBucket from "./Pages/Bucket.jsx";
 import Login from "./Pages/Login.jsx";
+import HelpDesk from "./Pages/HelpDesk.jsx";
 
 
 function App() {
@@ -201,6 +202,14 @@ function App() {
   element={
     <MainLayout>
       <AssignTask />
+    </MainLayout>
+  }
+/>
+  <Route
+  path="/help-desk"
+  element={
+    <MainLayout>
+      <HelpDesk />
     </MainLayout>
   }
 />
