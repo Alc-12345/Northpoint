@@ -12,6 +12,7 @@ import {
 
 export default function AddTeam() {
   const [search, setSearch] = useState("");
+  const [members, setMembers] = useState([]);
 
   const teamMembers = [
     {
@@ -54,6 +55,28 @@ export default function AddTeam() {
       member.role.toLowerCase().includes(search.toLowerCase())
   );
 
+  const addMember = () => {
+    setMembers([
+      ...members,
+      {
+        employee: "",
+        role: "",
+        technology: "",
+        department: "",
+      },
+    ]);
+  };
+
+  const removeMember = (index) => {
+    setMembers(members.filter((_, i) => i !== index));
+  };
+
+  const handleMemberChange = (index, field, value) => {
+    const updated = [...members];
+    updated[index][field] = value;
+    setMembers(updated);
+  };
+
   return (
     <div className="min-h-screen bg-[#0B1220] p-6">
       {/* Header */}
@@ -66,11 +89,6 @@ export default function AddTeam() {
             Manage all project team members
           </p>
         </div>
-
-        <button className="flex items-center gap-2 bg-[#18A8E6] hover:bg-[#1394cb] text-white px-4 py-2 rounded-lg transition">
-          <FiPlus />
-          Add Member
-        </button>
       </div>
 
       {/* Stats Cards */}
@@ -114,6 +132,253 @@ export default function AddTeam() {
           />
         </div>
       </div>
+      {/* ================= CREATE TEAM ================= */}
+
+<div className="bg-[#111C2D] border border-[#243244] rounded-xl p-6 mb-6">
+
+  <div className="flex items-center justify-between mb-6">
+    <div>
+      <h2 className="text-2xl font-bold text-white">
+        Create New Team
+      </h2>
+      <p className="text-gray-400 text-sm">
+        Create a team and assign project information
+      </p>
+    </div>
+
+    <button className="bg-[#18A8E6] hover:bg-[#1493cb] text-white px-5 py-2 rounded-lg">
+      Save Team
+    </button>
+  </div>
+
+  {/* Team Information */}
+
+  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+
+    <div>
+      <label className="text-gray-300 text-sm block mb-2">
+        Team Name
+      </label>
+
+      <input
+        type="text"
+        placeholder="Frontend Team"
+        className="w-full bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white outline-none"
+      />
+    </div>
+
+    <div>
+      <label className="text-gray-300 text-sm block mb-2">
+        Project
+      </label>
+
+      <select className="w-full bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white">
+        <option>Select Project</option>
+        <option>School ERP</option>
+        <option>Client Dashboard</option>
+        <option>CRM System</option>
+      </select>
+    </div>
+
+    <div>
+      <label className="text-gray-300 text-sm block mb-2">
+        Client
+      </label>
+
+      <select className="w-full bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white">
+        <option>Select Client</option>
+        <option>ABC Technologies</option>
+        <option>Northpoint</option>
+        <option>XYZ Pvt Ltd</option>
+      </select>
+    </div>
+
+    <div>
+      <label className="text-gray-300 text-sm block mb-2">
+        Team Lead
+      </label>
+
+      <select className="w-full bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white">
+        <option>Select Team Lead</option>
+        <option>Rahul Sharma</option>
+        <option>Priya Singh</option>
+        <option>Amit Kumar</option>
+      </select>
+    </div>
+
+    <div>
+      <label className="text-gray-300 text-sm block mb-2">
+        Team Type
+      </label>
+
+      <select className="w-full bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white">
+        <option>Development</option>
+        <option>UI/UX</option>
+        <option>QA</option>
+        <option>DevOps</option>
+      </select>
+    </div>
+
+    <div>
+      <label className="text-gray-300 text-sm block mb-2">
+        Status
+      </label>
+
+      <select className="w-full bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white">
+        <option>Active</option>
+        <option>Inactive</option>
+        <option>On Hold</option>
+      </select>
+    </div>
+
+    <div>
+      <label className="text-gray-300 text-sm block mb-2">
+        Start Date
+      </label>
+
+      <input
+        type="date"
+        className="w-full bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white"
+      />
+    </div>
+
+    <div>
+      <label className="text-gray-300 text-sm block mb-2">
+        Deadline
+      </label>
+
+      <input
+        type="date"
+        className="w-full bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white"
+      />
+    </div>
+
+    <div>
+      <label className="text-gray-300 text-sm block mb-2">
+        Priority
+      </label>
+
+      <select className="w-full bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white">
+        <option>High</option>
+        <option>Medium</option>
+        <option>Low</option>
+      </select>
+    </div>
+
+  </div>
+
+  {/* Team Members */}
+
+  <div className="mt-8">
+
+    <div className="flex justify-between items-center mb-4">
+
+      <h3 className="text-lg text-white font-semibold">
+        Team Members
+      </h3>
+
+      <button
+        type="button"
+        onClick={addMember}
+        className="bg-[#18A8E6] hover:bg-[#1493cb] text-white px-4 py-2 rounded-lg flex items-center gap-2"
+      >
+        <FiPlus />
+        Add Member
+      </button>
+
+    </div>
+
+    {members.length === 0 ? (
+      <div className="text-gray-400">No team members added yet. Click "Add Member" to add one.</div>
+    ) : (
+      members.map((member, index) => (
+        <div
+          key={index}
+          className="bg-[#0B1220] border border-[#243244] rounded-xl p-5 mt-5"
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-white font-semibold">Member {index + 1}</h3>
+            <button
+              type="button"
+              onClick={() => removeMember(index)}
+              className="text-red-400 hover:text-red-300"
+            >
+              Remove
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <select
+              value={member.employee}
+              onChange={(e) => handleMemberChange(index, "employee", e.target.value)}
+              className="bg-[#111C2D] border border-[#243244] rounded-lg px-4 py-3 text-white"
+            >
+              <option value="">Select Employee</option>
+              <option>Rahul Sharma</option>
+              <option>Priya Singh</option>
+              <option>Amit Kumar</option>
+              <option>Neha Jain</option>
+            </select>
+
+            <select
+              value={member.role}
+              onChange={(e) => handleMemberChange(index, "role", e.target.value)}
+              className="bg-[#111C2D] border border-[#243244] rounded-lg px-4 py-3 text-white"
+            >
+              <option value="">Select Role</option>
+              <option>Developer</option>
+              <option>Lead</option>
+              <option>Designer</option>
+              <option>QA</option>
+            </select>
+
+            <select
+              value={member.technology}
+              onChange={(e) => handleMemberChange(index, "technology", e.target.value)}
+              className="bg-[#111C2D] border border-[#243244] rounded-lg px-4 py-3 text-white"
+            >
+              <option value="">Select Technology</option>
+              <option>React</option>
+              <option>Node</option>
+              <option>MongoDB</option>
+              <option>Flutter</option>
+            </select>
+
+            <select
+              value={member.department}
+              onChange={(e) => handleMemberChange(index, "department", e.target.value)}
+              className="bg-[#111C2D] border border-[#243244] rounded-lg px-4 py-3 text-white"
+            >
+              <option value="">Select Department</option>
+              <option>Development</option>
+              <option>Design</option>
+              <option>QA</option>
+              <option>DevOps</option>
+            </select>
+          </div>
+        </div>
+      ))
+    )}
+
+  </div>
+
+  {/* Description */}
+
+  <div className="mt-8">
+
+    <label className="text-gray-300 text-sm block mb-2">
+      Team Description
+    </label>
+
+    <textarea
+      rows={4}
+      placeholder="Write team description..."
+      className="w-full bg-[#0B1220] border border-[#243244] rounded-lg px-4 py-3 text-white resize-none"
+    />
+
+  </div>
+
+</div>
 
       {/* Table */}
       <div className="bg-[#111C2D] border border-[#243244] rounded-xl overflow-hidden">
