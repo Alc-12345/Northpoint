@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { projectApi } from "../services/api";
+import { employeeApi, projectApi } from "../services/api";
 
 const projectNeedLabels = {
   website: "Website Development",
@@ -56,6 +56,7 @@ export default function AddProject() {
     budget: lead ? budgetToNumber[lead.projectBudget || lead.budget] || "" : "",
     version: "",
     milestone: lead?.projectTimeline || "",
+    assignedTeam: [],
     description: lead
       ? [
           lead.businessDetails,
@@ -66,13 +67,47 @@ export default function AddProject() {
         ].filter(Boolean).join("\n")
       : "",
   });
+  const [employees, setEmployees] = useState([]);
   const [error, setError] = useState("");
+  const [employeeError, setEmployeeError] = useState("");
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const loadEmployees = async () => {
+      try {
+        setEmployeeError("");
+        setIsLoadingEmployees(true);
+        const data = await employeeApi.getAll();
+        setEmployees(data);
+      } catch (err) {
+        setEmployeeError(err.message);
+      } finally {
+        setIsLoadingEmployees(false);
+      }
+    };
+
+    loadEmployees();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleTeamChange = (e) => {
+    const assignedTeam = Array.from(e.target.selectedOptions, (option) => option.value);
+    const team = employees
+      .filter((employee) => assignedTeam.includes(employee._id))
+      .map((employee) => employee.name)
+      .join(", ");
+
+    setFormData({
+      ...formData,
+      assignedTeam,
+      team,
     });
   };
 
@@ -88,6 +123,7 @@ export default function AddProject() {
     ["startDate", "endDate"].forEach((field) => {
       if (!payload[field]) delete payload[field];
     });
+    if (!payload.assignedTeam.length) delete payload.assignedTeam;
 
     try {
       await projectApi.create(payload);
@@ -126,6 +162,11 @@ export default function AddProject() {
           {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
               {error}
+            </div>
+          )}
+          {employeeError && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
+              Team list could not load: {employeeError}
             </div>
           )}
 
@@ -206,14 +247,32 @@ export default function AddProject() {
             <div className="space-y-6">
               <div>
                 <label className={labelClass}>Team Members</label>
-                <input
-                  type="text"
-                  name="team"
-                  value={formData.team}
-                  onChange={handleChange}
+                <select
+                  name="assignedTeam"
+                  value={formData.assignedTeam}
+                  onChange={handleTeamChange}
+                  multiple
+                  disabled={isLoadingEmployees}
                   className={inputClass}
-                  placeholder="Comma separated names"
-                />
+                >
+                  {isLoadingEmployees && <option>Loading employees...</option>}
+                  {!isLoadingEmployees && employees.length === 0 && (
+                    <option disabled>No employees found</option>
+                  )}
+                  {employees.map((employee) => (
+                    <option key={employee._id} value={employee._id}>
+                      {employee.name} {employee.role ? `- ${employee.role}` : ""}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Hold Ctrl to select multiple team members.
+                </p>
+                {formData.team && (
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                    Selected: {formData.team}
+                  </p>
+                )}
               </div>
 
               <div>
