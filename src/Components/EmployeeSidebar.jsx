@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   FiHome,
   FiUser,
@@ -21,6 +21,8 @@ import {
 const EmployeeSidebar = ({ children }) => {
 
   const [theme, setTheme] = useState("light");
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   // Load theme
   useEffect(() => {
@@ -251,6 +253,8 @@ const EmployeeSidebar = ({ children }) => {
               <input
                 type="text"
                 placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 rounded-lg bg-gray-100 dark:bg-[#0b1220] text-gray-700 dark:text-white focus:outline-none w-64 dark:border dark:border-[#243244]"
               />
             </div>
@@ -278,7 +282,10 @@ const EmployeeSidebar = ({ children }) => {
               />
             </button>
 
-            <FiBell className="cursor-pointer text-gray-600 dark:text-gray-300" />
+            <FiBell 
+              onClick={() => navigate("/employee-notifications")}
+              className="cursor-pointer text-gray-600 dark:text-gray-300 hover:text-blue-600 transition" 
+            />
 
             <img
               src="https://i.pravatar.cc/40"

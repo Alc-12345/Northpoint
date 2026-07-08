@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   FiHome,
   FiUsers,
@@ -27,6 +27,8 @@ import logo from "../assets/logo.png"; // Adjust the path to your logo image
 const Sidebar = ({ children }) => {
 const [activeMenu, setActiveMenu] = useState(null);
   const [theme, setTheme] = useState("light");
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
 
   // Load saved theme
@@ -311,11 +313,6 @@ const [activeMenu, setActiveMenu] = useState(null);
            <NavLink to="/etl" className={linkClass}>
             <FiUser /> ETL
           </NavLink>
-
-          {/* Asset Management */}
-          <NavLink to="/asset-management" className={linkClass}>
-            <FiUser /> Asset Management
-          </NavLink>
          
           {/* <NavLink to="/charts" className={linkClass}>
            <FiPieChart /> <span>Charts</span>
@@ -343,6 +340,8 @@ const [activeMenu, setActiveMenu] = useState(null);
               <input
                 type="text"
                 placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 rounded-lg bg-gray-100 dark:bg-[#0b1220] text-gray-700 dark:text-white focus:outline-none w-64 dark:border dark:border-[#243244]"
               />
             </div>
@@ -368,8 +367,14 @@ const [activeMenu, setActiveMenu] = useState(null);
                 />
               </button>
             </div>
-            <FiSettings className="cursor-pointer text-gray-600 dark:text-gray-300" />
-            <FiBell className="cursor-pointer text-gray-600 dark:text-gray-300" />
+            <FiSettings 
+              onClick={() => navigate("/settings")}
+              className="cursor-pointer text-gray-600 dark:text-gray-300 hover:text-[#18a8e6] transition" 
+            />
+            <FiBell 
+              onClick={() => navigate("/notifications")}
+              className="cursor-pointer text-gray-600 dark:text-gray-300 hover:text-[#18a8e6] transition" 
+            />
             <FiMail className="cursor-pointer text-gray-600 dark:text-gray-300" />
 
             <button className="bg-[#18a8e6] text-white px-4 py-1.5 rounded-lg">

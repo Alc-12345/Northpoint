@@ -14,9 +14,10 @@ import {
   FiThumbsUp,
   FiBell,
 } from "react-icons/fi";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 export default function ClientSidebar() {
+  const navigate = useNavigate();
   const menu = [
     {
       icon: <FiGrid size={18} />,
@@ -116,7 +117,9 @@ export default function ClientSidebar() {
       {/* Footer */}
       <div className="border-t border-[#243244] p-4 space-y-2">
 
-        <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-400 hover:bg-[#172235] hover:text-white transition">
+        <button 
+          onClick={() => navigate("/client/settings")}
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-400 hover:bg-[#172235] hover:text-white transition">
           <FiSettings />
           Settings
         </button>
