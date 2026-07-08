@@ -1,51 +1,44 @@
 import { useEffect, useState } from "react";
 import { FiEdit, FiEye, FiPlus, FiTrash2, FiUsers } from "react-icons/fi";
 import { Link } from "react-router-dom";
-
-// Dummy data same as above
+import { projectApi } from "../services/api";
 
 export default function ProjectDashboard() {
-  const dummyProjects = [
-  {
-    _id: "p1",
-    projectCode: "PRJ-001",
-    name: "Website Redesign",
-    clientName: "Acme Corp",
-    status: "Ongoing",
-    progress: 45,
-    startDate: "2024-01-15",
-    endDate: "2024-04-20",
-    assignedTeam: [{ name: "Alice" }, { name: "Bob" }],
-    manager: "John Doe",
-  },
-  {
-    _id: "p2",
-    projectCode: "PRJ-002",
-    name: "Mobile App",
-    clientName: "Beta Ltd",
-    status: "Pending",
-    progress: 0,
-    startDate: "2024-02-01",
-    endDate: "2024-06-01",
-    assignedTeam: [],
-    manager: "Jane Smith",
-  },
-];
-
-const dummyEmployees = [
-  { id: "e1", name: "Alice" },
-  { id: "e2", name: "Bob" },
-  { id: "e3", name: "Charlie" },
-  { id: "e4", name: "David" },
-];
-
-  const [projects, setProjects] = useState(dummyProjects);
+  const [projects, setProjects] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [draftStatus, setDraftStatus] = useState("Pending");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [updatingId, setUpdatingId] = useState(null);
 
-  // Dummy functions for delete/edit - no backend calls
-  const handleDelete = (id) => {
-    setProjects(projects.filter((project) => project._id !== id));
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        setError("");
+        setIsLoading(true);
+        const data = await projectApi.getAll();
+        setProjects(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProjects();
+  }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      setError("");
+      setUpdatingId(id);
+      await projectApi.remove(id);
+      setProjects(projects.filter((project) => project._id !== id));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const handleEditStart = (project) => {
@@ -53,13 +46,18 @@ const dummyEmployees = [
     setDraftStatus(project.status || "Pending");
   };
 
-  const handleEditSave = (id) => {
-    setProjects(
-      projects.map((project) =>
-        project._id === id ? { ...project, status: draftStatus } : project
-      )
-    );
-    setEditingId(null);
+  const handleEditSave = async (id) => {
+    try {
+      setError("");
+      setUpdatingId(id);
+      const updated = await projectApi.update(id, { status: draftStatus });
+      setProjects(projects.map((project) => (project._id === id ? updated : project)));
+      setEditingId(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   return (
@@ -81,7 +79,18 @@ const dummyEmployees = [
         </Link>
       </div>
 
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+          {error}
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#243244] dark:bg-[#0b1220]">
+        {isLoading && <div className="p-6 text-sm text-gray-500">Loading projects...</div>}
+        {!isLoading && projects.length === 0 && !error && (
+          <div className="p-6 text-sm text-gray-500">No projects found.</div>
+        )}
+        {!isLoading && projects.length > 0 && (
         <table className="w-full text-sm">
           <thead className="bg-gray-100 dark:bg-[#2a2a2a]">
             <tr>
@@ -150,19 +159,20 @@ const dummyEmployees = [
                     >
                       <FiUsers />
                     </Link>
-                    <button
-                      onClick={() => alert("View feature here")}
+                    <Link
+                      to={`/projects/${project._id}`}
                       className="text-slate-600 hover:text-slate-800 dark:text-slate-300"
                       title="View project"
                     >
                       <FiEye />
-                    </button>
+                    </Link>
                     {editingId === project._id ? (
                       <button
                         onClick={() => handleEditSave(project._id)}
+                        disabled={updatingId === project._id}
                         className="text-blue-600 hover:text-blue-800"
                       >
-                        Save
+                        {updatingId === project._id ? "Saving..." : "Save"}
                       </button>
                     ) : (
                       <button
@@ -175,6 +185,7 @@ const dummyEmployees = [
                     )}
                     <button
                       onClick={() => handleDelete(project._id)}
+                      disabled={updatingId === project._id}
                       className="text-red-600 hover:text-red-800"
                       title="Delete project"
                     >
@@ -186,6 +197,7 @@ const dummyEmployees = [
             ))}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );

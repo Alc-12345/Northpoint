@@ -73,6 +73,7 @@ export const projectApi = {
   create: (data) => unwrap(api.post("/projects", data)),
   update: (id, data) => unwrap(api.put(`/projects/${id}`, data)),
   remove: (id) => unwrap(api.delete(`/projects/${id}`)),
+  assignTeam: (id, employeeIds) => unwrap(api.post(`/projects/${id}/team`, { employeeIds })),
 };
 
 export const taskApi = {
