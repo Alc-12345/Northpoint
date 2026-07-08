@@ -115,6 +115,7 @@ export default function AddProject() {
     e.preventDefault();
     setError("");
     setIsSubmitting(true);
+    const submitAction = e.nativeEvent.submitter?.value;
 
     const payload = { ...formData };
     ["storyPoints", "estimatedHours", "budget"].forEach((field) => {
@@ -126,7 +127,13 @@ export default function AddProject() {
     if (!payload.assignedTeam.length) delete payload.assignedTeam;
 
     try {
-      await projectApi.create(payload);
+      const project = await projectApi.create(payload);
+
+      if (submitAction === "assign-team") {
+        navigate("/teams", { state: { project } });
+        return;
+      }
+
       navigate("/projects");
     } catch (err) {
       setError(err.message);
@@ -380,8 +387,18 @@ export default function AddProject() {
 
             <button
               type="submit"
+              value="assign-team"
               disabled={isSubmitting}
-              className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-60"
+            >
+              {isSubmitting ? "Creating..." : "Create & Add Team"}
+            </button>
+
+            <button
+              type="submit"
+              value="create"
+              disabled={isSubmitting}
+              className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-60"
             >
               {isSubmitting ? "Creating..." : "Create Project"}
             </button>
