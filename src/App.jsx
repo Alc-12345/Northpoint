@@ -222,6 +222,14 @@ function App() {
     </MainLayout>
   }
 />
+ <Route
+  path="/projectDetails"
+  element={
+    <MainLayout>
+      <ProjectDetails />
+    </MainLayout>
+  }
+/>
 
 
 

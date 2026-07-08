@@ -167,10 +167,23 @@ const [activeMenu, setActiveMenu] = useState(null);
                   to="/projects"
                   className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
                 >
-                  Project
+                  Add Project
                 </NavLink>
                 
               </div>
+              
+            )}
+            {activeMenu === "hr" && (
+              <div className="ml-6 mt-2 space-y-1 text-sm">
+                <NavLink
+                  to="/projectDetails"
+                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                >
+                 Project
+                </NavLink>
+                
+              </div>
+              
             )}
             {activeMenu === "hr" && (
               <div className="ml-6 mt-2 space-y-1 text-sm">
