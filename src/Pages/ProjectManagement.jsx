@@ -1,37 +1,51 @@
 import { useEffect, useState } from "react";
 import { FiEdit, FiEye, FiPlus, FiTrash2, FiUsers } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import { projectApi } from "../services/api";
+
+// Dummy data same as above
 
 export default function ProjectDashboard() {
-  const [projects, setProjects] = useState([]);
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const dummyProjects = [
+  {
+    _id: "p1",
+    projectCode: "PRJ-001",
+    name: "Website Redesign",
+    clientName: "Acme Corp",
+    status: "Ongoing",
+    progress: 45,
+    startDate: "2024-01-15",
+    endDate: "2024-04-20",
+    assignedTeam: [{ name: "Alice" }, { name: "Bob" }],
+    manager: "John Doe",
+  },
+  {
+    _id: "p2",
+    projectCode: "PRJ-002",
+    name: "Mobile App",
+    clientName: "Beta Ltd",
+    status: "Pending",
+    progress: 0,
+    startDate: "2024-02-01",
+    endDate: "2024-06-01",
+    assignedTeam: [],
+    manager: "Jane Smith",
+  },
+];
+
+const dummyEmployees = [
+  { id: "e1", name: "Alice" },
+  { id: "e2", name: "Bob" },
+  { id: "e3", name: "Charlie" },
+  { id: "e4", name: "David" },
+];
+
+  const [projects, setProjects] = useState(dummyProjects);
   const [editingId, setEditingId] = useState(null);
   const [draftStatus, setDraftStatus] = useState("Pending");
 
-  useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        const data = await projectApi.getAll();
-        setProjects(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadProjects();
-  }, []);
-
-  const handleDelete = async (id) => {
-    try {
-      await projectApi.remove(id);
-      setProjects(projects.filter((project) => project._id !== id));
-    } catch (err) {
-      setError(err.message);
-    }
+  // Dummy functions for delete/edit - no backend calls
+  const handleDelete = (id) => {
+    setProjects(projects.filter((project) => project._id !== id));
   };
 
   const handleEditStart = (project) => {
@@ -39,14 +53,13 @@ export default function ProjectDashboard() {
     setDraftStatus(project.status || "Pending");
   };
 
-  const handleEditSave = async (id) => {
-    try {
-      const updated = await projectApi.update(id, { status: draftStatus });
-      setProjects(projects.map((project) => (project._id === id ? updated : project)));
-      setEditingId(null);
-    } catch (err) {
-      setError(err.message);
-    }
+  const handleEditSave = (id) => {
+    setProjects(
+      projects.map((project) =>
+        project._id === id ? { ...project, status: draftStatus } : project
+      )
+    );
+    setEditingId(null);
   };
 
   return (
@@ -68,16 +81,6 @@ export default function ProjectDashboard() {
         </Link>
       </div>
 
-      {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
-          {error}
-        </div>
-      )}
-      {isLoading && <div className="text-sm text-gray-500">Loading projects...</div>}
-      {!isLoading && projects.length === 0 && !error && (
-        <div className="text-sm text-gray-500">No projects found.</div>
-      )}
-
       <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#243244] dark:bg-[#0b1220]">
         <table className="w-full text-sm">
           <thead className="bg-gray-100 dark:bg-[#2a2a2a]">
@@ -96,15 +99,20 @@ export default function ProjectDashboard() {
           </thead>
           <tbody>
             {projects.map((project) => (
-              <tr key={project._id} className="border-t border-gray-200 dark:border-[#243244]">
+              <tr
+                key={project._id}
+                className="border-t border-gray-200 dark:border-[#243244]"
+              >
                 <td className="p-3">{project.projectCode || project._id}</td>
                 <td className="p-3 font-medium">{project.name}</td>
-                <td className="p-3">{project.clientName || project.client?.contact || project.email || "-"}</td>
+                <td className="p-3">
+                  {project.clientName || project.client?.contact || project.email || "-"}
+                </td>
                 <td className="p-3">
                   {editingId === project._id ? (
                     <select
                       value={draftStatus}
-                      onChange={(event) => setDraftStatus(event.target.value)}
+                      onChange={(e) => setDraftStatus(e.target.value)}
                       className="rounded-lg border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-[#0b1220]"
                     >
                       <option value="Pending">Pending</option>
@@ -121,7 +129,10 @@ export default function ProjectDashboard() {
                       <span>{project.progress ?? 0}%</span>
                     </div>
                     <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-700">
-                      <div className="h-2 rounded-full bg-blue-600" style={{ width: `${project.progress ?? 0}%` }} />
+                      <div
+                        className="h-2 rounded-full bg-blue-600"
+                        style={{ width: `${project.progress ?? 0}%` }}
+                      />
                     </div>
                   </div>
                 </td>
@@ -131,22 +142,42 @@ export default function ProjectDashboard() {
                 <td className="p-3">{project.manager || "Not assigned"}</td>
                 <td className="p-3">
                   <div className="flex justify-center gap-3">
-                    <Link to="/teams" state={{ project }} className="text-green-600 hover:text-green-800" title="Add team">
+                    <Link
+                      to="/teams"
+                      state={{ project, projects, setProjects }}
+                      className="text-green-600 hover:text-green-800"
+                      title="Add team"
+                    >
                       <FiUsers />
                     </Link>
-                    <Link to={`/projects/${project._id}`} className="text-slate-600 hover:text-slate-800 dark:text-slate-300" title="View project">
+                    <button
+                      onClick={() => alert("View feature here")}
+                      className="text-slate-600 hover:text-slate-800 dark:text-slate-300"
+                      title="View project"
+                    >
                       <FiEye />
-                    </Link>
+                    </button>
                     {editingId === project._id ? (
-                      <button onClick={() => handleEditSave(project._id)} className="text-blue-600 hover:text-blue-800">
+                      <button
+                        onClick={() => handleEditSave(project._id)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
                         Save
                       </button>
                     ) : (
-                      <button onClick={() => handleEditStart(project)} className="text-blue-600 hover:text-blue-800" title="Edit status">
+                      <button
+                        onClick={() => handleEditStart(project)}
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Edit status"
+                      >
                         <FiEdit />
                       </button>
                     )}
-                    <button onClick={() => handleDelete(project._id)} className="text-red-600 hover:text-red-800" title="Delete project">
+                    <button
+                      onClick={() => handleDelete(project._id)}
+                      className="text-red-600 hover:text-red-800"
+                      title="Delete project"
+                    >
                       <FiTrash2 />
                     </button>
                   </div>
