@@ -32,20 +32,30 @@ export const getClientById = async (req, res) => {
 export const createClient = async (req, res) => {
   const password = req.body.password || generatePassword();
   const username = req.body.username || generateUsername(req.body.name || req.body.company);
-  const existingUser = await User.findOne({ email: req.body.email });
-  let user = existingUser;
 
-  if (!user) {
-    user = new User({
-      name: req.body.contact || req.body.name,
-      email: req.body.email,
-      username,
-      role: "client",
-      createdBy: req.user?._id || null,
-    });
-    user.setPassword(password);
-    await user.save();
+  if (!password || password.length < 6) {
+    res.status(400);
+    throw new Error("Password must be at least 6 characters");
   }
+
+  const existingUser = await User.findOne({
+    $or: [{ email: req.body.email }, { username }],
+  });
+
+  if (existingUser) {
+    res.status(400);
+    throw new Error("Client login email or ID already exists");
+  }
+
+  const user = new User({
+    name: req.body.contact || req.body.name,
+    email: req.body.email,
+    username,
+    role: "client",
+    createdBy: req.user?._id || null,
+  });
+  user.setPassword(password);
+  await user.save();
 
   const projectIds = [req.body.projectId, ...(req.body.projects || [])].filter(Boolean);
   const client = await Client.create({

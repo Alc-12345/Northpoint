@@ -66,14 +66,15 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, identifier, username, clientId, employeeId, password } = req.body;
+  const loginId = email || identifier || username || clientId || employeeId;
 
-  if (!email || !password) {
+  if (!loginId || !password) {
     res.status(400);
-    throw new Error("Email and password are required");
+    throw new Error("Login ID and password are required");
   }
 
-  const login = email.toLowerCase();
+  const login = loginId.toLowerCase();
   const user = await User.findOne({
     $or: [{ email: login }, { username: login }],
   })
@@ -82,7 +83,7 @@ export const login = async (req, res) => {
 
   if (!user || !user.matchPassword(password)) {
     res.status(401);
-    throw new Error("Invalid email or password");
+    throw new Error("Invalid login ID or password");
   }
 
   res.json(authResponse(user));

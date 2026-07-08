@@ -2,6 +2,17 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { employeeApi } from "../services/api";
 
+const createUsername = (value) =>
+  `${String(value || "employee")
+    .replace(/[^a-z0-9]/gi, "")
+    .toLowerCase()
+    .slice(0, 12) || "employee"}01`;
+
+const createPassword = () => {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789#$@!";
+  return Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+};
+
 export default function AddEmployee() {
   const navigate = useNavigate();
 
@@ -28,14 +39,33 @@ export default function AddEmployee() {
     skills: "",
     status: "Pending",
     photo: null,
+    username: "",
+    password: createPassword(),
   });
+  const [createdCredentials, setCreatedCredentials] = useState(null);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,  
+    const nextFormData = {
+      ...formData,
       [e.target.name]: e.target.value,
+    };
+
+    if (e.target.name === "name" && !formData.username) {
+      nextFormData.username = createUsername(e.target.value);
+    }
+
+    setFormData({
+      ...nextFormData,
+    });
+  };
+
+  const regenerateCredentials = () => {
+    setFormData({
+      ...formData,
+      username: createUsername(formData.name),
+      password: createPassword(),
     });
   };
 
@@ -61,6 +91,7 @@ export default function AddEmployee() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setCreatedCredentials(null);
     setIsSubmitting(true);
 
     try {
@@ -74,8 +105,9 @@ export default function AddEmployee() {
       if (!payload.joiningDate) delete payload.joiningDate;
       if (!payload.photo) delete payload.photo;
 
-      await employeeApi.create(payload);
-      navigate("/employees/all");
+      const result = await employeeApi.create(payload);
+      setCreatedCredentials(result.credentials);
+      setTimeout(() => navigate("/employees/all"), 1200);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -97,6 +129,11 @@ export default function AddEmployee() {
           {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
               {error}
+            </div>
+          )}
+          {createdCredentials && (
+            <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+              Employee created. Login: {createdCredentials.username || createdCredentials.email} / {createdCredentials.password}
             </div>
           )}
           {/* ================= BASIC INFO ================= */}
@@ -174,6 +211,47 @@ export default function AddEmployee() {
                   className={inputClass}
                 />
               </div>
+            </div>
+          </div>
+
+          <div>
+            <h2 className={sectionTitle}>Login Credentials</h2>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className={labelClass}>Employee ID *</label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  required
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Password *</label>
+                <input
+                  type="text"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  minLength={6}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={regenerateCredentials}
+                className="rounded-lg border border-gray-300 px-5 py-2 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-[#111827]"
+              >
+                Generate Employee ID & Password
+              </button>
             </div>
           </div>
 

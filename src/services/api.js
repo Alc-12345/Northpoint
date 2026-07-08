@@ -33,7 +33,13 @@ api.interceptors.response.use(
 const unwrap = (request) => request.then((response) => response.data);
 
 export const authApi = {
-  login: (credentials) => unwrap(api.post("/auth/login", credentials)),
+  login: ({ identifier, email, username, password }) =>
+    unwrap(
+      api.post("/auth/login", {
+        identifier: identifier || email || username,
+        password,
+      })
+    ),
 };
 
 export const employeeApi = {
