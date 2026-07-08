@@ -41,7 +41,9 @@ export const updateProject = async (req, res) => {
   const project = await Project.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
-  });
+  })
+    .populate("client", "name email contact")
+    .populate("assignedTeam", "name email role department skills status photo");
 
   if (!project) {
     res.status(404);
