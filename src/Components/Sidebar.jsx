@@ -344,7 +344,7 @@ const [activeMenu, setActiveMenu] = useState(null);
         <div className="h-16 bg-white dark:bg-[#0b1220] border-b dark:border-[#243244] flex items-center justify-between px-6">
           {/* Left */}
           <div className="flex items-center gap-4">
-            <FiMenu className="cursor-pointer text-gray-600 dark:text-gray-300" />
+          
 
             <div className="relative">
               <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
