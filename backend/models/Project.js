@@ -2,9 +2,46 @@ import mongoose from "mongoose";
 
 const projectSchema = new mongoose.Schema(
   {
+    projectCode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+    lead: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Lead",
+      default: null,
+    },
+    client: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
+      default: null,
+    },
     name: {
       type: String,
       required: [true, "Project name is required"],
+      trim: true,
+    },
+    clientName: {
+      type: String,
+      trim: true,
+    },
+    company: {
+      type: String,
+      trim: true,
+    },
+    email: {
+      type: String,
+      lowercase: true,
+      trim: true,
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    service: {
+      type: String,
       trim: true,
     },
     manager: {
@@ -23,6 +60,17 @@ const projectSchema = new mongoose.Schema(
     storyPoints: {
       type: Number,
       min: [0, "Story points cannot be negative"],
+    },
+    progress: {
+      type: Number,
+      min: [0, "Progress cannot be negative"],
+      max: [100, "Progress cannot exceed 100"],
+      default: 0,
+    },
+    priority: {
+      type: String,
+      enum: ["Low", "Medium", "High", "Critical"],
+      default: "Medium",
     },
     estimatedHours: {
       type: Number,
@@ -55,6 +103,22 @@ const projectSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    assignedTeam: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Employee",
+      },
+    ],
+    activityLogs: [
+      {
+        action: String,
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+        details: String,
+      },
+    ],
   },
   { timestamps: true }
 );

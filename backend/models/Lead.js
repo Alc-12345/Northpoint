@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 
 const leadSchema = new mongoose.Schema(
   {
+    leadId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
     name: {
       type: String,
       required: [true, "Lead name is required"],
@@ -64,12 +70,17 @@ const leadSchema = new mongoose.Schema(
     source: {
       type: String,
       trim: true,
-      default: "company-website",
+      default: "Website",
     },
     status: {
       type: String,
-      enum: ["New", "Contacted", "Qualified", "Converted", "Lost"],
-      default: "New",
+      enum: ["New", "New Lead", "Contacted", "Qualified", "Converted", "Lost"],
+      default: "New Lead",
+    },
+    convertedProject: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
+      default: null,
     },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,

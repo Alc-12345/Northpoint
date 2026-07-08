@@ -73,7 +73,10 @@ export const login = async (req, res) => {
     throw new Error("Email and password are required");
   }
 
-  const user = await User.findOne({ email })
+  const login = email.toLowerCase();
+  const user = await User.findOne({
+    $or: [{ email: login }, { username: login }],
+  })
     .select("+passwordHash +passwordSalt")
     .exec();
 

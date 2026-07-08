@@ -3,6 +3,7 @@ import express from "express";
 import {
   createLead,
   deleteLead,
+  convertLeadToProject,
   getLeadById,
   getLeads,
   updateLead,
@@ -12,6 +13,7 @@ import { protect, requireSuperadmin } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 router.route("/").post(createLead).get(protect, requireSuperadmin, getLeads);
+router.post("/:id/convert", protect, requireSuperadmin, convertLeadToProject);
 router
   .route("/:id")
   .get(protect, requireSuperadmin, getLeadById)

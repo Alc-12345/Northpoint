@@ -2,6 +2,17 @@ import mongoose from "mongoose";
 
 const clientSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    projects: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Project",
+      },
+    ],
     name: {
       type: String,
       required: [true, "Client name is required"],
@@ -33,6 +44,18 @@ const clientSchema = new mongoose.Schema(
       type: String,
       enum: ["Pending", "Ongoing", "Completed", "Active", "Inactive"],
       default: "Pending",
+    },
+    username: {
+      type: String,
+      trim: true,
+    },
+    generatedPassword: {
+      type: String,
+      trim: true,
+    },
+    credentialsSentAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true }

@@ -19,6 +19,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
+import { projectApi } from "../services/api";
 
 export default function ClientDashboard() {
 const navigate = useNavigate();
@@ -88,20 +89,36 @@ const [tasks, setTasks] = useState([
 ]);
 
   useEffect(() => {
-    // Simulate API call - Replace with real API when available
     const fetchDashboardData = async () => {
       try {
-        // This would be your actual API call
+        const authUser = JSON.parse(localStorage.getItem("authUser") || "{}");
+        const allProjects = await projectApi.getAll();
+        const clientProjects = allProjects.filter(
+          (project) =>
+            project.email === authUser.email ||
+            project.client?.email === authUser.email ||
+            project.clientName === authUser.name
+        );
+        const visibleProjects = clientProjects.length ? clientProjects : allProjects;
+        const averageProgress = visibleProjects.length
+          ? Math.round(
+              visibleProjects.reduce((total, project) => total + (project.progress || 0), 0) /
+                visibleProjects.length
+            )
+          : 0;
         const data = {
-          projects: [
-            { name: "Website Redesign", stage: "Design Approval", status: "In Review" },
-            { name: "Mobile App", stage: "Testing & QA", status: "On Track" },
-          ],
-          deadlines: [
-            { title: "Final UI Review", date: "Tue 18 Jun", tone: "border-red-500" },
-            { title: "API Integration", date: "Sat 22 Jun", tone: "border-cyan-500" },
-            { title: "Beta Release", date: "Mon 01 Jul", tone: "border-slate-500" },
-          ],
+          projects: visibleProjects.map((project) => ({
+            name: project.name,
+            stage: project.milestone || project.service || "Project Delivery",
+            status: project.status || "Pending",
+          })),
+          deadlines: visibleProjects
+            .filter((project) => project.endDate)
+            .map((project) => ({
+              title: project.name,
+              date: new Date(project.endDate).toLocaleDateString(),
+              tone: "border-cyan-500",
+            })),
           files: [
             "Design_System_v2.pdf",
             "Homepage_Mockups.zip",
@@ -122,11 +139,11 @@ const [tasks, setTasks] = useState([
             "Milestone Reached",
           ],
           financials: {
-            projectValue: "$12,500",
+            projectValue: `$${visibleProjects.reduce((total, project) => total + (project.budget || 0), 0)}`,
             amountPaid: "$3,700",
             pendingDue: "$4,800",
           },
-          progressPercentage: 65,
+          progressPercentage: averageProgress,
         };
         setDashboardData(data);
       } catch (error) {
