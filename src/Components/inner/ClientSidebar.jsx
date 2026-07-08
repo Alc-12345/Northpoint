@@ -12,12 +12,16 @@ import {
   FiFolder,
   FiCalendar,
   FiThumbsUp,
-  FiBell,
+  FiLogOut,
 } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";
+import { logout } from "../../utils/auth";
 
 export default function ClientSidebar() {
   const navigate = useNavigate();
+  const handleLogout = () => {
+    logout(navigate);
+  };
   const menu = [
     {
       icon: <FiGrid size={18} />,
@@ -127,6 +131,15 @@ export default function ClientSidebar() {
         <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-400 hover:bg-[#172235] hover:text-white transition">
           <FiHelpCircle />
           Help & Support
+        </button>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-red-300 hover:bg-red-950/50 hover:text-white transition"
+        >
+          <FiLogOut />
+          Logout
         </button>
 
       </div>

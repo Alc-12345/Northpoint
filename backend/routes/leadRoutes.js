@@ -12,7 +12,10 @@ import { protect, requireSuperadmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.route("/").post(createLead).get(protect, requireSuperadmin, getLeads);
+router
+  .route("/")
+  .post(protect, requireSuperadmin, createLead)
+  .get(protect, requireSuperadmin, getLeads);
 router.post("/:id/convert", protect, requireSuperadmin, convertLeadToProject);
 router
   .route("/:id")

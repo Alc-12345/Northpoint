@@ -33,6 +33,30 @@
       "tests": "tests = {\n  'Status is 200': res.status === 200,\n  'Status is ok': res.body.status === 'ok'\n};"
     },
     {
+      "id": "auth-register-superadmin",
+      "name": "Register Admin",
+      "method": "POST",
+      "url": "http://localhost:5000/api/auth/register",
+      "description": "Create the first admin account as superadmin",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "params": [],
+      "body": {
+        "type": "json",
+        "data": {
+          "name": "Admin User",
+          "email": "admin@example.com",
+          "password": "secret123",
+          "role": "superadmin"
+        }
+      },
+      "tests": "tests = {\n  'Status is 201': res.status === 201,\n  'Has token': res.body.token !== undefined,\n  'User role is superadmin': res.body.user.role === 'superadmin',\n  'Password hash is hidden': res.body.user.passwordHash === undefined\n};"
+    },
+    {
       "id": "3",
       "name": "Get All Employees",
       "method": "GET",

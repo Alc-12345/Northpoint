@@ -62,6 +62,7 @@ export const leadApi = {
   getAll: () => unwrap(api.get("/leads")),
   getById: (id) => unwrap(api.get(`/leads/${id}`)),
   create: (data) => unwrap(api.post("/leads", data)),
+  convert: (id) => unwrap(api.post(`/leads/${id}/convert`)),
   update: (id, data) => unwrap(api.put(`/leads/${id}`, data)),
   remove: (id) => unwrap(api.delete(`/leads/${id}`)),
 };

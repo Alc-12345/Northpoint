@@ -93,7 +93,7 @@ export default function ClientManagementPage() {
         <div>
           <h2 className="text-2xl font-bold">Lead Management</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Website quotation requests with one-click project conversion.
+            Leads entered by your team with one-click project conversion.
           </p>
         </div>
 
@@ -178,7 +178,7 @@ export default function ClientManagementPage() {
                     <td className="p-3">{lead.email}</td>
                     <td className="p-3">{lead.projectNeed || lead.service || "-"}</td>
                     <td className="p-3">{lead.projectBudget || lead.budget || "-"}</td>
-                    <td className="p-3">{lead.source || "Website"}</td>
+                    <td className="p-3">{lead.source || "Manual"}</td>
                     <td className="p-3">
                       {editingId === lead._id ? (
                         <select
@@ -252,7 +252,7 @@ function LeadCard({ lead, convertingId, onConvert, onEdit, onDelete }) {
       <div className="mt-4 space-y-1 text-sm">
         <p>Service: {lead.projectNeed || lead.service || "-"}</p>
         <p>Budget: {lead.projectBudget || lead.budget || "-"}</p>
-        <p>Source: {lead.source || "Website"}</p>
+        <p>Source: {lead.source || "Manual"}</p>
       </div>
       <div className="mt-4 flex gap-3">
         <button

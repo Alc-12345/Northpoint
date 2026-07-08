@@ -64,7 +64,7 @@ export const createLead = async (req, res) => {
     website: req.body.website,
     businessDetails,
     message: req.body.message,
-    source: req.body.source || "Website",
+    source: req.body.source || "Manual",
     status: req.body.status || "New Lead",
   });
 
