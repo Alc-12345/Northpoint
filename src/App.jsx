@@ -134,7 +134,7 @@ function App() {
         }
        />
        <Route
-        path="/teams"
+        path="/add-teams"
         element={
           <MainLayout>
             <AddTeam />
