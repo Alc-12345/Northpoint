@@ -21,22 +21,17 @@ import {
   FiEdit,
   FiHelpCircle,
   FiCalendar,
+  FiLogOut,
 } from "react-icons/fi";
 import logo from "../assets/logo.png"; // Adjust the path to your logo image
+import { logout } from "../utils/auth";
 
 const Sidebar = ({ children }) => {
 const [activeMenu, setActiveMenu] = useState(null);
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
-
-  // Load saved theme
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") || "dark";
-    setTheme(savedTheme);
-    document.documentElement.classList.toggle("dark", savedTheme === "dark");
-  }, []);
 
   // Apply theme
   useEffect(() => {
@@ -46,6 +41,9 @@ const [activeMenu, setActiveMenu] = useState(null);
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
+  };
+  const handleLogout = () => {
+    logout(navigate);
   };
   const toggleMenu = (menu) => {
   setActiveMenu(activeMenu === menu ? null : menu);
@@ -377,7 +375,12 @@ const [activeMenu, setActiveMenu] = useState(null);
             />
             <FiMail className="cursor-pointer text-gray-600 dark:text-gray-300" />
 
-            <button className="bg-[#18a8e6] text-white px-4 py-1.5 rounded-lg">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="bg-[#18a8e6] text-white px-4 py-1.5 rounded-lg flex items-center gap-2"
+            >
+              <FiLogOut />
               Logout
             </button>
 

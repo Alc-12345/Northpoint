@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const employeeSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     name: {
       type: String,
       required: [true, "Employee name is required"],
@@ -49,6 +54,18 @@ const employeeSchema = new mongoose.Schema(
     photo: {
       type: String,
       trim: true,
+    },
+    username: {
+      type: String,
+      trim: true,
+    },
+    generatedPassword: {
+      type: String,
+      trim: true,
+    },
+    credentialsSentAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true }

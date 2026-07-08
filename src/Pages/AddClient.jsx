@@ -35,18 +35,17 @@ export default function AddClient() {
   const isClientAccountMode = Boolean(clientPrefill);
 
   const [formData, setFormData] = useState({
-    projectNeed: "",
-    projectStage: "",
-    projectBudget: "",
-    projectTimeline: "",
-    company: "",
-    phone: "",
+    project_need: "",
+    project_stage: "",
+    project_budget: "",
+    project_timeline: "",
     industry: "",
     website: "",
-    businessDetails: "",
-    name: "",
-    email: "",
+    business_details: "",
+    from_name: "",
+    from_email: "",
     message: "",
+    source: "Manual",
     status: "New Lead",
   });
   const [clientData, setClientData] = useState({
@@ -194,7 +193,7 @@ export default function AddClient() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">{pageTitle}</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Fields match the website project request form.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Create leads with the same fields as the website project request form.</p>
         </div>
         <button onClick={() => navigate("/clients")} className="rounded-lg bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
           Cancel
@@ -210,20 +209,20 @@ export default function AddClient() {
 
         <section>
           <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold dark:border-[#243244]">
-            01 | Tell Us About Your Project
+            Lead Details
           </h3>
           <div className="grid gap-5 md:grid-cols-2">
-            <Field label="Service Required *">
-              <select name="projectNeed" value={formData.projectNeed} onChange={handleLeadChange} required className={inputClass}>
-                <option value="" disabled>Select need</option>
+            <Field label="What do you need? *">
+              <select name="project_need" value={formData.project_need} onChange={handleLeadChange} required className={inputClass}>
+                <option value="" disabled>What do you need?</option>
                 {projectNeeds.map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
                 ))}
               </select>
             </Field>
             <Field label="Project Stage *">
-              <select name="projectStage" value={formData.projectStage} onChange={handleLeadChange} required className={inputClass}>
-                <option value="" disabled>Select stage</option>
+              <select name="project_stage" value={formData.project_stage} onChange={handleLeadChange} required className={inputClass}>
+                <option value="" disabled>Project Stage</option>
                 <option value="idea">Just an Idea</option>
                 <option value="planning">Planning</option>
                 <option value="design">Design Ready</option>
@@ -231,9 +230,9 @@ export default function AddClient() {
                 <option value="redesign">Need Improvement / Redesign</option>
               </select>
             </Field>
-            <Field label="Budget *">
-              <select name="projectBudget" value={formData.projectBudget} onChange={handleLeadChange} required className={inputClass}>
-                <option value="" disabled>Select budget</option>
+            <Field label="Estimated Budget *">
+              <select name="project_budget" value={formData.project_budget} onChange={handleLeadChange} required className={inputClass}>
+                <option value="" disabled>Estimated Budget</option>
                 <option value="under-1000">Under $1,000</option>
                 <option value="1000-5000">$1,000 - $5,000</option>
                 <option value="5000-10000">$5,000 - $10,000</option>
@@ -243,8 +242,8 @@ export default function AddClient() {
               </select>
             </Field>
             <Field label="Preferred Timeline *">
-              <select name="projectTimeline" value={formData.projectTimeline} onChange={handleLeadChange} required className={inputClass}>
-                <option value="" disabled>Select timeline</option>
+              <select name="project_timeline" value={formData.project_timeline} onChange={handleLeadChange} required className={inputClass}>
+                <option value="" disabled>Preferred Timeline</option>
                 <option value="asap">ASAP</option>
                 <option value="2-weeks">Within 2 Weeks</option>
                 <option value="1-month">Within 1 Month</option>
@@ -257,34 +256,36 @@ export default function AddClient() {
 
         <section>
           <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold dark:border-[#243244]">
-            02 | Business & Contact
+            About Your Business
           </h3>
           <div className="grid gap-5 md:grid-cols-2">
-            <Field label="Company Name *">
-              <input name="company" value={formData.company} onChange={handleLeadChange} required className={inputClass} />
-            </Field>
-            <Field label="Client Name *">
-              <input name="name" value={formData.name} onChange={handleLeadChange} required className={inputClass} />
-            </Field>
-            <Field label="Email *">
-              <input type="email" name="email" value={formData.email} onChange={handleLeadChange} required className={inputClass} />
-            </Field>
-            <Field label="Phone *">
-              <input name="phone" value={formData.phone} onChange={handleLeadChange} required className={inputClass} />
-            </Field>
-            <Field label="Industry *">
+            <Field label="Your Industry *">
               <input name="industry" value={formData.industry} onChange={handleLeadChange} required className={inputClass} />
             </Field>
-            <Field label="Website / Social">
+            <Field label="Link to website/social">
               <input type="url" name="website" value={formData.website} onChange={handleLeadChange} className={inputClass} />
             </Field>
           </div>
           <div className="mt-5">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Project Description *</label>
-            <textarea name="businessDetails" value={formData.businessDetails} onChange={handleLeadChange} required rows={4} className={inputClass} />
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Briefly explain your business *</label>
+            <textarea name="business_details" value={formData.business_details} onChange={handleLeadChange} required rows={4} className={inputClass} />
+          </div>
+        </section>
+
+        <section>
+          <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold dark:border-[#243244]">
+            About Yourself
+          </h3>
+          <div className="grid gap-5 md:grid-cols-2">
+            <Field label="What's your name? *">
+              <input name="from_name" value={formData.from_name} onChange={handleLeadChange} required className={inputClass} />
+            </Field>
+            <Field label="What's your mail? *">
+              <input type="email" name="from_email" value={formData.from_email} onChange={handleLeadChange} required className={inputClass} />
+            </Field>
           </div>
           <div className="mt-5">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Anything else we should know?</label>
             <textarea name="message" value={formData.message} onChange={handleLeadChange} rows={4} className={inputClass} />
           </div>
         </section>

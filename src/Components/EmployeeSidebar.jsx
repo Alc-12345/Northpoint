@@ -17,19 +17,13 @@ import {
   FiMenu,
   FiSearch
 } from "react-icons/fi";
+import { logout } from "../utils/auth";
 
 const EmployeeSidebar = ({ children }) => {
 
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
-
-  // Load theme
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") || "light";
-    setTheme(savedTheme);
-    document.documentElement.classList.toggle("dark", savedTheme === "dark");
-  }, []);
 
   // Apply theme
   useEffect(() => {
@@ -39,6 +33,10 @@ const EmployeeSidebar = ({ children }) => {
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
+  };
+
+  const handleLogout = () => {
+    logout(navigate);
   };
 
   const linkClass =
@@ -226,7 +224,11 @@ const EmployeeSidebar = ({ children }) => {
         {/* Logout */}
 
         <div className="p-4 border-t dark:border-[#243244]">
-          <button className="flex items-center gap-3 text-red-600 w-full hover:bg-red-100 dark:hover:bg-red-900 px-4 py-2 rounded-lg">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex items-center gap-3 text-red-600 w-full hover:bg-red-100 dark:hover:bg-red-900 px-4 py-2 rounded-lg"
+          >
             <FiLogOut />
             Logout
           </button>

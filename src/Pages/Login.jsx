@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  FiMail,
+  FiUser,
   FiLock,
   FiEye,
   FiEyeOff,
@@ -15,7 +15,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
-    email: "",
+    identifier: "",
     password: "",
   });
   const [error, setError] = useState("");
@@ -87,17 +87,17 @@ export default function Login() {
 
           <div className="mb-5">
             <label className="text-gray-300 text-sm mb-2 block">
-              Email Address
+              Client ID / Employee ID / Email
             </label>
 
             <div className="flex items-center bg-[#111827] border border-gray-700 rounded-xl px-4 h-14">
-              <FiMail className="text-gray-400 text-xl" />
+              <FiUser className="text-gray-400 text-xl" />
               <input
-                type="email"
-                name="email"
-                value={form.email}
+                type="text"
+                name="identifier"
+                value={form.identifier}
                 onChange={handleChange}
-                placeholder="admin@example.com"
+                placeholder="client01, employee01, or admin@example.com"
                 className="flex-1 bg-transparent outline-none text-white px-3 placeholder-gray-500"
                 required
               />

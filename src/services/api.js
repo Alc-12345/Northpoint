@@ -33,7 +33,13 @@ api.interceptors.response.use(
 const unwrap = (request) => request.then((response) => response.data);
 
 export const authApi = {
-  login: (credentials) => unwrap(api.post("/auth/login", credentials)),
+  login: ({ identifier, email, username, password }) =>
+    unwrap(
+      api.post("/auth/login", {
+        identifier: identifier || email || username,
+        password,
+      })
+    ),
 };
 
 export const employeeApi = {
@@ -56,6 +62,7 @@ export const leadApi = {
   getAll: () => unwrap(api.get("/leads")),
   getById: (id) => unwrap(api.get(`/leads/${id}`)),
   create: (data) => unwrap(api.post("/leads", data)),
+  convert: (id) => unwrap(api.post(`/leads/${id}/convert`)),
   update: (id, data) => unwrap(api.put(`/leads/${id}`, data)),
   remove: (id) => unwrap(api.delete(`/leads/${id}`)),
 };

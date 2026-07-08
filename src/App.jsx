@@ -383,6 +383,14 @@ function App() {
         
         }
         />     
+        <Route
+        path="/login"
+        element={
+          
+            <Login/>
+        
+        }
+        />     
        <Route
         path="/employee-dashboard"
         element={
