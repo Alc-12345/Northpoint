@@ -1,220 +1,279 @@
-import React, { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  FiSearch,
-  FiUser,
+  FiBriefcase,
   FiCheckCircle,
+  FiCode,
+  FiSearch,
+  FiUserCheck,
   FiUsers,
 } from "react-icons/fi";
+import { useLocation, useNavigate } from "react-router-dom";
+import { employeeApi, projectApi } from "../services/api";
 
-export default function AssignTeam() {
-  const employees = [
-    {
-      id: 1,
-      name: "Rahul Sharma",
-      role: "Frontend Developer",
-      department: "Development",
-      experience: "3 Years",
-      status: "Available",
-    },
-    {
-      id: 2,
-      name: "Priya Singh",
-      role: "Backend Developer",
-      department: "Development",
-      experience: "4 Years",
-      status: "Available",
-    },
-    {
-      id: 3,
-      name: "Amit Verma",
-      role: "UI/UX Designer",
-      department: "Design",
-      experience: "2 Years",
-      status: "Busy",
-    },
-    {
-      id: 4,
-      name: "Sneha Jain",
-      role: "QA Engineer",
-      department: "Testing",
-      experience: "5 Years",
-      status: "Available",
-    },
-    {
-      id: 5,
-      name: "Rohit Kumar",
-      role: "React Developer",
-      department: "Development",
-      experience: "2 Years",
-      status: "Available",
-    },
-    {
-      id: 6,
-      name: "Anjali Mehta",
-      role: "Node.js Developer",
-      department: "Development",
-      experience: "3 Years",
-      status: "Busy",
-    },
-    {
-      id: 7,
-      name: "Vikas Gupta",
-      role: "Flutter Developer",
-      department: "Mobile",
-      experience: "4 Years",
-      status: "Available",
-    },
-    {
-      id: 8,
-      name: "Pooja Sharma",
-      role: "Project Manager",
-      department: "Management",
-      experience: "6 Years",
-      status: "Available",
-    },
-    {
-      id: 9,
-      name: "Nitin Yadav",
-      role: "Python Developer",
-      department: "Development",
-      experience: "5 Years",
-      status: "Available",
-    },
-    {
-      id: 10,
-      name: "Karan Patel",
-      role: "DevOps Engineer",
-      department: "Infrastructure",
-      experience: "4 Years",
-      status: "Busy",
-    },
-    {
-      id: 11,
-      name: "Riya Kapoor",
-      role: "Angular Developer",
-      department: "Development",
-      experience: "3 Years",
-      status: "Available",
-    },
-    {
-      id: 12,
-      name: "Abhishek Singh",
-      role: "Full Stack Developer",
-      department: "Development",
-      experience: "5 Years",
-      status: "Available",
-    },
-  ];
+export default function AddTeam() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const initialProject = location.state?.project;
 
+  const [projects, setProjects] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState(initialProject?._id || "");
+  const [selectedIds, setSelectedIds] = useState(
+    initialProject?.assignedTeam?.map((employee) => employee._id || employee) || []
+  );
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState([]);
+  const [department, setDepartment] = useState("");
+  const [role, setRole] = useState("");
+  const [skill, setSkill] = useState("");
+  const [availability, setAvailability] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setError("");
+        setIsLoading(true);
+        const [employeeData, projectData] = await Promise.all([
+          employeeApi.getAll(),
+          projectApi.getAll(),
+        ]);
+        setEmployees(employeeData);
+        setProjects(projectData);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const selectedProject = useMemo(
+    () => projects.find((project) => project._id === selectedProjectId) || initialProject,
+    [projects, selectedProjectId, initialProject]
+  );
+
+  const departments = useMemo(
+    () => [...new Set(employees.map((employee) => employee.department).filter(Boolean))],
+    [employees]
+  );
+  const roles = useMemo(
+    () => [...new Set(employees.map((employee) => employee.role).filter(Boolean))],
+    [employees]
+  );
+  const skills = useMemo(
+    () => [
+      ...new Set(
+        employees
+          .flatMap((employee) => String(employee.skills || "").split(","))
+          .map((item) => item.trim())
+          .filter(Boolean)
+      ),
+    ],
+    [employees]
+  );
+
+  const filteredEmployees = employees.filter((employee) => {
+    const text = `${employee.name} ${employee.role} ${employee.department} ${employee.skills}`.toLowerCase();
+    const matchesSearch = text.includes(search.toLowerCase());
+    const matchesDepartment = !department || employee.department === department;
+    const matchesRole = !role || employee.role === role;
+    const matchesSkill = !skill || String(employee.skills || "").toLowerCase().includes(skill.toLowerCase());
+    const matchesAvailability = !availability || employee.status === availability;
+
+    return matchesSearch && matchesDepartment && matchesRole && matchesSkill && matchesAvailability;
+  });
+
+  const handleProjectChange = (event) => {
+    const projectId = event.target.value;
+    const project = projects.find((item) => item._id === projectId);
+
+    setSelectedProjectId(projectId);
+    setSelectedIds(project?.assignedTeam?.map((employee) => employee._id || employee) || []);
+    setSuccess("");
+    setError("");
+  };
 
   const toggleEmployee = (id) => {
-    if (selected.includes(id)) {
-      setSelected(selected.filter((item) => item !== id));
-    } else {
-      setSelected([...selected, id]);
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((employeeId) => employeeId !== id) : [...current, id]
+    );
+  };
+
+  const handleAssignTeam = async () => {
+    if (!selectedProjectId) {
+      setError("Select a project before assigning a team.");
+      return;
+    }
+
+    try {
+      setError("");
+      setSuccess("");
+      setIsSubmitting(true);
+      await projectApi.assignTeam(selectedProjectId, selectedIds);
+      setSuccess("Team assigned successfully. Employees can now see this project.");
+      setTimeout(() => navigate("/projects"), 900);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const filteredEmployees = employees.filter((emp) =>
-    emp.name.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
-    <div className="min-h-screen bg-[#0B1220] text-white p-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-[#0B1220] p-6">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Assign Team</h1>
-          <p className="text-gray-400 mt-2">
-            Select multiple employees and assign them to the project.
+          <h1 className="text-3xl font-bold text-white">Assign Team</h1>
+          <p className="mt-1 text-sm text-gray-400">
+            Select a project, then assign one or more employees.
           </p>
+          {selectedProject && (
+            <p className="mt-2 text-sm text-[#18A8E6]">
+              Project: {selectedProject.projectCode || selectedProject._id} | {selectedProject.name}
+            </p>
+          )}
         </div>
-
-        <button className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold">
-          Assign Team ({selected.length})
+        <button
+          type="button"
+          onClick={handleAssignTeam}
+          disabled={isSubmitting || selectedIds.length === 0 || !selectedProjectId}
+          className="inline-flex items-center gap-2 rounded-lg bg-[#18A8E6] px-5 py-2 text-white hover:bg-[#1493cb] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <FiCheckCircle />
+          {isSubmitting ? "Assigning..." : `Assign Team (${selectedIds.length})`}
         </button>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-8">
-        <FiSearch className="absolute left-4 top-4 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search Employee..."
-          className="w-full bg-[#162033] border border-gray-700 rounded-xl pl-12 pr-4 py-3 outline-none"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      {/* Employee List */}
-      <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6">
-        {filteredEmployees.map((emp) => (
-          <div
-            key={emp.id}
-            className={`rounded-2xl p-6 border transition ${
-              selected.includes(emp.id)
-                ? "border-blue-500 bg-[#162033]"
-                : "border-gray-700 bg-[#101827]"
-            }`}
-          >
-            <div className="flex justify-between items-center">
-              <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-2xl">
-                <FiUser />
-              </div>
-
-              <input
-                type="checkbox"
-                checked={selected.includes(emp.id)}
-                onChange={() => toggleEmployee(emp.id)}
-                className="w-5 h-5"
-              />
-            </div>
-
-            <h2 className="text-xl font-semibold mt-5">{emp.name}</h2>
-
-            <p className="text-blue-400 mt-1">{emp.role}</p>
-
-            <div className="mt-4 space-y-2 text-sm text-gray-300">
-              <p>
-                <strong>Department:</strong> {emp.department}
-              </p>
-
-              <p>
-                <strong>Experience:</strong> {emp.experience}
-              </p>
-
-              <p className="flex items-center gap-2">
-                <FiCheckCircle className="text-green-400" />
-                {emp.status}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Selected Employees */}
-      <div className="mt-10 bg-[#162033] rounded-xl p-6 border border-gray-700">
-        <div className="flex items-center gap-3 mb-5">
-          <FiUsers size={24} />
-          <h2 className="text-xl font-semibold">
-            Selected Employees ({selected.length})
-          </h2>
+      {(error || success) && (
+        <div className={`mb-4 rounded-lg border px-4 py-3 text-sm ${error ? "border-red-500/40 bg-red-500/10 text-red-200" : "border-green-500/40 bg-green-500/10 text-green-200"}`}>
+          {error || success}
         </div>
+      )}
 
-        <div className="flex flex-wrap gap-3">
-          {employees
-            .filter((emp) => selected.includes(emp.id))
-            .map((emp) => (
-              <span
-                key={emp.id}
-                className="bg-blue-600 px-4 py-2 rounded-full text-sm"
-              >
-                {emp.name}
-              </span>
-            ))}
+      <div className="mb-6 rounded-xl border border-[#243244] bg-[#111C2D] p-4">
+        <label className="mb-2 block text-sm font-medium text-gray-300">Project</label>
+        <select
+          value={selectedProjectId}
+          onChange={handleProjectChange}
+          className="w-full rounded-lg border border-[#243244] bg-[#0B1220] px-4 py-2 text-white outline-none"
+        >
+          <option value="">Select project</option>
+          {projects.map((project) => (
+            <option key={project._id} value={project._id}>
+              {project.projectCode || project._id} - {project.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <Card title="Total Employees" value={employees.length} icon={<FiUsers />} />
+        <Card title="Available" value={employees.filter((item) => item.status === "Active").length} icon={<FiUserCheck />} />
+        <Card title="Selected" value={selectedIds.length} icon={<FiCheckCircle />} />
+        <Card title="Roles" value={roles.length} icon={<FiBriefcase />} />
+      </div>
+
+      <div className="mb-6 rounded-xl border border-[#243244] bg-[#111C2D] p-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <div className="relative">
+            <FiSearch className="absolute left-3 top-3 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search employee"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="w-full rounded-lg border border-[#243244] bg-[#0B1220] py-2 pl-10 pr-4 text-white outline-none"
+            />
+          </div>
+          <Filter value={department} onChange={setDepartment} placeholder="Department" options={departments} />
+          <Filter value={role} onChange={setRole} placeholder="Role" options={roles} />
+          <Filter value={skill} onChange={setSkill} placeholder="Skill" options={skills} />
+          <Filter value={availability} onChange={setAvailability} placeholder="Availability" options={["Active", "Pending", "On Leave"]} />
+        </div>
+      </div>
+
+      {isLoading && <div className="text-sm text-gray-400">Loading projects and employees...</div>}
+      {!isLoading && filteredEmployees.length === 0 && (
+        <div className="text-sm text-gray-400">No matching employees found.</div>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {filteredEmployees.map((employee) => {
+          const isSelected = selectedIds.includes(employee._id);
+
+          return (
+            <button
+              key={employee._id}
+              type="button"
+              onClick={() => toggleEmployee(employee._id)}
+              className={`rounded-xl border p-5 text-left transition ${
+                isSelected
+                  ? "border-[#18A8E6] bg-[#18A8E6]/10"
+                  : "border-[#243244] bg-[#111C2D] hover:bg-[#172235]"
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <img
+                  src={employee.photo || "https://i.pravatar.cc/80"}
+                  alt={employee.name}
+                  className="h-14 w-14 rounded-full object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold text-white">{employee.name}</h3>
+                      <p className="text-sm text-gray-400">{employee.role || "Team Member"}</p>
+                    </div>
+                    {isSelected && <FiCheckCircle className="text-[#18A8E6]" />}
+                  </div>
+                  <div className="mt-4 space-y-1 text-sm text-gray-300">
+                    <p>Department: {employee.department || "-"}</p>
+                    <p>Skills: {employee.skills || "-"}</p>
+                    <p>Current Project: {employee.project || "None"}</p>
+                    <p>Availability: {employee.status || "Pending"}</p>
+                  </div>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Filter({ value, onChange, placeholder, options }) {
+  return (
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="w-full rounded-lg border border-[#243244] bg-[#0B1220] px-4 py-2 text-white outline-none"
+    >
+      <option value="">{placeholder}</option>
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function Card({ title, value, icon }) {
+  return (
+    <div className="rounded-xl border border-[#243244] bg-[#111C2D] p-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-400">{title}</p>
+          <h2 className="mt-2 text-3xl font-bold text-white">{value}</h2>
+        </div>
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#18A8E6]/20 text-xl text-[#18A8E6]">
+          {icon || <FiCode />}
         </div>
       </div>
     </div>
