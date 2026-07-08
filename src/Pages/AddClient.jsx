@@ -63,7 +63,7 @@ export default function AddClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const inputClass =
-    "w-full rounded-lg border border-gray-300 bg-gray-50 p-3 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#2a2a2a] dark:text-white";
+    "w-full rounded-md border-2 border-gray-300 bg-gray-50 p-3 font-semibold text-gray-900 outline-none placeholder:text-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#2a2a2a] dark:text-white dark:placeholder:text-gray-400";
 
   const pageTitle = useMemo(
     () => (isClientAccountMode ? "Create Client Account" : "Add Lead"),
@@ -207,22 +207,29 @@ export default function AddClient() {
           </div>
         )}
 
+        <div className="text-2xl font-black tracking-tight text-gray-900 dark:text-white md:text-3xl">
+          Welcome,<br />
+          <span className="text-base font-bold tracking-normal text-gray-600 dark:text-gray-400 md:text-lg">
+            fill this up to continue
+          </span>
+        </div>
+
         <section>
-          <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold dark:border-[#243244]">
-            Lead Details
+          <h3 className="mb-4 border-b border-gray-200 pb-2 text-xl font-black dark:border-[#243244]">
+            01 | Tell Us About Your Project
           </h3>
-          <div className="grid gap-5 md:grid-cols-2">
-            <Field label="What do you need? *">
+          <div className="grid gap-4 md:grid-cols-2 md:gap-5">
+            <Field>
               <select name="project_need" value={formData.project_need} onChange={handleLeadChange} required className={inputClass}>
-                <option value="" disabled>What do you need?</option>
+                <option value="" disabled>What do you need?*</option>
                 {projectNeeds.map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
                 ))}
               </select>
             </Field>
-            <Field label="Project Stage *">
+            <Field>
               <select name="project_stage" value={formData.project_stage} onChange={handleLeadChange} required className={inputClass}>
-                <option value="" disabled>Project Stage</option>
+                <option value="" disabled>Project Stage*</option>
                 <option value="idea">Just an Idea</option>
                 <option value="planning">Planning</option>
                 <option value="design">Design Ready</option>
@@ -230,9 +237,9 @@ export default function AddClient() {
                 <option value="redesign">Need Improvement / Redesign</option>
               </select>
             </Field>
-            <Field label="Estimated Budget *">
+            <Field>
               <select name="project_budget" value={formData.project_budget} onChange={handleLeadChange} required className={inputClass}>
-                <option value="" disabled>Estimated Budget</option>
+                <option value="" disabled>Estimated Budget*</option>
                 <option value="under-1000">Under $1,000</option>
                 <option value="1000-5000">$1,000 - $5,000</option>
                 <option value="5000-10000">$5,000 - $10,000</option>
@@ -241,9 +248,9 @@ export default function AddClient() {
                 <option value="discuss">Let's Discuss</option>
               </select>
             </Field>
-            <Field label="Preferred Timeline *">
+            <Field>
               <select name="project_timeline" value={formData.project_timeline} onChange={handleLeadChange} required className={inputClass}>
-                <option value="" disabled>Preferred Timeline</option>
+                <option value="" disabled>Preferred Timeline*</option>
                 <option value="asap">ASAP</option>
                 <option value="2-weeks">Within 2 Weeks</option>
                 <option value="1-month">Within 1 Month</option>
@@ -255,38 +262,51 @@ export default function AddClient() {
         </section>
 
         <section>
-          <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold dark:border-[#243244]">
-            About Your Business
+          <h3 className="mb-4 border-b border-gray-200 pb-2 text-xl font-black dark:border-[#243244]">
+            02 | About Your Business
           </h3>
-          <div className="grid gap-5 md:grid-cols-2">
-            <Field label="Your Industry *">
-              <input name="industry" value={formData.industry} onChange={handleLeadChange} required className={inputClass} />
+          <div className="grid gap-4 md:grid-cols-2 md:gap-5">
+            <Field>
+              <input name="industry" value={formData.industry} onChange={handleLeadChange} required placeholder="Your Industry*" className={inputClass} />
             </Field>
-            <Field label="Link to website/social">
-              <input type="url" name="website" value={formData.website} onChange={handleLeadChange} className={inputClass} />
+            <Field>
+              <input type="url" name="website" value={formData.website} onChange={handleLeadChange} placeholder="Link to website/social (optional)" className={inputClass} />
             </Field>
           </div>
           <div className="mt-5">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Briefly explain your business *</label>
-            <textarea name="business_details" value={formData.business_details} onChange={handleLeadChange} required rows={4} className={inputClass} />
+            <textarea
+              name="business_details"
+              value={formData.business_details}
+              onChange={handleLeadChange}
+              required
+              rows={3}
+              placeholder="Briefly explain your business* (Like you're explaining it to a 5-year-old)"
+              className={`${inputClass} h-auto resize-none`}
+            />
           </div>
         </section>
 
         <section>
-          <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold dark:border-[#243244]">
-            About Yourself
+          <h3 className="mb-4 border-b border-gray-200 pb-2 text-xl font-black dark:border-[#243244]">
+            03 | About Yourself
           </h3>
-          <div className="grid gap-5 md:grid-cols-2">
-            <Field label="What's your name? *">
-              <input name="from_name" value={formData.from_name} onChange={handleLeadChange} required className={inputClass} />
+          <div className="grid gap-4 md:grid-cols-2 md:gap-5">
+            <Field>
+              <input name="from_name" value={formData.from_name} onChange={handleLeadChange} required placeholder="What's your name?* (Full name)" className={inputClass} />
             </Field>
-            <Field label="What's your mail? *">
-              <input type="email" name="from_email" value={formData.from_email} onChange={handleLeadChange} required className={inputClass} />
+            <Field>
+              <input type="email" name="from_email" value={formData.from_email} onChange={handleLeadChange} required placeholder="What's your mail?* (mail@example.com)" className={inputClass} />
             </Field>
           </div>
           <div className="mt-5">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Anything else we should know?</label>
-            <textarea name="message" value={formData.message} onChange={handleLeadChange} rows={4} className={inputClass} />
+            <textarea
+              name="message"
+              value={formData.message}
+              onChange={handleLeadChange}
+              rows={3}
+              placeholder="Anything else we should know? (Inspirations, concerns, ideas - anything...)"
+              className={`${inputClass} h-auto resize-none`}
+            />
           </div>
         </section>
 
@@ -295,7 +315,7 @@ export default function AddClient() {
             Cancel
           </button>
           <button type="submit" disabled={isSubmitting} className="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 disabled:opacity-60">
-            {isSubmitting ? "Saving..." : "Save Lead"}
+            {isSubmitting ? "Saving..." : "Send Project Request"}
           </button>
         </div>
       </form>
@@ -306,7 +326,7 @@ export default function AddClient() {
 function Field({ label, children }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
+      {label && <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>}
       {children}
     </label>
   );
