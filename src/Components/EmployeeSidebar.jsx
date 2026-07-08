@@ -103,6 +103,19 @@ const EmployeeSidebar = ({ children }) => {
           </NavLink>
 
           <NavLink
+            to="/employee-teams"
+            className={({ isActive }) =>
+              `${linkClass} ${
+                isActive
+                  ? activeClass
+                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              }`
+            }
+          >
+            <FiUser /> Teams
+          </NavLink>
+
+          <NavLink
             to="/employee-tasks"
             className={({ isActive }) =>
               `${linkClass} ${

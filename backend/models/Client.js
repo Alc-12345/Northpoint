@@ -31,8 +31,8 @@ const clientSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Active", "Inactive"],
-      default: "Active",
+      enum: ["Pending", "Ongoing", "Completed", "Active", "Inactive"],
+      default: "Pending",
     },
   },
   { timestamps: true }

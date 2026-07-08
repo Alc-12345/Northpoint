@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiChevronDown, FiMoreVertical } from "react-icons/fi";
+import { FiChevronDown, FiEdit, FiMoreVertical, FiTrash2 } from "react-icons/fi";
 import { employeeApi } from "../../services/api";
 
 export default function EmployeeGridSection({ view }) {
@@ -9,6 +9,8 @@ export default function EmployeeGridSection({ view }) {
   const [employees, setEmployees] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
+  const [draftStatus, setDraftStatus] = useState("Pending");
 
   useEffect(() => {
     const loadEmployees = async () => {
@@ -24,6 +26,30 @@ export default function EmployeeGridSection({ view }) {
 
     loadEmployees();
   }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      await employeeApi.remove(id);
+      setEmployees(employees.filter((employee) => employee._id !== id));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleEditStart = (employee) => {
+    setEditingId(employee._id);
+    setDraftStatus(employee.status || "Pending");
+  };
+
+  const handleEditSave = async (id) => {
+    try {
+      const updated = await employeeApi.update(id, { status: draftStatus });
+      setEmployees(employees.map((employee) => (employee._id === id ? updated : employee)));
+      setEditingId(null);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   return (
     <div className="bg-white dark:bg-[#0b1220] border dark:border-[#243244] rounded-xl">
@@ -78,7 +104,27 @@ export default function EmployeeGridSection({ view }) {
 
               {/* MENU ICON (FIXED POSITION ISSUE) */}
               {view === "grid" && (
-                <div className="absolute top-4 right-4">
+                <div className="absolute top-4 right-4 flex gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditStart(emp);
+                    }}
+                    className="text-blue-600 hover:text-blue-800"
+                    title="Edit status"
+                  >
+                    <FiEdit />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(emp._id);
+                    }}
+                    className="text-red-600 hover:text-red-800"
+                    title="Delete employee"
+                  >
+                    <FiTrash2 />
+                  </button>
                   <FiMoreVertical />
                 </div>
               )}
@@ -164,8 +210,44 @@ export default function EmployeeGridSection({ view }) {
 
               {/* LIST RIGHT SIDE */}
               {view === "list" && (
-                <div className="text-sm text-gray-500 whitespace-nowrap">
-                  {emp.status}
+                <div className="flex items-center gap-2 whitespace-nowrap">
+                  <div className="text-sm text-gray-500">{emp.status}</div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditStart(emp);
+                    }}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    <FiEdit />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(emp._id);
+                    }}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <FiTrash2 />
+                  </button>
+                </div>
+              )}
+
+              {editingId === emp._id && (
+                <div className="mt-4 border-t border-gray-200 dark:border-[#243244] pt-3">
+                  <label className="block text-sm mb-1">Status</label>
+                  <select value={draftStatus} onChange={(e) => setDraftStatus(e.target.value)} className="w-full p-2 border rounded-lg bg-gray-50 dark:bg-[#2a2a2a] border-gray-300 dark:border-gray-600">
+                    <option value="Pending">Pending</option>
+                    <option value="Ongoing">Ongoing</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Active">Active</option>
+                    <option value="On Leave">On Leave</option>
+                    <option value="Resigned">Resigned</option>
+                  </select>
+                  <div className="mt-3 flex gap-2">
+                    <button onClick={(e) => { e.stopPropagation(); handleEditSave(emp._id); }} className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm">Save</button>
+                    <button onClick={(e) => { e.stopPropagation(); setEditingId(null); }} className="px-3 py-2 border rounded-lg text-sm">Cancel</button>
+                  </div>
                 </div>
               )}
 

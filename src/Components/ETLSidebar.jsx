@@ -1,70 +1,56 @@
 import React from "react";
 import {
-  FiFile,
   FiDatabase,
-  FiFilter,
+  FiDownload,
   FiGitMerge,
-  FiShuffle,
-  FiLayers,
-  FiCode,
-  FiUpload,
+  FiHardDrive,
+  FiMonitor,
+  FiServer,
+  FiSliders,
 } from "react-icons/fi";
+import { getDefaultOperation, operationGroups } from "../utils/etlConfig";
 
 const blocks = [
   {
-    label: "CSV Input",
-    type: "csv",
-    icon: <FiFile size={18} />,
-  },
-  {
-    label: "Excel Input",
-    type: "excel",
-    icon: <FiFile size={18} />,
-  },
-  {
-    label: "SQL Input",
-    type: "sql",
+    category: "source",
     icon: <FiDatabase size={18} />,
   },
   {
-    label: "API Input",
-    type: "api",
-    icon: <FiUpload size={18} />,
+    category: "transform",
+    icon: <FiSliders size={18} />,
   },
   {
-    label: "Filter",
-    type: "filter",
-    icon: <FiFilter size={18} />,
-  },
-  {
-    label: "Formula",
-    type: "formula",
-    icon: <FiCode size={18} />,
-  },
-  {
-    label: "Join",
-    type: "join",
+    category: "combine",
     icon: <FiGitMerge size={18} />,
   },
   {
-    label: "Union",
-    type: "union",
-    icon: <FiShuffle size={18} />,
+    category: "output",
+    icon: <FiDownload size={18} />,
   },
   {
-    label: "Aggregate",
-    type: "aggregate",
-    icon: <FiLayers size={18} />,
+    category: "frontend",
+    icon: <FiMonitor size={18} />,
+  },
+  {
+    category: "backend",
+    icon: <FiHardDrive size={18} />,
+  },
+  {
+    category: "server",
+    icon: <FiServer size={18} />,
   },
 ];
 
 export default function ETLSidebar() {
-  const onDragStart = (event, nodeType, label) => {
+  const onDragStart = (event, block) => {
+    const operation = getDefaultOperation(block.category);
+
     event.dataTransfer.setData(
       "application/reactflow",
       JSON.stringify({
-        type: nodeType,
-        label,
+        category: block.category,
+        label: operation.label,
+        type: operation.type,
       })
     );
 
@@ -72,39 +58,34 @@ export default function ETLSidebar() {
   };
 
   return (
-    <div className="w-72 bg-[#111827] border-r border-slate-700 h-full overflow-auto">
-
+    <div className="h-full w-72 overflow-auto border-r border-slate-700 bg-[#111827]">
       <div className="p-5">
-
-        <h2 className="text-xl text-white font-bold mb-5">
-          ETL Components
-        </h2>
+        <h2 className="mb-1 text-xl font-bold text-white">ETL Components</h2>
+        <p className="mb-5 text-sm text-slate-400">Pick the main block here. Select the operation inside the card.</p>
 
         <div className="space-y-3">
+          {blocks.map((item) => {
+            const group = operationGroups[item.category];
 
-          {blocks.map((item) => (
-
-            <div
-              key={item.label}
-              draggable
-              onDragStart={(e) =>
-                onDragStart(e, item.type, item.label)
-              }
-              className="bg-[#1E293B] hover:bg-blue-600 transition-all duration-200 rounded-lg p-3 cursor-grab flex items-center gap-3 text-white shadow"
-            >
-
-              {item.icon}
-
-              <span>{item.label}</span>
-
-            </div>
-
-          ))}
-
+            return (
+              <div
+                key={item.category}
+                draggable
+                onDragStart={(event) => onDragStart(event, item)}
+                className="flex cursor-grab items-center gap-3 rounded-lg bg-[#1E293B] p-3 text-white shadow transition-all duration-200 hover:bg-blue-600"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded bg-slate-900/50">
+                  {item.icon}
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold">{group.label}</span>
+                  <span className="block truncate text-xs text-slate-300">{group.description}</span>
+                </span>
+              </div>
+            );
+          })}
         </div>
-
       </div>
-
     </div>
   );
 }

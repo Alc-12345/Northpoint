@@ -25,8 +25,8 @@ export default function ClientSidebar() {
     },
     {
       icon: <FiUsers size={18} />,
-      label: "Add Team",
-      path: "/client/add-team",
+      label: "Teams",
+      path: "/client/teams",
     },
     {
       icon: <FiCheckSquare size={18} />,

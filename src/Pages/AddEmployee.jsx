@@ -26,7 +26,7 @@ export default function AddEmployee() {
     salary: "",
     joiningDate: "",
     skills: "",
-    status: "Active",
+    status: "Pending",
     photo: null,
   });
   const [error, setError] = useState("");
@@ -206,12 +206,16 @@ export default function AddEmployee() {
                 <label className={labelClass}>Status</label>
                 <select
                   name="status"
+                  value={formData.status}
                   onChange={handleChange}
                   className={inputClass}
                 >
-                  <option>Active</option>
-                  <option>On Leave</option>
-                  <option>Resigned</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Ongoing">Ongoing</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Active">Active</option>
+                  <option value="On Leave">On Leave</option>
+                  <option value="Resigned">Resigned</option>
                 </select>
               </div>
             </div>

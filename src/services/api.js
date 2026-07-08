@@ -7,6 +7,17 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("authToken");
+
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -20,6 +31,10 @@ api.interceptors.response.use(
 );
 
 const unwrap = (request) => request.then((response) => response.data);
+
+export const authApi = {
+  login: (credentials) => unwrap(api.post("/auth/login", credentials)),
+};
 
 export const employeeApi = {
   getAll: () => unwrap(api.get("/employees")),
@@ -37,6 +52,14 @@ export const clientApi = {
   remove: (id) => unwrap(api.delete(`/clients/${id}`)),
 };
 
+export const leadApi = {
+  getAll: () => unwrap(api.get("/leads")),
+  getById: (id) => unwrap(api.get(`/leads/${id}`)),
+  create: (data) => unwrap(api.post("/leads", data)),
+  update: (id, data) => unwrap(api.put(`/leads/${id}`, data)),
+  remove: (id) => unwrap(api.delete(`/leads/${id}`)),
+};
+
 export const projectApi = {
   getAll: () => unwrap(api.get("/projects")),
   getById: (id) => unwrap(api.get(`/projects/${id}`)),
@@ -51,6 +74,16 @@ export const taskApi = {
   create: (data) => unwrap(api.post("/tasks", data)),
   update: (id, data) => unwrap(api.put(`/tasks/${id}`, data)),
   remove: (id) => unwrap(api.delete(`/tasks/${id}`)),
+};
+
+export const hrApi = {
+  getSummary: () => unwrap(api.get("/hr")),
+};
+
+export const etlApi = {
+  getWorkflow: () => unwrap(api.get("/etl/workflow")),
+  saveWorkflow: (workflow) => unwrap(api.post("/etl/workflow", workflow)),
+  runWorkflow: (workflow) => unwrap(api.post("/etl/run", workflow)),
 };
 
 export default api;

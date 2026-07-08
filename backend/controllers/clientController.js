@@ -13,6 +13,7 @@ export const getClientById = async (req, res) => {
     throw new Error("Client not found");
   }
 
+  console.log(client);
   res.json(client);
 };
 

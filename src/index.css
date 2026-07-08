@@ -102,3 +102,46 @@
   background-color: rgba(255, 255, 255, 0.08) !important;
 } 
 
+/* ETL canvas cursor states */
+.etl-flow-canvas,
+.etl-flow-canvas .react-flow,
+.etl-flow-canvas .react-flow__renderer,
+.etl-flow-canvas .react-flow__pane {
+  cursor: default !important;
+}
+
+.etl-flow-canvas .react-flow__pane.draggable {
+  cursor: grab !important;
+}
+
+.etl-flow-canvas .react-flow__pane.dragging,
+.etl-flow-canvas .react-flow__selectionpane {
+  cursor: grabbing !important;
+}
+
+.etl-flow-canvas .react-flow__node {
+  cursor: pointer !important;
+}
+
+.etl-flow-canvas .react-flow__node.dragging {
+  cursor: grabbing !important;
+}
+
+.etl-flow-canvas .react-flow__handle {
+  cursor: crosshair !important;
+}
+
+.etl-flow-canvas .react-flow__controls button {
+  cursor: pointer !important;
+}
+
+.etl-flow-canvas input,
+.etl-flow-canvas select,
+.etl-flow-canvas textarea {
+  cursor: auto;
+}
+
+.etl-flow-canvas button {
+  cursor: pointer;
+}
+

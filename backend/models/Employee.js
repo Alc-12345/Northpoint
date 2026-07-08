@@ -43,8 +43,8 @@ const employeeSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Active", "On Leave", "Resigned"],
-      default: "Active",
+      enum: ["Pending", "Ongoing", "Completed", "Active", "On Leave", "Resigned"],
+      default: "Pending",
     },
     photo: {
       type: String,

@@ -61,6 +61,7 @@ export default function ProjectDetails() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InfoRow label="Project Manager" value={project.manager || "Not assigned"} />
             <InfoRow label="Methodology" value={project.methodology || "Not set"} />
+            <InfoRow label="Status" value={project.status || "Pending"} />
             <InfoRow label="Budget" value={project.budget ? `₹${project.budget}` : "Not set"} />
             <InfoRow label="Story Points" value={project.storyPoints ?? "Not set"} />
           </div>

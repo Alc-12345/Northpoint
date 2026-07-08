@@ -1,9 +1,34 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { projectApi } from "../services/api";
+
+const projectNeedLabels = {
+  website: "Website Development",
+  "web-app": "Web Application",
+  "mobile-app": "Mobile App",
+  saas: "SaaS Product",
+  ai: "AI Integration / AI Solution",
+  game: "Game Development",
+  uiux: "UI/UX Design",
+  ecommerce: "E-commerce Solution",
+  "erp-crm": "ERP / CRM System",
+  automation: "Business Automation",
+  custom: "Custom Software",
+  other: "Other",
+};
+
+const budgetToNumber = {
+  "under-1000": 1000,
+  "1000-5000": 5000,
+  "5000-10000": 10000,
+  "10000-25000": 25000,
+  "25000-plus": 25000,
+};
 
 export default function AddProject() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const lead = location.state?.lead;
 
   const inputClass =
     "w-full border border-gray-200 dark:border-[#243244] " +
@@ -17,18 +42,29 @@ export default function AddProject() {
     "text-lg font-semibold text-gray-800 dark:text-white border-b border-gray-200 dark:border-[#243244] pb-2 mb-4";
 
   const [formData, setFormData] = useState({
-    name: "",
+    name: lead
+      ? `${projectNeedLabels[lead.projectNeed] || lead.projectNeed || lead.service || "New"} - ${lead.name}`
+      : "",
     manager: "",
     team: "",
     methodology: "Agile",
+    status: "Pending",
     storyPoints: "",
     estimatedHours: "",
     startDate: "",
     endDate: "",
-    budget: "",
+    budget: lead ? budgetToNumber[lead.projectBudget || lead.budget] || "" : "",
     version: "",
-    milestone: "",
-    description: "",
+    milestone: lead?.projectTimeline || "",
+    description: lead
+      ? [
+          lead.businessDetails,
+          lead.message,
+          lead.industry ? `Industry: ${lead.industry}` : "",
+          lead.website ? `Website: ${lead.website}` : "",
+          lead.email ? `Lead email: ${lead.email}` : "",
+        ].filter(Boolean).join("\n")
+      : "",
   });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,6 +108,11 @@ export default function AddProject() {
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
             Create New Project
           </h1>
+          {lead && (
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Prefilled from lead: {lead.name}
+            </p>
+          )}
 
           <button
             onClick={() => navigate("/projects")}
@@ -98,6 +139,7 @@ export default function AddProject() {
                 <input
                   type="text"
                   name="name"
+                  value={formData.name}
                   onChange={handleChange}
                   required
                   className={inputClass}
@@ -109,6 +151,7 @@ export default function AddProject() {
                 <input
                   type="text"
                   name="manager"
+                  value={formData.manager}
                   onChange={handleChange}
                   className={inputClass}
                 />
@@ -118,6 +161,7 @@ export default function AddProject() {
                 <label className={labelClass}>Methodology</label>
                 <select
                   name="methodology"
+                  value={formData.methodology}
                   onChange={handleChange}
                   className={inputClass}
                 >
@@ -132,10 +176,25 @@ export default function AddProject() {
                 <input
                   type="text"
                   name="version"
+                  value={formData.version}
                   onChange={handleChange}
                   className={inputClass}
                   placeholder="v1.0.0"
                 />
+              </div>
+
+              <div>
+                <label className={labelClass}>Status</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className={inputClass}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Ongoing">Ongoing</option>
+                  <option value="Completed">Completed</option>
+                </select>
               </div>
             </div>
           </div>
@@ -150,6 +209,7 @@ export default function AddProject() {
                 <input
                   type="text"
                   name="team"
+                  value={formData.team}
                   onChange={handleChange}
                   className={inputClass}
                   placeholder="Comma separated names"
@@ -161,6 +221,7 @@ export default function AddProject() {
                 <textarea
                   name="description"
                   rows="4"
+                  value={formData.description}
                   onChange={handleChange}
                   className={inputClass}
                 ></textarea>
@@ -178,6 +239,7 @@ export default function AddProject() {
                 <input
                   type="number"
                   name="storyPoints"
+                  value={formData.storyPoints}
                   onChange={handleChange}
                   className={inputClass}
                 />
@@ -188,6 +250,7 @@ export default function AddProject() {
                 <input
                   type="number"
                   name="estimatedHours"
+                  value={formData.estimatedHours}
                   onChange={handleChange}
                   className={inputClass}
                 />
@@ -198,6 +261,7 @@ export default function AddProject() {
                 <input
                   type="number"
                   name="budget"
+                  value={formData.budget}
                   onChange={handleChange}
                   className={inputClass}
                 />
@@ -215,6 +279,7 @@ export default function AddProject() {
                 <input
                   type="date"
                   name="startDate"
+                  value={formData.startDate}
                   onChange={handleChange}
                   className={inputClass}
                 />
@@ -225,6 +290,7 @@ export default function AddProject() {
                 <input
                   type="date"
                   name="endDate"
+                  value={formData.endDate}
                   onChange={handleChange}
                   className={inputClass}
                 />
@@ -235,6 +301,7 @@ export default function AddProject() {
                 <input
                   type="text"
                   name="milestone"
+                  value={formData.milestone}
                   onChange={handleChange}
                   className={inputClass}
                 />

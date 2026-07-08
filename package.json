@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "node backend/server.js",
+    "server": "node backend/app.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:backend": "node --test backend/tests/employee.test.js",
+    "test:backend": "node --test backend/tests/*.test.js",
     "test": "npm run test:backend"
   },
   "dependencies": {

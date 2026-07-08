@@ -133,6 +133,14 @@ function App() {
         }
        />
        <Route
+        path="/teams"
+        element={
+          <MainLayout>
+            <AddTeam />
+          </MainLayout>
+        }
+       />
+       <Route
         path="/client-billing-finance"
         element={
           <MainLayout>
@@ -231,6 +239,14 @@ function App() {
   }
 />
 
+<Route
+  path="/client/teams"
+  element={
+    <ClientLayout>
+      <AddTeam />
+    </ClientLayout>
+  }
+/>
 <Route
   path="/client/add-team"
   element={
@@ -384,6 +400,14 @@ function App() {
         element={
           <EmployeeLayout>
             <EmployeeProjects />
+          </EmployeeLayout>
+        }
+       /> 
+        <Route
+        path="/employee-teams"
+        element={
+          <EmployeeLayout>
+            <AddTeam />
           </EmployeeLayout>
         }
        /> 

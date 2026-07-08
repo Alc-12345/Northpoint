@@ -172,6 +172,16 @@ const [activeMenu, setActiveMenu] = useState(null);
                 
               </div>
             )}
+            {activeMenu === "hr" && (
+              <div className="ml-6 mt-2 space-y-1 text-sm">
+                <NavLink
+                  to="/teams"
+                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                >
+                  Teams
+                </NavLink>
+              </div>
+            )}
             {/* {activeMenu === "hr" && (
               <div className="ml-6 mt-2 space-y-1 text-sm">
                 <NavLink
@@ -296,7 +306,7 @@ const [activeMenu, setActiveMenu] = useState(null);
           </NavLink>
 
           <NavLink to="/clients" className={linkClass}>
-            <FiUser /> Manage Clients
+            <FiUser /> Leads
           </NavLink>
            <NavLink to="/etl" className={linkClass}>
             <FiUser /> ETL

@@ -1,9 +1,8 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
 import {
   ReactFlow,
   Background,
   Controls,
-  MiniMap,
   addEdge,
   applyNodeChanges,
   applyEdgeChanges,
@@ -21,11 +20,12 @@ export default function CanvasArea({
   setNodes,
   edges,
   setEdges,
-  selectedNode,
   setSelectedNode,
+  onOperationChange,
+  onFlowReady,
 }) {
+  const wrapperRef = useRef(null);
 
-  // Node Change
   const onNodesChange = useCallback(
     (changes) => {
       setNodes((nds) => applyNodeChanges(changes, nds));
@@ -33,7 +33,6 @@ export default function CanvasArea({
     [setNodes]
   );
 
-  // Edge Change
   const onEdgesChange = useCallback(
     (changes) => {
       setEdges((eds) => applyEdgeChanges(changes, eds));
@@ -41,7 +40,6 @@ export default function CanvasArea({
     [setEdges]
   );
 
-  // Connect Nodes
   const onConnect = useCallback(
     (params) => {
       setEdges((eds) =>
@@ -61,56 +59,65 @@ export default function CanvasArea({
     [setEdges]
   );
 
-  // Drag Over
   const onDragOver = useCallback((event) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
   }, []);
 
-  // Drop New Node
   const onDrop = useCallback(
     (event) => {
       event.preventDefault();
 
-      const raw = event.dataTransfer.getData(
-        "application/reactflow"
-      );
-
+      const raw = event.dataTransfer.getData("application/reactflow");
       if (!raw) return;
 
-      const type = JSON.parse(raw);
-
-      const position = {
-        x: event.clientX - 260,
-        y: event.clientY - 100,
-      };
+      const block = JSON.parse(raw);
+      const bounds = wrapperRef.current?.getBoundingClientRect();
 
       const newNode = {
         id: `${Date.now()}`,
         type: "custom",
-        position,
+        position: {
+          x: event.clientX - (bounds?.left || 0) - 110,
+          y: event.clientY - (bounds?.top || 0) - 60,
+        },
         data: {
-          label: type.label,
-          type: type.type,
-          description: "",
-          hours: "",
-          employee: "",
+          label: block.label,
+          category: block.category,
+          type: block.type,
+          status: "Ready",
+          progress: 0,
+          fileName: "",
+          fileSize: "",
+          outputRows: [],
+          endpoint: "",
+          method: "GET",
           expression: "",
+          sqlConnection: "",
+          sqlTable: "",
+          onOperationChange,
         },
       };
 
       setNodes((nds) => [...nds, newNode]);
+      setSelectedNode(newNode);
     },
-    [setNodes]
+    [onOperationChange, setNodes, setSelectedNode]
   );
 
   return (
-    <div className="w-full h-[calc(100vh-56px)] bg-[#0F172A]">
-
+    <div ref={wrapperRef} className="etl-flow-canvas h-[calc(100vh-56px)] w-full cursor-default bg-[#0F172A]">
       <ReactFlow
-        nodes={nodes}
+        nodes={nodes.map((node) => ({
+          ...node,
+          data: {
+            ...node.data,
+            onOperationChange,
+          },
+        }))}
         edges={edges}
         nodeTypes={nodeTypes}
+        onInit={onFlowReady}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
@@ -121,25 +128,10 @@ export default function CanvasArea({
         }}
         fitView
       >
+        <Background gap={20} size={1} color="#334155" />
 
-        <Background
-          gap={20}
-          size={1}
-          color="#334155"
-        />
-
-        <MiniMap
-          pannable
-          zoomable
-          nodeColor="#3B82F6"
-        />
-
-        {/* <Controls 
-        showInteractive 
-        /> */}
-
+        <Controls showInteractive />
       </ReactFlow>
-
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   FiPlus,
   FiSearch,
@@ -11,6 +12,8 @@ import {
 } from "react-icons/fi";
 
 export default function AddTeam() {
+  const location = useLocation();
+  const project = location.state?.project;
   const [search, setSearch] = useState("");
   const [members, setMembers] = useState([]);
 
@@ -86,8 +89,13 @@ export default function AddTeam() {
             Team Management
           </h1>
           <p className="text-gray-400 text-sm mt-1">
-            Manage all project team members
+            Manage all project team members for client, superadmin, and employee panels
           </p>
+          {project && (
+            <p className="text-[#18A8E6] text-sm mt-2">
+              Project: {project.name}
+            </p>
+          )}
         </div>
       </div>
 
