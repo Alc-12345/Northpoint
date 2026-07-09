@@ -7,20 +7,25 @@ import {
   FiUserCheck,
   FiUsers,
 } from "react-icons/fi";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { employeeApi, projectApi } from "../services/api";
+
+const getAssignedTeamIds = (project) =>
+  project?.assignedTeam?.map((employee) => employee._id || employee) || [];
 
 export default function AddTeam() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const initialProject = location.state?.project;
+  const projectIdFromQuery = searchParams.get("projectId");
 
   const [projects, setProjects] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [selectedProjectId, setSelectedProjectId] = useState(initialProject?._id || "");
-  const [selectedIds, setSelectedIds] = useState(
-    initialProject?.assignedTeam?.map((employee) => employee._id || employee) || []
+  const [selectedProjectId, setSelectedProjectId] = useState(
+    projectIdFromQuery || initialProject?._id || ""
   );
+  const [selectedIds, setSelectedIds] = useState(getAssignedTeamIds(initialProject));
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("");
   const [role, setRole] = useState("");
@@ -56,6 +61,15 @@ export default function AddTeam() {
     () => projects.find((project) => project._id === selectedProjectId) || initialProject,
     [projects, selectedProjectId, initialProject]
   );
+
+  useEffect(() => {
+    if (!selectedProjectId) return;
+
+    const project = projects.find((item) => item._id === selectedProjectId) || initialProject;
+    if (project) {
+      setSelectedIds(getAssignedTeamIds(project));
+    }
+  }, [projects, selectedProjectId, initialProject]);
 
   const departments = useMemo(
     () => [...new Set(employees.map((employee) => employee.department).filter(Boolean))],
@@ -93,7 +107,7 @@ export default function AddTeam() {
     const project = projects.find((item) => item._id === projectId);
 
     setSelectedProjectId(projectId);
-    setSelectedIds(project?.assignedTeam?.map((employee) => employee._id || employee) || []);
+    setSelectedIds(getAssignedTeamIds(project));
     setSuccess("");
     setError("");
   };

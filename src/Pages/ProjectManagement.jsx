@@ -152,8 +152,8 @@ export default function ProjectDashboard() {
                 <td className="p-3">
                   <div className="flex justify-center gap-3">
                     <Link
-                      to="/add-teams"
-                      state={{ project, projects, setProjects }}
+                      to={`/add-teams?projectId=${project._id}`}
+                      state={{ project }}
                       className="text-green-600 hover:text-green-800"
                       title="Add team"
                     >
