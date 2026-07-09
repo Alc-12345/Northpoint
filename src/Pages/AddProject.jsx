@@ -130,7 +130,7 @@ export default function AddProject() {
       const project = await projectApi.create(payload);
 
       if (submitAction === "assign-team") {
-        navigate("/teams", { state: { project } });
+        navigate("/add-teams", { state: { project } });
         return;
       }
 
