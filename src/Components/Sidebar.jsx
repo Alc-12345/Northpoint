@@ -106,18 +106,6 @@ const [activeMenu, setActiveMenu] = useState(null);
 
             {activeMenu === "employees" && (
               <div className="ml-6 mt-2 space-y-1 text-sm">
-                <NavLink
-                  to="/employees/all"
-                  className={({ isActive }) =>
-                    `block px-3 py-2 rounded ${
-                      isActive
-                        ? "bg-[#18a8e6] text-white"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-800"
-                    }`
-                  }
-                >
-                  All Employees
-                </NavLink>
                   
                 <NavLink
                   to="/employees/attendance"
@@ -158,9 +146,23 @@ const [activeMenu, setActiveMenu] = useState(null);
                 >
                   Add Employee
                 </NavLink>
+            
                 
               </div>
             )}
+             {activeMenu === "hr" && (
+              <div className="ml-6 mt-2 space-y-1 text-sm">
+                <NavLink
+                  to="/employees/all"
+                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                >
+                  All Employees
+                </NavLink>
+                
+              </div>
+              
+            )}
+            
             {activeMenu === "hr" && (
               <div className="ml-6 mt-2 space-y-1 text-sm">
                 <NavLink
