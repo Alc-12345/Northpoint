@@ -46,17 +46,27 @@ const nextCode = async (Model, prefix) => {
     }, 0);
   }
 
-  const counter = await Counter.findByIdAndUpdate(
-    counterId,
-    [
-      {
-        $set: {
-          sequence: { $add: [{ $ifNull: ["$sequence", sequence] }, 1] },
-        },
+  const increment = [
+    {
+      $set: {
+        sequence: { $add: [{ $ifNull: ["$sequence", sequence] }, 1] },
       },
-    ],
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
+    },
+  ];
+
+  let counter;
+  try {
+    counter = await Counter.findByIdAndUpdate(counterId, increment, {
+      new: true,
+      upsert: true,
+      setDefaultsOnInsert: true,
+    });
+  } catch (error) {
+    // Two first-time requests can both attempt the upsert. Once one inserts
+    // the counter, advance that record instead of exposing a duplicate-key 409.
+    if (error?.code !== 11000) throw error;
+    counter = await Counter.findByIdAndUpdate(counterId, increment, { new: true });
+  }
 
   return `${prefix}-${year}-${String(counter.sequence).padStart(3, "0")}`;
 };
