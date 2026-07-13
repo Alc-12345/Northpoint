@@ -1,4 +1,5 @@
 import ActivityLog from "../models/ActivityLog.js";
+import Counter from "../models/Counter.js";
 import Lead from "../models/Lead.js";
 import Project from "../models/Project.js";
 
@@ -25,8 +26,40 @@ const budgetToNumber = {
   "25000-plus": 25000,
 };
 
-const nextCode = async (Model, prefix) =>
-  `${prefix}-${new Date().getFullYear()}-${String((await Model.countDocuments()) + 1).padStart(3, "0")}`;
+const nextCode = async (Model, prefix) => {
+  const year = new Date().getFullYear();
+  const counterId = `${prefix}-${year}`;
+  const currentCounter = await Counter.findById(counterId).lean();
+
+  // Seed a new yearly counter from existing data so deployments with records
+  // created before counters were introduced continue their numbering.
+  let sequence = 0;
+  if (!currentCounter) {
+    const records = await Model.find({
+      [`${prefix === "LEAD" ? "leadId" : "projectCode"}`]: new RegExp(`^${prefix}-${year}-(\\d+)$`),
+    })
+      .select(prefix === "LEAD" ? "leadId" : "projectCode")
+      .lean();
+    sequence = records.reduce((highest, record) => {
+      const value = record.leadId || record.projectCode;
+      return Math.max(highest, Number(value?.split("-").at(-1)) || 0);
+    }, 0);
+  }
+
+  const counter = await Counter.findByIdAndUpdate(
+    counterId,
+    [
+      {
+        $set: {
+          sequence: { $add: [{ $ifNull: ["$sequence", sequence] }, 1] },
+        },
+      },
+    ],
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+
+  return `${prefix}-${year}-${String(counter.sequence).padStart(3, "0")}`;
+};
 
 const logActivity = async ({ req, action, entityType, entityId, metadata = {} }) => {
   await ActivityLog.create({
@@ -152,36 +185,45 @@ export const convertLeadToProject = async (req, res) => {
 
   const service = lead.service || lead.projectNeed;
   const serviceLabel = projectNeedLabels[service] || service || "Project";
-  const project = await Project.create({
-    projectCode: await nextCode(Project, "PRJ"),
-    lead: lead._id,
-    name: `${serviceLabel} - ${lead.name}`,
-    clientName: lead.name,
-    company: lead.company,
-    email: lead.email,
-    phone: lead.phone,
-    service: serviceLabel,
-    budget: budgetToNumber[lead.projectBudget || lead.budget],
-    milestone: lead.projectTimeline,
-    status: "Pending",
-    progress: 0,
-    priority: "Medium",
-    startDate: new Date(),
-    description: [
-      lead.businessDetails,
-      lead.message,
-      lead.industry ? `Industry: ${lead.industry}` : "",
-      lead.website ? `Website: ${lead.website}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n"),
-    activityLogs: [
-      {
-        action: "Project Created",
-        details: `Created from lead ${lead.leadId || lead._id}`,
-      },
-    ],
-  });
+  let project;
+  try {
+    project = await Project.create({
+      projectCode: await nextCode(Project, "PRJ"),
+      lead: lead._id,
+      name: `${serviceLabel} - ${lead.name}`,
+      clientName: lead.name,
+      company: lead.company,
+      email: lead.email,
+      phone: lead.phone,
+      service: serviceLabel,
+      budget: budgetToNumber[lead.projectBudget || lead.budget],
+      milestone: lead.projectTimeline,
+      status: "Pending",
+      progress: 0,
+      priority: "Medium",
+      startDate: new Date(),
+      description: [
+        lead.businessDetails,
+        lead.message,
+        lead.industry ? `Industry: ${lead.industry}` : "",
+        lead.website ? `Website: ${lead.website}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      activityLogs: [
+        {
+          action: "Project Created",
+          details: `Created from lead ${lead.leadId || lead._id}`,
+        },
+      ],
+    });
+  } catch (error) {
+    if (error?.code !== 11000) throw error;
+
+    // Another request won the conversion race. Treat this retry as successful.
+    project = await Project.findOne({ lead: lead._id });
+    if (!project) throw error;
+  }
 
   lead.status = "Converted";
   lead.convertedProject = project._id;
