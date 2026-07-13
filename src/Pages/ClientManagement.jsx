@@ -203,9 +203,9 @@ export default function ClientManagementPage() {
                         <button
                           type="button"
                           onClick={() => handleConvert(lead)}
-                          disabled={convertingId === lead._id}
+                          disabled={convertingId === lead._id || isConverted(lead)}
                           className="text-green-600 hover:text-green-800 disabled:opacity-50"
-                          title="Convert to project"
+                          title={isConverted(lead) ? "Already converted to a project" : "Convert to project"}
                         >
                           <FiBriefcase />
                         </button>
@@ -258,10 +258,14 @@ function LeadCard({ lead, convertingId, onConvert, onEdit, onDelete }) {
         <button
           type="button"
           onClick={() => onConvert(lead)}
-          disabled={convertingId === lead._id}
+          disabled={convertingId === lead._id || isConverted(lead)}
           className="rounded-lg bg-green-600 px-3 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-60"
         >
-          {convertingId === lead._id ? "Converting..." : "Convert to Project"}
+          {convertingId === lead._id
+            ? "Converting..."
+            : isConverted(lead)
+              ? "Already Converted"
+              : "Convert to Project"}
         </button>
         <button type="button" onClick={() => onEdit(lead)} className="rounded-lg border px-3 py-2 text-sm">
           Edit
@@ -272,4 +276,8 @@ function LeadCard({ lead, convertingId, onConvert, onEdit, onDelete }) {
       </div>
     </div>
   );
+}
+
+function isConverted(lead) {
+  return Boolean(lead.convertedProject) || lead.status === "Converted";
 }

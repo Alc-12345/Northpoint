@@ -56,7 +56,7 @@ export const createEmployee = async (req, res) => {
   });
 
   if (existingUser || existingEmployee) {
-    res.status(400);
+    res.status(409);
     throw new Error("Employee login email or ID already exists");
   }
 

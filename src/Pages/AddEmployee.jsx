@@ -6,7 +6,7 @@ const createUsername = (value) =>
   `${String(value || "employee")
     .replace(/[^a-z0-9]/gi, "")
     .toLowerCase()
-    .slice(0, 12) || "employee"}01`;
+    .slice(0, 12) || "employee"}${String(Date.now()).slice(-6)}`;
 
 const createPassword = () => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789#$@!";
