@@ -13,6 +13,8 @@ import hrRoutes from "./routes/hrRoutes.js";
 import leadRoutes from "./routes/leadRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
+import trainingRoutes from "./routes/trainingRoutes.js";
+import practiceLabRoutes from "./routes/practiceLabRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
 import notFound from "./middleware/notFound.js";
 
@@ -46,6 +48,8 @@ app.use("/api/leads", leadRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/hr", hrRoutes);
+app.use("/api/training", trainingRoutes);
+app.use("/api/training/practice", practiceLabRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -22,6 +22,7 @@ import {
   FiHelpCircle,
   FiCalendar,
   FiLogOut,
+  FiBookOpen,
 } from "react-icons/fi";
 import logo from "../assets/logo.png"; // Adjust the path to your logo image
 import { logout } from "../utils/auth";
@@ -323,8 +324,11 @@ const [activeMenu, setActiveMenu] = useState(null);
           <NavLink to="/clients" className={linkClass}>
             <FiUser /> Leads
           </NavLink>
-           <NavLink to="/etl" className={linkClass}>
+          <NavLink to="/etl" className={linkClass}>
             <FiUser /> ETL
+          </NavLink>
+          <NavLink to="/training" className={linkClass}>
+            <FiBookOpen /> Training Management
           </NavLink>
          
           {/* <NavLink to="/charts" className={linkClass}>

@@ -47,12 +47,14 @@ import Task from "./Pages/Task.jsx";
 import HourBucket from "./Pages/Bucket.jsx";
 import Login from "./Pages/Login.jsx";
 import HelpDesk from "./Pages/HelpDesk.jsx";
+import TrainingManagement from "./Pages/TrainingManagement.jsx";
 
 
 
 function App() {
   return (
     <Routes>
+      <Route path="/training/*" element={<MainLayout><TrainingManagement /></MainLayout>} />
 
       {/* Dashboard */}
       <Route
