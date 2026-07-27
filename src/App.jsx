@@ -48,6 +48,7 @@ import HourBucket from "./Pages/Bucket.jsx";
 import Login from "./Pages/Login.jsx";
 import HelpDesk from "./Pages/HelpDesk.jsx";
 import TrainingManagement from "./Pages/TrainingManagement.jsx";
+import PracticeLab from "./Pages/PracticeLab.jsx";
 
 
 
@@ -55,6 +56,7 @@ function App() {
   return (
     <Routes>
       <Route path="/training/*" element={<MainLayout><TrainingManagement /></MainLayout>} />
+      <Route path="/student/practice-lab" element={<EmployeeLayout><PracticeLab /></EmployeeLayout>} />
 
       {/* Dashboard */}
       <Route

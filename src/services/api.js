@@ -94,4 +94,14 @@ export const etlApi = {
   runWorkflow: (workflow) => unwrap(api.post("/etl/run", workflow)),
 };
 
+export const practiceLabApi = {
+  getOverview: () => unwrap(api.get("/training/practice/overview")),
+  getProjects: () => unwrap(api.get("/training/practice/projects")),
+  createProject: (data) => unwrap(api.post("/training/practice/projects", data)),
+  updateProject: (id, data) => unwrap(api.put(`/training/practice/projects/${id}`, data)),
+  removeProject: (id) => unwrap(api.delete(`/training/practice/projects/${id}`)),
+  startSession: (data) => unwrap(api.post("/training/practice/sessions", data)),
+  getChallenges: () => unwrap(api.get("/training/practice/challenges")),
+};
+
 export default api;

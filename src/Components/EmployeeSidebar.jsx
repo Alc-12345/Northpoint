@@ -16,6 +16,7 @@ import {
   FiMoon,
   FiMenu,
   FiSearch
+  ,FiCode
 } from "react-icons/fi";
 import { logout } from "../utils/auth";
 
@@ -100,6 +101,13 @@ const EmployeeSidebar = ({ children }) => {
             }
           >
             <FiFolder /> Projects
+          </NavLink>
+
+          <NavLink
+            to="/student/practice-lab"
+            className={({ isActive }) => `${linkClass} ${isActive ? activeClass : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
+          >
+            <FiCode /> Practice Lab
           </NavLink>
 
           <NavLink

@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 import User from "../models/User.js";
 
-const allowedRoles = ["superadmin", "employee", "client"];
+const allowedRoles = ["superadmin", "admin", "trainer", "student", "hr", "employee", "client"];
 const getJwtSecret = () => process.env.JWT_SECRET || "dev_jwt_secret_change_me";
 
 const signToken = (user) =>
@@ -32,7 +32,7 @@ export const register = async (req, res) => {
 
   if (!allowedRoles.includes(normalizedRole)) {
     res.status(400);
-    throw new Error("Role must be superadmin, employee, or client");
+    throw new Error("Role must be superadmin, admin, trainer, student, hr, employee, or client");
   }
 
   if (!password || password.length < 6) {
@@ -49,7 +49,7 @@ export const register = async (req, res) => {
     }
   } else if (req.user?.role !== "superadmin") {
     res.status(403);
-    throw new Error("Only superadmin can create employee or client accounts");
+    throw new Error("Only superadmin can create user accounts");
   }
 
   const user = new User({
