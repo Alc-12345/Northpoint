@@ -55,7 +55,7 @@ import PracticeLab from "./Pages/PracticeLab.jsx";
 function App() {
   return (
     <Routes>
-      <Route path="/training/*" element={<MainLayout><TrainingManagement /></MainLayout>} />
+      <Route path="/training/*" element={<TrainingManagement />} />
       <Route path="/student/practice-lab" element={<EmployeeLayout><PracticeLab /></EmployeeLayout>} />
 
       {/* Dashboard */}
