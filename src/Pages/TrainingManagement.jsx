@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
   BookOpen,
+  CalendarDays,
   CheckCircle2,
-  ChevronRight,
+  Clock3,
   Code2,
   FileText,
   GraduationCap,
@@ -168,18 +169,62 @@ const icon = {
   Settings: CheckCircle2,
 };
 
-function Stat({ label, value, note, Icon }) {
+const dashboardStats = [
+  {
+    label: "Active courses",
+    value: "12",
+    note: "+2 this month",
+    Icon: BookOpen,
+    accent: "from-sky-500 to-cyan-400",
+  },
+  {
+    label: "Active learners",
+    value: "286",
+    note: "92% attendance",
+    Icon: Users,
+    accent: "from-emerald-500 to-teal-400",
+  },
+  {
+    label: "Classes today",
+    value: "04",
+    note: "Next at 3:00 PM",
+    Icon: Video,
+    accent: "from-violet-500 to-indigo-400",
+  },
+  {
+    label: "Completion rate",
+    value: "84%",
+    note: "+6.4% vs last month",
+    Icon: Trophy,
+    accent: "from-amber-500 to-orange-400",
+  },
+];
+
+const activityData = [42, 63, 49, 78, 68, 92, 74, 86, 58, 95, 72, 82];
+const cohortHealth = [
+  { name: "FS-2026-JUL", value: 88, color: "bg-sky-500" },
+  { name: "DE-2026-AUG", value: 74, color: "bg-emerald-500" },
+  { name: "LEAD-JUL", value: 61, color: "bg-violet-500" },
+];
+const reviewQueue = [
+  { title: "Build a REST API", count: 12, tag: "High" },
+  { title: "SQL Window Functions", count: 7, tag: "Medium" },
+  { title: "Portfolio Project", count: 4, tag: "Low" },
+];
+
+function Stat({ label, value, note, Icon, accent }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex justify-between">
+    <div className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-[#243244] dark:bg-[#111827]">
+      <div className={`h-1 bg-gradient-to-r ${accent}`} />
+      <div className="flex justify-between p-5">
         <div>
           <p className="text-sm text-slate-500">{label}</p>
           <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
             {value}
           </p>
-          <p className="mt-2 text-xs font-medium text-emerald-600">{note}</p>
+          <p className="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">{note}</p>
         </div>
-        <span className="rounded-xl bg-sky-50 p-3 text-sky-600 dark:bg-sky-950">
+        <span className={`grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br ${accent} text-white shadow-lg shadow-sky-500/20`}>
           <Icon size={22} />
         </span>
       </div>
@@ -189,48 +234,91 @@ function Stat({ label, value, note, Icon }) {
 function Dashboard() {
   return (
     <>
-    
+      <section className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[#243244] dark:bg-[#111827]">
+        <div className="grid gap-6 p-6 lg:grid-cols-[1fr_340px]">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-950/70 dark:text-sky-300">
+              <CalendarDays size={14} />
+              Trainer command center
+            </div>
+            <h1 className="mt-4 text-3xl font-bold text-slate-950 dark:text-white">
+              Good afternoon, Thomas
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+              Track live classes, learner progress, assignments, and reviews
+              from one polished workspace.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              {[
+                ["92%", "Attendance"],
+                ["23", "Reviews due"],
+                ["4.8", "Avg rating"],
+              ].map(([value, label]) => (
+                <div
+                  key={label}
+                  className="rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-[#0b1220]"
+                >
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {value}
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-slate-500">
+                    {label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl bg-gradient-to-br from-sky-600 via-cyan-500 to-emerald-400 p-5 text-white shadow-xl shadow-sky-500/20">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold">Next live session</p>
+              <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold">
+                Live soon
+              </span>
+            </div>
+            <h2 className="mt-6 text-2xl font-bold">React State Management</h2>
+            <p className="mt-2 text-sm text-sky-50">FS-2026-JUL - 3:00 PM</p>
+            <div className="mt-6 flex items-center justify-between rounded-xl bg-white/15 p-3">
+              <div className="flex items-center gap-2">
+                <Clock3 size={18} />
+                <span className="text-sm font-medium">52 learners enrolled</span>
+              </div>
+              <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-sky-700">
+                Start
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat
-          label="Active courses"
-          value="12"
-          note="+2 this month"
-          Icon={BookOpen}
-        />
-        <Stat
-          label="Active learners"
-          value="286"
-          note="92% attendance"
-          Icon={Users}
-        />
-        <Stat
-          label="Classes today"
-          value="04"
-          note="Next at 3:00 PM"
-          Icon={Video}
-        />
-        <Stat
-          label="Completion rate"
-          value="84%"
-          note="+6.4% vs last month"
-          Icon={Trophy}
-        />
+        {dashboardStats.map((stat) => (
+          <Stat key={stat.label} {...stat} />
+        ))}
       </div>
       <div className="mt-6 grid gap-6 xl:grid-cols-5">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-3 dark:border-slate-800 dark:bg-slate-900">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-3 dark:border-[#243244] dark:bg-[#111827]">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-slate-900 dark:text-white">
-              Learning activity
-            </h2>
-            <button className="text-sm text-sky-600">Last 30 days</button>
+            <div>
+              <h2 className="font-semibold text-slate-900 dark:text-white">
+                Learning activity
+              </h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Course opens, quiz attempts, and lab runs
+              </p>
+            </div>
+            <button className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-sky-600 dark:border-slate-700">
+              Last 30 days
+            </button>
           </div>
-          <div className="mt-8 flex h-44 items-end gap-3">
-            {[42, 63, 49, 78, 68, 92, 74, 86, 58, 95, 72, 82].map((n, i) => (
-              <div
-                key={i}
-                className="flex-1 rounded-t-md bg-gradient-to-t from-sky-500 to-cyan-300"
-                style={{ height: `${n}%` }}
-              />
+          <div className="mt-8 flex h-52 items-end gap-3 rounded-xl bg-slate-50 px-4 pb-4 pt-8 dark:bg-[#0b1220]">
+            {activityData.map((n, i) => (
+              <div key={i} className="flex h-full flex-1 items-end">
+                <div
+                  className="w-full rounded-t-lg bg-gradient-to-t from-sky-600 via-sky-400 to-cyan-300 shadow-lg shadow-sky-500/20"
+                  style={{ height: `${n}%` }}
+                  title={`${n}% activity`}
+                />
+              </div>
             ))}
           </div>
           <div className="mt-3 flex justify-between text-xs text-slate-400">
@@ -240,72 +328,95 @@ function Dashboard() {
             <span>Week 4</span>
           </div>
         </section>
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-2 dark:border-slate-800 dark:bg-slate-900">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-2 dark:border-[#243244] dark:bg-[#111827]">
           <h2 className="font-semibold text-slate-900 dark:text-white">
             Today’s classes
           </h2>
           {catalog["Live Classes"].map((item, i) => (
-            <div className="mt-4 flex items-center gap-3" key={item.title}>
+            <div className="mt-4 flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-[#0b1220]" key={item.title}>
               <div className="rounded-lg bg-violet-100 p-2 text-violet-600 dark:bg-violet-950">
                 <Video size={18} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-slate-800 dark:text-white">
+                <p className="truncate text-sm font-semibold text-slate-800 dark:text-white">
                   {item.title}
                 </p>
                 <p className="text-xs text-slate-500">{item.meta}</p>
               </div>
-              <button className="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-medium text-white">
+              <button className="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white">
                 {i === 0 ? "Join" : "Details"}
               </button>
             </div>
           ))}
         </section>
       </div>
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-[#243244] dark:bg-[#111827]">
+          <h2 className="font-semibold text-slate-900 dark:text-white">
+            Cohort health
+          </h2>
+          <div className="mt-5 space-y-5">
+            {cohortHealth.map((item) => (
+              <div key={item.name}>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-slate-700 dark:text-slate-200">
+                    {item.name}
+                  </span>
+                  <span className="font-semibold text-slate-500">
+                    {item.value}%
+                  </span>
+                </div>
+                <div className="mt-2 h-2 rounded-full bg-slate-100 dark:bg-slate-800">
+                  <div
+                    className={`h-full rounded-full ${item.color}`}
+                    style={{ width: `${item.value}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-[#243244] dark:bg-[#111827]">
           <h2 className="font-semibold text-slate-900 dark:text-white">
             Pending reviews
           </h2>
-          {[
-            "Build a REST API",
-            "SQL Window Functions",
-            "Portfolio Project",
-          ].map((t, i) => (
-            <div className="mt-4 flex items-center justify-between" key={t}>
+          {reviewQueue.map((item) => (
+            <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-50 p-3 dark:bg-[#0b1220]" key={item.title}>
               <div>
-                <p className="text-sm font-medium text-slate-800 dark:text-white">
-                  {t}
+                <p className="text-sm font-semibold text-slate-800 dark:text-white">
+                  {item.title}
                 </p>
                 <p className="text-xs text-slate-500">
-                  {[12, 7, 4][i]} submissions need review
+                  {item.count} submissions need review
                 </p>
               </div>
-              <ChevronRight className="text-slate-400" size={18} />
+              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                {item.tag}
+              </span>
             </div>
           ))}
         </section>
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-[#243244] dark:bg-[#111827]">
           <h2 className="font-semibold text-slate-900 dark:text-white">
             Top learners
           </h2>
           {["Aarav Mehta", "Meera Nair", "Kabir Shah"].map((name, i) => (
             <div className="mt-4 flex items-center gap-3" key={name}>
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-sky-100 text-sm font-bold text-sky-700">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-sky-100 text-sm font-bold text-sky-700 dark:bg-sky-950 dark:text-sky-300">
                 {i + 1}
               </span>
               <div className="flex-1">
-                <p className="text-sm font-medium text-slate-800 dark:text-white">
+                <p className="text-sm font-semibold text-slate-800 dark:text-white">
                   {name}
                 </p>
-                <div className="mt-1 h-1.5 rounded bg-slate-100 dark:bg-slate-800">
+                <div className="mt-1.5 h-2 rounded bg-slate-100 dark:bg-slate-800">
                   <div
                     className="h-full rounded bg-sky-500"
                     style={{ width: `${96 - i * 5}%` }}
                   />
                 </div>
               </div>
-              <span className="text-xs font-semibold text-slate-500">
+              <span className="text-xs font-bold text-slate-500">
                 {96 - i * 5}%
               </span>
             </div>
