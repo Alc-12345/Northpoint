@@ -16,6 +16,7 @@ import {
   FiScissors,
   FiServer,
   FiShuffle,
+  FiTrash2,
 } from "react-icons/fi";
 import { operationGroups } from "../utils/etlConfig";
 
@@ -117,6 +118,18 @@ export default function CustomNode({ id, data }) {
           <h4 className="truncate font-semibold text-white">{label}</h4>
           <p className="text-xs text-white/70">{category.toUpperCase()}</p>
         </div>
+        <button
+          type="button"
+          aria-label={`Delete ${label}`}
+          title="Delete node"
+          className="nodrag nopan ml-auto rounded p-2 text-white hover:bg-black/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+          onClick={(event) => {
+            event.stopPropagation();
+            data?.onDelete?.(id);
+          }}
+        >
+          <FiTrash2 size={16} />
+        </button>
       </div>
 
       <div className="p-3">

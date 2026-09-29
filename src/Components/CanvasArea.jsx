@@ -22,6 +22,7 @@ export default function CanvasArea({
   setEdges,
   setSelectedNode,
   onOperationChange,
+  onNodeDelete,
   onFlowReady,
 }) {
   const wrapperRef = useRef(null);
@@ -87,6 +88,7 @@ export default function CanvasArea({
           type: block.type,
           status: "Ready",
           progress: 0,
+          totalWorkingHours: 0,
           fileName: "",
           fileSize: "",
           outputRows: [],
@@ -113,6 +115,7 @@ export default function CanvasArea({
           data: {
             ...node.data,
             onOperationChange,
+            onDelete: onNodeDelete,
           },
         }))}
         edges={edges}

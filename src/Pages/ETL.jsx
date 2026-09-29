@@ -23,6 +23,7 @@ const initialNodes = [
       method: "GET",
       status: "Ready",
       progress: 0,
+      totalWorkingHours: 0,
       fileName: "",
       fileSize: "",
       outputRows: [],
@@ -54,7 +55,7 @@ export default function ETLBuilder() {
   const redoRef = useRef([]);
   const [initialWorkflow] = useState(() => {
     const localWorkflow = loadWorkflow();
-    const hasLocalWorkflow = localWorkflow.nodes.length || localWorkflow.edges.length;
+    const hasLocalWorkflow = localStorage.getItem("etl_workflow") !== null;
 
     return {
       nodes: hasLocalWorkflow ? localWorkflow.nodes : initialNodes,
@@ -72,7 +73,7 @@ export default function ETLBuilder() {
     etlApi
       .getWorkflow()
       .then((workflow) => {
-        if (workflow?.nodes?.length || workflow?.edges?.length) {
+        if (workflow?._id || workflow?.nodes?.length || workflow?.edges?.length) {
           setNodes(workflow.nodes || []);
           setEdges(workflow.edges || []);
           setApiMessage("Loaded API workflow");
@@ -116,6 +117,7 @@ export default function ETLBuilder() {
                 method: updatedData.method,
                 status: updatedData.status,
                 progress: updatedData.progress,
+                totalWorkingHours: updatedData.totalWorkingHours,
                 fileName: updatedData.fileName,
                 fileSize: updatedData.fileSize,
                 outputRows: updatedData.outputRows,
@@ -128,6 +130,13 @@ export default function ETLBuilder() {
       return updatedNodes;
     });
   };
+
+  const handleNodeDelete = useCallback((id) => {
+    rememberSnapshot();
+    setNodes((prev) => prev.filter((node) => node.id !== id));
+    setEdges((prev) => prev.filter((edge) => edge.source !== id && edge.target !== id));
+    setSelectedNode((prev) => prev?.id === id ? null : prev);
+  }, [rememberSnapshot]);
 
   const handleOperationChange = useCallback(
     (id, operation) => {
@@ -301,6 +310,7 @@ export default function ETLBuilder() {
             selectedNode={selectedNode}
             setSelectedNode={setSelectedNode}
             onOperationChange={handleOperationChange}
+            onNodeDelete={handleNodeDelete}
             onFlowReady={(instance) => {
               flowRef.current = instance;
             }}

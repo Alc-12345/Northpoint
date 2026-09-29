@@ -44,6 +44,7 @@ const getInitialForm = (selectedNode) => ({
   sqlTable: selectedNode.data?.sqlTable || "",
   status: selectedNode.data?.status || "Ready",
   progress: selectedNode.data?.progress || 0,
+  totalWorkingHours: selectedNode.data?.totalWorkingHours ?? 0,
   fileName: selectedNode.data?.fileName || "",
   fileSize: selectedNode.data?.fileSize || "",
   outputRows: selectedNode.data?.outputRows || [],
@@ -77,7 +78,9 @@ function PropertyForm({ selectedNode, onUpdate }) {
   };
 
   const handleSave = () => {
-    onUpdate(selectedNode.id, form);
+    const hours = Number(form.totalWorkingHours);
+    if (!Number.isFinite(hours) || hours < 0) return;
+    onUpdate(selectedNode.id, { ...form, totalWorkingHours: hours });
   };
 
   const operations = operationGroups[form.category]?.operations || operationGroups.source.operations;
@@ -250,6 +253,20 @@ function PropertyForm({ selectedNode, onUpdate }) {
             </button>
           </div>
         </div>
+      )}
+
+      <label htmlFor="total-working-hours" className="text-sm text-slate-300">Total Working Hours</label>
+      <input
+        id="total-working-hours"
+        type="number"
+        min="0"
+        step="any"
+        value={form.totalWorkingHours}
+        onChange={(event) => handleChange("totalWorkingHours", event.target.value)}
+        className={fieldClass}
+      />
+      {(!Number.isFinite(Number(form.totalWorkingHours)) || Number(form.totalWorkingHours) < 0) && (
+        <p role="alert" className="-mt-2 mb-4 text-sm text-red-400">Enter zero or more working hours.</p>
       )}
 
       <label className="text-sm text-slate-300">Status</label>
