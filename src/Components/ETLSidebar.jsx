@@ -58,12 +58,12 @@ export default function ETLSidebar() {
   };
 
   return (
-    <div className="h-full w-72 overflow-auto border-r border-slate-700 bg-[#111827]">
-      <div className="p-5">
-        <h2 className="mb-1 text-xl font-bold text-white">ETL Components</h2>
-        <p className="mb-5 text-sm text-slate-400">Pick the main block here. Select the operation inside the card.</p>
+    <div className="h-full w-44 shrink-0 overflow-auto border-r border-[#383944] bg-[#292a35] sm:w-52">
+      <div className="p-3">
+        <h2 className="mb-1 text-sm font-semibold text-white">Nodes</h2>
+        <p className="mb-4 text-xs text-slate-400">Drag a node onto the canvas.</p>
 
-        <div className="space-y-3">
+        <div className="space-y-1.5">
           {blocks.map((item) => {
             const group = operationGroups[item.category];
 
@@ -72,14 +72,14 @@ export default function ETLSidebar() {
                 key={item.category}
                 draggable
                 onDragStart={(event) => onDragStart(event, item)}
-                className="flex cursor-grab items-center gap-3 rounded-lg bg-[#1E293B] p-3 text-white shadow transition-all duration-200 hover:bg-blue-600"
+                className="flex cursor-grab items-center gap-2 rounded-lg border border-transparent p-2 text-slate-200 transition-colors hover:border-[#484955] hover:bg-[#343541]"
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded bg-slate-900/50">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-slate-900/50">
                   {item.icon}
                 </span>
                 <span className="min-w-0">
-                  <span className="block font-semibold">{group.label}</span>
-                  <span className="block truncate text-xs text-slate-300">{group.description}</span>
+                  <span className="block text-xs font-medium">{group.label}</span>
+                  <span className="block truncate text-[10px] text-slate-300">{group.description}</span>
                 </span>
               </div>
             );

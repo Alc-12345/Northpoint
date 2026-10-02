@@ -280,7 +280,7 @@ export default function ETLBuilder() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-[#0B1220] text-white">
+    <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#20212b] text-white">
       <CanvasToolbar
         nodes={withSerializableData(nodes)}
         edges={edges}
@@ -291,17 +291,17 @@ export default function ETLBuilder() {
         onRedo={handleRedo}
         onZoomIn={() => flowRef.current?.zoomIn()}
         onZoomOut={() => flowRef.current?.zoomOut()}
-        onReset={() => flowRef.current?.fitView()}
+        onReset={() => flowRef.current?.fitView({ padding: 0.3, maxZoom: 0.85, duration: 250 })}
         isRunning={isRunning}
         apiMessage={apiMessage}
       />
 
       <input ref={fileInputRef} type="file" accept="application/json" onChange={handleImportFile} className="hidden" />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         <ETLSidebar />
 
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <CanvasArea
             nodes={nodes}
             setNodes={setNodes}
@@ -317,7 +317,9 @@ export default function ETLBuilder() {
           />
         </div>
 
-        <PropertyPanel selectedNode={selectedNode} onUpdate={handleNodeUpdate} />
+        {selectedNode && (
+          <PropertyPanel selectedNode={selectedNode} onUpdate={handleNodeUpdate} onClose={() => setSelectedNode(null)} />
+        )}
       </div>
     </div>
   );

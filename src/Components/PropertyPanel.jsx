@@ -311,19 +311,20 @@ function PropertyForm({ selectedNode, onUpdate }) {
   );
 }
 
-export default function PropertyPanel({ selectedNode, onUpdate }) {
+export default function PropertyPanel({ selectedNode, onUpdate, onClose }) {
   return (
-    <div className="h-full w-80 overflow-auto border-l border-slate-700 bg-[#111827]">
-      <div className="p-5">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
+    <div className="h-full w-64 shrink-0 overflow-auto border-l border-[#383944] bg-[#292a35] lg:w-72">
+      <div className="p-4">
+        <div className="mb-4 flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600">
             <FiSettings />
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-white">Node Properties</h2>
-            <p className="text-sm text-slate-400">Configure ETL block</p>
+            <h2 className="text-sm font-semibold text-white">Node Properties</h2>
+            <p className="text-xs text-slate-400">Configure node</p>
           </div>
+          <button type="button" onClick={onClose} aria-label="Close node properties" className="ml-auto rounded px-2 py-1 text-slate-400 hover:bg-slate-700 hover:text-white">×</button>
         </div>
 
         {!selectedNode ? (

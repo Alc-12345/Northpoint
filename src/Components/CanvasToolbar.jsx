@@ -27,17 +27,17 @@ export default function CanvasToolbar({
   apiMessage,
 }) {
   return (
-    <div className="flex h-14 items-center justify-between border-b border-slate-700 bg-[#111827] px-4">
-      <div className="flex min-w-0 items-center gap-3">
-        <h2 className="text-lg font-bold text-white">ETL Builder</h2>
-        <span className="hidden text-sm text-slate-400 sm:inline">Visual Workflow Designer</span>
-        {apiMessage && <span className="truncate text-xs text-slate-400">{apiMessage}</span>}
+    <div className="flex min-h-12 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[#383944] bg-[#292a35] px-2.5 py-1.5">
+      <div className="flex min-w-0 items-center gap-2">
+        <h2 className="text-sm font-semibold text-white">ETL Builder</h2>
+        <span className="hidden text-xs text-slate-400 xl:inline">Workflow editor</span>
+        {apiMessage && <span className="max-w-48 truncate text-[10px] text-slate-400">{apiMessage}</span>}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-1.5 text-xs">
         <button
           onClick={onSave}
-          className="flex items-center gap-2 rounded bg-blue-600 px-3 py-2 text-white transition hover:bg-blue-700"
+          className="flex items-center gap-2 rounded bg-blue-600 px-2.5 py-1.5 text-white transition hover:bg-blue-700"
         >
           <FiSave size={16} />
           Save
@@ -46,7 +46,7 @@ export default function CanvasToolbar({
         <button
           onClick={onRun}
           disabled={isRunning}
-          className="flex items-center gap-2 rounded bg-green-600 px-3 py-2 text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex items-center gap-2 rounded bg-[#ff6d5a] px-2.5 py-1.5 text-white transition hover:bg-[#e85c4a] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <FiPlay size={16} />
           {isRunning ? "Running" : "Run"}
@@ -54,7 +54,7 @@ export default function CanvasToolbar({
 
         <button
           onClick={onImport}
-          className="flex items-center gap-2 rounded bg-slate-700 px-3 py-2 text-white transition hover:bg-slate-600"
+          className="flex items-center gap-2 rounded bg-slate-700 px-2.5 py-1.5 text-white transition hover:bg-slate-600"
         >
           <FiUpload size={16} />
           Import
@@ -62,33 +62,33 @@ export default function CanvasToolbar({
 
         <button
           onClick={() => exportWorkflow(nodes, edges)}
-          className="flex items-center gap-2 rounded bg-slate-700 px-3 py-2 text-white transition hover:bg-slate-600"
+          className="flex items-center gap-2 rounded bg-slate-700 px-2.5 py-1.5 text-white transition hover:bg-slate-600"
         >
           <FiDownload size={16} />
           Export
         </button>
 
-        <div className="mx-2 h-8 w-px bg-slate-600" />
+        <div className="mx-1 h-5 w-px bg-slate-600" />
 
-        <button onClick={onUndo} className="rounded bg-slate-700 p-2 text-white transition hover:bg-slate-600" title="Undo">
+        <button onClick={onUndo} className="rounded bg-slate-700 p-1.5 text-white transition hover:bg-slate-600" title="Undo">
           <FiRotateCcw />
         </button>
 
-        <button onClick={onRedo} className="rounded bg-slate-700 p-2 text-white transition hover:bg-slate-600" title="Redo">
+        <button onClick={onRedo} className="rounded bg-slate-700 p-1.5 text-white transition hover:bg-slate-600" title="Redo">
           <FiRotateCw />
         </button>
 
-        <div className="mx-2 h-8 w-px bg-slate-600" />
+        <div className="mx-1 h-5 w-px bg-slate-600" />
 
-        <button onClick={onZoomOut} className="rounded bg-slate-700 p-2 text-white transition hover:bg-slate-600" title="Zoom out">
+        <button onClick={onZoomOut} className="rounded bg-slate-700 p-1.5 text-white transition hover:bg-slate-600" title="Zoom out">
           <FiZoomOut />
         </button>
 
-        <button onClick={onZoomIn} className="rounded bg-slate-700 p-2 text-white transition hover:bg-slate-600" title="Zoom in">
+        <button onClick={onZoomIn} className="rounded bg-slate-700 p-1.5 text-white transition hover:bg-slate-600" title="Zoom in">
           <FiZoomIn />
         </button>
 
-        <button onClick={onReset} className="rounded bg-slate-700 p-2 text-white transition hover:bg-slate-600" title="Reset view">
+        <button onClick={onReset} className="rounded bg-slate-700 p-1.5 text-white transition hover:bg-slate-600" title="Reset view">
           <FiRefreshCw />
         </button>
       </div>

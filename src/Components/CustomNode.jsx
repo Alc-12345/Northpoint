@@ -18,7 +18,6 @@ import {
   FiShuffle,
   FiTrash2,
 } from "react-icons/fi";
-import { operationGroups } from "../utils/etlConfig";
 
 const icons = {
   csv: <FiFileText size={18} />,
@@ -85,94 +84,49 @@ const statusClasses = {
   Failed: "bg-red-500/20 text-red-300",
 };
 
-export default function CustomNode({ id, data }) {
+export default function CustomNode({ id, data, selected }) {
   const type = data?.type || "csv";
-  const category = data?.category || "source";
   const label = data?.label || "New Node";
   const status = data?.status || "Ready";
   const progress = Math.min(100, Math.max(0, Number(data?.progress || 0)));
-  const fileName = data?.fileName || "";
-  const canUpload = ["csv", "excel"].includes(type);
-  const sqlLabel = data?.sqlTable || data?.sqlConnection || "";
-  const operations = operationGroups[category]?.operations || operationGroups.source.operations;
-
-  const handleOperationChange = (event) => {
-    const nextType = event.target.value;
-    const operation = operations.find((item) => item.type === nextType);
-
-    data?.onOperationChange?.(id, {
-      type: nextType,
-      label: operation?.label || label,
-    });
-  };
+  const detail = data?.fileName || data?.sqlTable || data?.category || "source";
+  const accent = colors[type] || "#3B82F6";
 
   return (
-    <div className="min-w-[220px] rounded-xl border border-slate-700 bg-[#1E293B] shadow-xl transition-all duration-300 hover:scale-[1.02] hover:border-blue-500 hover:shadow-blue-500/20">
-      <Handle type="target" position={Position.Left} className="!h-4 !w-4 !bg-white" />
-      <Handle type="source" position={Position.Right} className="!h-4 !w-4 !bg-blue-500" />
-
-      <div className="flex items-center gap-3 rounded-t-xl p-3" style={{ background: colors[type] || "#3B82F6" }}>
-        {icons[type] || <FiDatabase size={18} />}
-
-        <div className="min-w-0">
-          <h4 className="truncate font-semibold text-white">{label}</h4>
-          <p className="text-xs text-white/70">{category.toUpperCase()}</p>
-        </div>
+    <div className="group relative w-32 text-center">
+      <div
+        className={`relative mx-auto flex h-[88px] w-[88px] items-center justify-center rounded-2xl border-2 bg-[#252631] shadow-sm transition-colors ${selected ? "border-[#ff6d5a] ring-4 ring-[#ff6d5a]/10" : "border-[#555663] hover:border-slate-300"}`}
+      >
+        <Handle type="target" position={Position.Left} className="!h-2.5 !w-2.5 !border-2 !border-[#a1a1aa] !bg-[#20212b]" />
+        <Handle type="source" position={Position.Right} className="!h-2.5 !w-2.5 !border-2 !border-[#a1a1aa] !bg-[#20212b]" />
+        <span className="flex h-12 w-12 items-center justify-center rounded-xl [&>svg]:h-8 [&>svg]:w-8" style={{ color: accent, backgroundColor: `${accent}18` }}>
+          {icons[type] || <FiDatabase size={32} />}
+        </span>
         <button
           type="button"
           aria-label={`Delete ${label}`}
           title="Delete node"
-          className="nodrag nopan ml-auto rounded p-2 text-white hover:bg-black/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+          className="nodrag nopan absolute -right-2 -top-2 rounded-md border border-slate-600 bg-[#30313e] p-1 text-slate-300 opacity-0 transition-opacity hover:text-red-400 focus:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100"
           onClick={(event) => {
             event.stopPropagation();
             data?.onDelete?.(id);
           }}
         >
-          <FiTrash2 size={16} />
+          <FiTrash2 size={12} />
         </button>
+        {status === "Running" && (
+          <div className="absolute inset-x-2 bottom-1.5 h-1 overflow-hidden rounded-full bg-slate-700">
+            <div className="h-full bg-[#ff6d5a] transition-all" style={{ width: `${progress}%` }} />
+          </div>
+        )}
       </div>
-
-      <div className="p-3">
-        <div className="text-xs text-slate-400">Operation</div>
-        <select
-          value={type}
-          onChange={handleOperationChange}
-          className="nodrag mt-1 w-full rounded border border-slate-600 bg-slate-900 px-2 py-1.5 text-sm text-white outline-none focus:border-blue-500"
-        >
-          {operations.map((operation) => (
-            <option key={operation.type} value={operation.type}>
-              {operation.label}
-            </option>
-          ))}
-        </select>
-
-        <div className="mt-3 text-xs text-slate-400">Status</div>
-        <span className={`mt-1 inline-block rounded-full px-2 py-1 text-xs ${statusClasses[status] || statusClasses.Ready}`}>
+      <h4 className="mt-2 truncate text-xs font-semibold text-slate-100" title={label}>{label}</h4>
+      <p className="mt-0.5 truncate text-[10px] capitalize text-slate-400" title={detail}>{detail}</p>
+      {status !== "Ready" && (
+        <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] ${statusClasses[status] || statusClasses.Ready}`}>
           {status}
         </span>
-
-        <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-          <span>Progress</span>
-          <span className="text-slate-200">{progress}%</span>
-        </div>
-        <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-700">
-          <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${progress}%` }} />
-        </div>
-
-        {canUpload && fileName && (
-          <>
-            <div className="mt-3 text-xs text-slate-400">File</div>
-            <div className="mt-1 max-w-[190px] truncate text-sm text-white">{fileName}</div>
-          </>
-        )}
-
-        {type === "sql" && sqlLabel && (
-          <>
-            <div className="mt-3 text-xs text-slate-400">SQL</div>
-            <div className="mt-1 max-w-[190px] truncate text-sm text-white">{sqlLabel}</div>
-          </>
-        )}
-      </div>
+      )}
     </div>
   );
 }

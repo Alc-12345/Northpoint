@@ -26,6 +26,7 @@ export default function CanvasArea({
   onFlowReady,
 }) {
   const wrapperRef = useRef(null);
+  const instanceRef = useRef(null);
 
   const onNodesChange = useCallback(
     (changes) => {
@@ -47,10 +48,10 @@ export default function CanvasArea({
         addEdge(
           {
             ...params,
-            animated: true,
+            type: "smoothstep",
             style: {
-              stroke: "#3B82F6",
-              strokeWidth: 2,
+              stroke: "#858593",
+              strokeWidth: 1.5,
             },
           },
           eds
@@ -73,14 +74,18 @@ export default function CanvasArea({
       if (!raw) return;
 
       const block = JSON.parse(raw);
-      const bounds = wrapperRef.current?.getBoundingClientRect();
+      const position = instanceRef.current?.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+      if (!position) return;
 
       const newNode = {
         id: `${Date.now()}`,
         type: "custom",
         position: {
-          x: event.clientX - (bounds?.left || 0) - 110,
-          y: event.clientY - (bounds?.top || 0) - 60,
+          x: position.x - 64,
+          y: position.y - 44,
         },
         data: {
           label: block.label,
@@ -108,7 +113,7 @@ export default function CanvasArea({
   );
 
   return (
-    <div ref={wrapperRef} className="etl-flow-canvas h-[calc(100vh-56px)] w-full cursor-default bg-[#0F172A]">
+    <div ref={wrapperRef} className="etl-flow-canvas h-full w-full cursor-default bg-[#20212b]">
       <ReactFlow
         nodes={nodes.map((node) => ({
           ...node,
@@ -120,7 +125,10 @@ export default function CanvasArea({
         }))}
         edges={edges}
         nodeTypes={nodeTypes}
-        onInit={onFlowReady}
+        onInit={(instance) => {
+          instanceRef.current = instance;
+          onFlowReady?.(instance);
+        }}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
@@ -129,9 +137,14 @@ export default function CanvasArea({
         onNodeClick={(event, node) => {
           setSelectedNode(node);
         }}
+        onPaneClick={() => setSelectedNode(null)}
         fitView
+        fitViewOptions={{ padding: 0.3, maxZoom: 0.85 }}
+        minZoom={0.25}
+        maxZoom={1.5}
+        defaultEdgeOptions={{ type: "smoothstep", style: { stroke: "#858593", strokeWidth: 1.5 } }}
       >
-        <Background gap={20} size={1} color="#334155" />
+        <Background gap={24} size={1} color="#454652" />
 
         <Controls showInteractive />
       </ReactFlow>
