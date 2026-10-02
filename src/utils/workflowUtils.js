@@ -1,8 +1,10 @@
+import { normalizeEtlNodes } from "../../shared/etlNodes.js";
+
 // Save Workflow
 
 export const saveWorkflow = (nodes, edges) => {
   const workflow = {
-    nodes,
+    nodes: normalizeEtlNodes(nodes),
     edges,
   };
 
@@ -24,14 +26,15 @@ export const loadWorkflow = () => {
     };
   }
 
-  return JSON.parse(data);
+  const workflow = JSON.parse(data);
+  return { ...workflow, nodes: normalizeEtlNodes(workflow.nodes || []) };
 };
 
 // Export JSON
 
 export const exportWorkflow = (nodes, edges) => {
   const workflow = {
-    nodes,
+    nodes: normalizeEtlNodes(nodes),
     edges,
   };
 
@@ -63,7 +66,7 @@ export const importWorkflow = (file, callback) => {
   reader.onload = (e) => {
     const json = JSON.parse(e.target.result);
 
-    callback(json.nodes, json.edges);
+    callback(normalizeEtlNodes(json.nodes || []), json.edges);
   };
 
   reader.readAsText(file);

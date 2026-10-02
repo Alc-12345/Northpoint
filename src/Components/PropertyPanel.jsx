@@ -39,7 +39,8 @@ const getInitialForm = (selectedNode) => ({
   type: selectedNode.data?.type || "csv",
   endpoint: selectedNode.data?.endpoint || "",
   method: selectedNode.data?.method || "GET",
-  expression: selectedNode.data?.expression || "",
+  description: selectedNode.data?.description || "",
+  sqlQuery: selectedNode.data?.sqlQuery || "",
   sqlConnection: selectedNode.data?.sqlConnection || "",
   sqlTable: selectedNode.data?.sqlTable || "",
   status: selectedNode.data?.status || "Ready",
@@ -154,8 +155,8 @@ function PropertyForm({ selectedNode, onUpdate }) {
           <label className="text-sm text-slate-300">SQL Query</label>
           <textarea
             rows={5}
-            value={form.expression}
-            onChange={(event) => handleChange("expression", event.target.value)}
+            value={form.sqlQuery}
+            onChange={(event) => handleChange("sqlQuery", event.target.value)}
             placeholder="SELECT * FROM public.customers"
             className={fieldClass}
           />
@@ -182,18 +183,15 @@ function PropertyForm({ selectedNode, onUpdate }) {
         </>
       )}
 
-      {!["csv", "excel", "sql", "api", "preview", "output"].includes(form.type) && (
-        <>
-          <label className="text-sm text-slate-300">Rule / Expression</label>
-          <textarea
-            rows={4}
-            value={form.expression}
-            onChange={(event) => handleChange("expression", event.target.value)}
-            placeholder="email IS NOT NULL"
-            className={fieldClass}
-          />
-        </>
-      )}
+      <label htmlFor="node-description" className="text-sm text-slate-300">Description</label>
+      <textarea
+        id="node-description"
+        rows={3}
+        value={form.description}
+        onChange={(event) => handleChange("description", event.target.value)}
+        placeholder="Describe what this node does"
+        className={fieldClass}
+      />
 
       {canDownloadOutput && (
         <div className="mb-4 rounded-lg border border-slate-700 bg-slate-900/60 p-3">

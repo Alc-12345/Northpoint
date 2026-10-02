@@ -1,3 +1,4 @@
+import { normalizeEtlNodes } from "../../shared/etlNodes.js";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import CanvasArea from "../Components/CanvasArea";
 import CanvasToolbar from "../Components/CanvasToolbar";
@@ -16,7 +17,8 @@ const initialNodes = [
       label: "CSV Input",
       category: "source",
       type: "csv",
-      expression: "",
+      description: "",
+      sqlQuery: "",
       sqlConnection: "",
       sqlTable: "",
       endpoint: "",
@@ -41,7 +43,7 @@ const createOutputRows = (nodes) =>
   }));
 
 const withSerializableData = (nodes) =>
-  nodes.map((node) => ({
+  normalizeEtlNodes(nodes).map((node) => ({
     ...node,
     data: Object.fromEntries(
       Object.entries(node.data || {}).filter(([, value]) => typeof value !== "function")
@@ -74,7 +76,7 @@ export default function ETLBuilder() {
       .getWorkflow()
       .then((workflow) => {
         if (workflow?._id || workflow?.nodes?.length || workflow?.edges?.length) {
-          setNodes(workflow.nodes || []);
+          setNodes(normalizeEtlNodes(workflow.nodes || []));
           setEdges(workflow.edges || []);
           setApiMessage("Loaded API workflow");
         }
@@ -110,7 +112,8 @@ export default function ETLBuilder() {
                 label: updatedData.name,
                 category: updatedData.category,
                 type: updatedData.type,
-                expression: updatedData.expression,
+                description: updatedData.description,
+                sqlQuery: updatedData.sqlQuery,
                 sqlConnection: updatedData.sqlConnection,
                 sqlTable: updatedData.sqlTable,
                 endpoint: updatedData.endpoint,

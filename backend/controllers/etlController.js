@@ -1,3 +1,4 @@
+import { normalizeEtlNodes } from "../../shared/etlNodes.js";
 import EtlWorkflow from "../models/EtlWorkflow.js";
 
 const DEFAULT_KEY = "default";
@@ -6,7 +7,7 @@ export const getWorkflow = async (req, res) => {
   const workflow = await EtlWorkflow.findOne({ key: DEFAULT_KEY });
 
   res.json(
-    workflow || {
+    workflow ? { ...workflow.toObject(), nodes: normalizeEtlNodes(workflow.nodes) } : {
       key: DEFAULT_KEY,
       nodes: [],
       edges: [],
@@ -21,7 +22,7 @@ export const saveWorkflow = async (req, res) => {
   const workflow = await EtlWorkflow.findOneAndUpdate(
     { key: DEFAULT_KEY },
     {
-      nodes,
+      nodes: normalizeEtlNodes(nodes),
       edges,
       lastRunStatus: "Ready",
     },
@@ -45,7 +46,7 @@ export const runWorkflow = async (req, res) => {
     progress: "100%",
   }));
 
-  const completedNodes = nodes.map((node) => ({
+  const completedNodes = normalizeEtlNodes(nodes).map((node) => ({
     ...node,
     data: {
       ...(node.data || {}),
