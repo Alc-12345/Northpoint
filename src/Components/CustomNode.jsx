@@ -102,7 +102,7 @@ export default function CustomNode({ id, data, selected }) {
         <span className="flex h-12 w-12 items-center justify-center rounded-xl [&>svg]:h-8 [&>svg]:w-8" style={{ color: accent, backgroundColor: `${accent}18` }}>
           {icons[type] || <FiDatabase size={32} />}
         </span>
-        <button
+        {!data?.taskId && <button
           type="button"
           aria-label={`Delete ${label}`}
           title="Delete node"
@@ -113,7 +113,7 @@ export default function CustomNode({ id, data, selected }) {
           }}
         >
           <FiTrash2 size={12} />
-        </button>
+        </button>}
         {status === "Running" && (
           <div className="absolute inset-x-2 bottom-1.5 h-1 overflow-hidden rounded-full bg-slate-700">
             <div className="h-full bg-[#ff6d5a] transition-all" style={{ width: `${progress}%` }} />
@@ -122,6 +122,7 @@ export default function CustomNode({ id, data, selected }) {
       </div>
       <h4 className="mt-2 truncate text-xs font-semibold text-slate-100" title={label}>{label}</h4>
       <p className="mt-0.5 truncate text-[10px] capitalize text-slate-400" title={detail}>{detail}</p>
+      {data?.taskId && <p className="mt-1 text-[10px] text-slate-400">{Number(data.totalWorkingHours || 0).toFixed(2)} h logged</p>}
       {status !== "Ready" && (
         <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] ${statusClasses[status] || statusClasses.Ready}`}>
           {status}

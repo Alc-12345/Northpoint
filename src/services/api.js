@@ -77,6 +77,7 @@ export const projectApi = {
 };
 
 export const taskApi = {
+  addWorkUpdate: (id, data) => unwrap(api.post(`/tasks/${id}/work`, data)),
   getAll: () => unwrap(api.get("/tasks")),
   getById: (id) => unwrap(api.get(`/tasks/${id}`)),
   create: (data) => unwrap(api.post("/tasks", data)),

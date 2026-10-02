@@ -1,4 +1,5 @@
 import { normalizeEtlNodes } from "../../shared/etlNodes.js";
+import { mergeTaskNodes } from "../../shared/taskWorkflow.js";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import CanvasArea from "../Components/CanvasArea";
 import CanvasToolbar from "../Components/CanvasToolbar";
@@ -86,6 +87,32 @@ export default function ETLBuilder() {
       });
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    let pending = false;
+    const refreshTasks = async () => {
+      if (pending) return;
+      pending = true;
+      try {
+        const workflow = await etlApi.getWorkflow();
+        if (!cancelled) {
+          const taskNodes = normalizeEtlNodes(workflow.nodes || []).filter(node => node.data?.taskId);
+          setNodes(current => mergeTaskNodes(current, taskNodes));
+          setSelectedNode(current => current?.data?.taskId
+            ? taskNodes.find(node => node.id === current.id) || null : current);
+        }
+      } catch { /* Preserve the current canvas while the API is unavailable. */ }
+      finally { pending = false; }
+    };
+    const timer = setInterval(refreshTasks, 5000);
+    window.addEventListener("focus", refreshTasks);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+      window.removeEventListener("focus", refreshTasks);
+    };
+  }, []);
+
   const rememberSnapshot = useCallback(() => {
     undoRef.current.push({
       nodes: withSerializableData(nodes),
@@ -100,6 +127,7 @@ export default function ETLBuilder() {
   };
 
   const handleNodeUpdate = (id, updatedData) => {
+    if (nodes.find(node => node.id === id)?.data?.taskId) return;
     rememberSnapshot();
 
     setNodes((prev) => {
@@ -135,11 +163,12 @@ export default function ETLBuilder() {
   };
 
   const handleNodeDelete = useCallback((id) => {
+    if (nodes.find(node => node.id === id)?.data?.taskId) return;
     rememberSnapshot();
     setNodes((prev) => prev.filter((node) => node.id !== id));
     setEdges((prev) => prev.filter((edge) => edge.source !== id && edge.target !== id));
     setSelectedNode((prev) => prev?.id === id ? null : prev);
-  }, [rememberSnapshot]);
+  }, [rememberSnapshot, nodes]);
 
   const handleOperationChange = useCallback(
     (id, operation) => {
@@ -174,7 +203,8 @@ export default function ETLBuilder() {
     setApiMessage("Saved locally");
 
     try {
-      await etlApi.saveWorkflow(workflow);
+      const saved = await etlApi.saveWorkflow(workflow);
+      setNodes(current => mergeTaskNodes(current, saved.nodes.filter(node => node.data?.taskId)));
       setApiMessage("Saved to API");
     } catch (error) {
       setApiMessage(`Local save only: ${error.message}`);
@@ -186,7 +216,7 @@ export default function ETLBuilder() {
     setApiMessage("Running workflow");
 
     setNodes((prev) =>
-      prev.map((node) => ({
+      prev.map((node) => node.data?.taskId ? node : ({
         ...node,
         data: {
           ...node.data,
@@ -206,7 +236,7 @@ export default function ETLBuilder() {
       const operatedRows = result?.outputRows || createOutputRows(nodes);
 
       setNodes((prev) =>
-        prev.map((node) => ({
+        prev.map((node) => node.data?.taskId ? node : ({
           ...node,
           data: {
             ...node.data,
@@ -219,7 +249,7 @@ export default function ETLBuilder() {
       setApiMessage(result?.message || "Workflow completed");
     } catch (error) {
       setNodes((prev) =>
-        prev.map((node) => ({
+        prev.map((node) => node.data?.taskId ? node : ({
           ...node,
           data: {
             ...node.data,

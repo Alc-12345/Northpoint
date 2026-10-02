@@ -1,4 +1,4 @@
-import { normalizeEtlNodes } from "../../shared/etlNodes.js";
+import { withTaskUpdates } from "../services/taskWorkflow.js";
 import EtlWorkflow from "../models/EtlWorkflow.js";
 
 const DEFAULT_KEY = "default";
@@ -7,9 +7,9 @@ export const getWorkflow = async (req, res) => {
   const workflow = await EtlWorkflow.findOne({ key: DEFAULT_KEY });
 
   res.json(
-    workflow ? { ...workflow.toObject(), nodes: normalizeEtlNodes(workflow.nodes) } : {
+    workflow ? { ...workflow.toObject(), nodes: await withTaskUpdates(workflow.nodes) } : {
       key: DEFAULT_KEY,
-      nodes: [],
+      nodes: await withTaskUpdates([]),
       edges: [],
       lastRunStatus: "Ready",
     }
@@ -22,7 +22,7 @@ export const saveWorkflow = async (req, res) => {
   const workflow = await EtlWorkflow.findOneAndUpdate(
     { key: DEFAULT_KEY },
     {
-      nodes: normalizeEtlNodes(nodes),
+      nodes: await withTaskUpdates(nodes),
       edges,
       lastRunStatus: "Ready",
     },
@@ -46,7 +46,7 @@ export const runWorkflow = async (req, res) => {
     progress: "100%",
   }));
 
-  const completedNodes = normalizeEtlNodes(nodes).map((node) => ({
+  const completedNodes = (await withTaskUpdates(nodes)).map((node) => node.data?.taskId ? node : ({
     ...node,
     data: {
       ...(node.data || {}),

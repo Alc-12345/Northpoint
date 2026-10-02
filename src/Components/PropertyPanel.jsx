@@ -51,6 +51,28 @@ const getInitialForm = (selectedNode) => ({
   outputRows: selectedNode.data?.outputRows || [],
 });
 
+function TaskProperties({ node }) {
+  return (
+    <div className="space-y-4 text-sm text-slate-300">
+      <h3 className="font-semibold text-white">{node.data.label}</h3>
+      <p>{node.data.description || "No description yet."}</p>
+      <p>Assigned to: {node.data.assignedTo || "Unassigned"}</p>
+      <p>Status: {node.data.status} · {node.data.progress}%</p>
+      <p className="font-semibold text-orange-300">{Number(node.data.totalWorkingHours || 0).toFixed(2)} working hours</p>
+      <p className="text-xs text-slate-400">Updates sync from employee tasks. Submitted hours are locked.</p>
+      <div className="space-y-2">
+        {(node.data.workLogs || []).slice().reverse().map((log, index) => (
+          <div key={log._id || index} className="rounded-lg bg-slate-800 p-3">
+            <p>{log.note}</p>
+            <p className="mt-1 text-xs text-slate-400">{log.hours} h · {log.employee}</p>
+            <p className="mt-1 text-[10px] text-slate-500">{new Date(log.createdAt).toLocaleString()}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PropertyForm({ selectedNode, onUpdate }) {
   const [form, setForm] = useState(() => getInitialForm(selectedNode));
 
@@ -330,6 +352,8 @@ export default function PropertyPanel({ selectedNode, onUpdate, onClose }) {
             <FiDatabase size={50} className="mx-auto text-slate-500" />
             <p className="mt-4 text-slate-400">Select a node from canvas</p>
           </div>
+        ) : selectedNode.data?.taskId ? (
+          <TaskProperties node={selectedNode} />
         ) : (
           <PropertyForm key={selectedNode.id} selectedNode={selectedNode} onUpdate={onUpdate} />
         )}

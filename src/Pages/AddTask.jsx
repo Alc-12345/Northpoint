@@ -13,6 +13,7 @@ export default function AddTask() {
     status: "Pending",
     assignedTo: "",
     dueDate: "",
+    workCategory: "frontend",
   });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -133,6 +134,14 @@ export default function AddTask() {
             </div>
           </div>
 
+          <div>
+            <label htmlFor="work-category" className="block text-sm mb-2 text-gray-600 dark:text-gray-300">Work area</label>
+            <select id="work-category" name="workCategory" value={formData.workCategory} onChange={handleChange} className="w-full rounded-lg border bg-gray-50 p-2 dark:bg-[#2a2a2a] dark:text-white">
+              <option value="frontend">Frontend / UI</option>
+              <option value="backend">Backend</option>
+              <option value="server">Server</option>
+            </select>
+          </div>
           {/* Description */}
           <div>
             <label className="block text-sm mb-2 text-gray-600 dark:text-gray-300">
