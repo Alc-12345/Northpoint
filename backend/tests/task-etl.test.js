@@ -6,6 +6,8 @@ import request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import app from '../app.js';
 import Task from '../models/Task.js';
+import Employee from '../models/Employee.js';
+import Project from '../models/Project.js';
 import User from '../models/User.js';
 import EtlWorkflow from '../models/EtlWorkflow.js';
 import { mergeTaskNodes } from '../../shared/taskWorkflow.js';
@@ -109,4 +111,30 @@ test('live task merges preserve unsaved manual nodes and locally dragged positio
   assert.deepEqual(updated[0], nodes[0]);
   assert.deepEqual(updated[1].position, nodes[1].position);
   assert.equal(updated[1].data.totalWorkingHours, 2);
+});
+
+ test('daily work dates and status snapshots persist and invalid dates are rejected', async () => {
+  const task = await createTask();
+  const updated = await submit(task, { hours: 3, note: 'Daily work', workDate: '2026-01-02', status: 'In Progress', progress: 30 }).expect(200);
+  assert.equal(updated.body.workLogs[0].workDate, '2026-01-02');
+  assert.equal(updated.body.workLogs[0].progress, 30);
+  assert.equal(updated.body.workLogs[0].status, 'In Progress');
+  for (const workDate of ['2026-02-30', 'invalid', '2999-01-01']) {
+    await submit(task, { hours: 1, note: 'Invalid date', workDate }).expect(400);
+  }
+  await submit(task, { hours: 25, note: 'Too many hours' }).expect(400);
+  assert.equal((await Task.findById(task._id)).totalWorkingHours, 3);
+});
+
+test('employees see only projects assigned to their employee account', async () => {
+  await Employee.deleteMany({});
+  await Project.deleteMany({});
+  const user = await User.findOne({ email: 'employee@example.com' });
+  const employee = await Employee.create({ name: user.name, email: user.email, user: user._id });
+  const assigned = await Project.create({ name: 'Assigned project', assignedTeam: [employee._id] });
+  await Project.create({ name: 'Unassigned project' });
+  const mine = await request(app).get('/api/projects').set('Authorization', `Bearer ${token}`).expect(200);
+  assert.deepEqual(mine.body.map(project => project._id), [String(assigned._id)]);
+  const other = await request(app).get('/api/projects').set('Authorization', `Bearer ${otherToken}`).expect(200);
+  assert.equal(other.body.length, 0);
 });

@@ -352,10 +352,12 @@ export default function AddProject() {
               </div>
 
               <div>
-                <label className={labelClass}>End Date</label>
+                <label className={labelClass}>Deadline *</label>
                 <input
                   type="date"
                   name="endDate"
+                  required
+                  min={formData.startDate || undefined}
                   value={formData.endDate}
                   onChange={handleChange}
                   className={inputClass}

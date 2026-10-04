@@ -3,8 +3,8 @@ import { taskApi, etlApi } from "../services/api";
 
 const fieldClass = "mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white";
 
-function WorkUpdate({ task, availableNodes, onSaved }) {
-  const [form, setForm] = useState({ status: task.status, progress: task.progress || 0, description: task.description || "", hours: "", note: "", etlNodeId: task.etlNodeId || "" });
+export function WorkUpdate({ task, availableNodes, onSaved }) {
+  const [form, setForm] = useState({ status: task.status, progress: task.progress || 0, description: task.description || "", hours: "", note: "", workDate: new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }), etlNodeId: task.etlNodeId || "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const change = event => setForm(current => ({ ...current, [event.target.name]: event.target.value }));
@@ -39,8 +39,11 @@ function WorkUpdate({ task, availableNodes, onSaved }) {
           {availableNodes.filter(node => !node.data?.taskId || node.data.taskId === task._id).map(node => <option key={node.id} value={node.id}>{node.data?.label || node.id}</option>)}
         </select>
       </label>
+      <label className="block">Work date
+        <input name="workDate" type="date" required max={new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" })} value={form.workDate} onChange={change} className={fieldClass} />
+      </label>
       <label className="block">Hours spent on this update
-        <input name="hours" type="number" min="0.01" step="0.01" required value={form.hours} onChange={change} className={fieldClass} placeholder="e.g. 1.5" />
+        <input name="hours" type="number" min="0.01" max="24" step="0.01" required value={form.hours} onChange={change} className={fieldClass} placeholder="e.g. 1.5" />
       </label>
       <label className="block">Work done
         <textarea name="note" rows={2} required value={form.note} onChange={change} className={fieldClass} placeholder="Describe the UI changes or task work" />

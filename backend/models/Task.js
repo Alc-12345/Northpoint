@@ -41,6 +41,9 @@ const taskSchema = new mongoose.Schema(
       hours: { type: Number, required: true, min: 0 },
       note: { type: String, required: true, trim: true },
       employee: { type: String, required: true },
+      workDate: { type: String, match: /^\d{4}-\d{2}-\d{2}$/ },
+      status: { type: String, enum: ["Pending", "In Progress", "Completed"] },
+      progress: { type: Number, min: 0, max: 100 },
       createdAt: { type: Date, default: Date.now },
     }],
     dueDate: {

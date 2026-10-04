@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { taskApi } from "../services/api";
+import { employeeApi, projectApi, taskApi } from "../services/api";
 
 export default function AddTask() {
   const navigate = useNavigate();
@@ -16,12 +16,25 @@ export default function AddTask() {
     workCategory: "frontend",
   });
   const [error, setError] = useState("");
+  const [employees, setEmployees] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    Promise.all([employeeApi.getAll(), projectApi.getAll()])
+      .then(([people, items]) => { setEmployees(people); setProjects(items); })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+  const selectedProject = projects.find(project => project.name === formData.project);
+  const eligibleEmployees = selectedProject ? employees.filter(employee => selectedProject.assignedTeam?.some(member => (member._id || member) === employee._id)) : employees;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
+    const project = projects.find(item => item.name === e.target.value);
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
+      ...(e.target.name === "project" ? { assignedTo: "", dueDate: project?.endDate?.slice(0, 10) || "" } : {}),
     });
   };
 
@@ -72,6 +85,7 @@ export default function AddTask() {
         </h1>
 
         <button
+          type="button"
           onClick={() => navigate("/tasks")}
           className="bg-gray-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-600"
         >
@@ -103,15 +117,10 @@ export default function AddTask() {
               <label className="block text-sm mb-2 text-gray-600 dark:text-gray-300">
                 Project
               </label>
-              <input
-                type="text"
-                name="project"
-                onChange={handleChange}
-                className="w-full border border-gray-300 dark:border-gray-600
-                bg-gray-50 dark:bg-[#2a2a2a]
-                text-gray-800 dark:text-white
-                px-4 py-2 rounded-lg"
-              />
+              <select name="project" value={formData.project} onChange={handleChange} required disabled={loading} className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 dark:bg-[#2a2a2a] dark:text-white">
+                <option value="">Select project</option>
+                {projects.map(project => <option key={project._id} value={project.name}>{project.name}</option>)}
+              </select>
             </div>
 
             <div>
@@ -120,6 +129,7 @@ export default function AddTask() {
               </label>
               <select
                 name="priority"
+                value={formData.priority}
                 onChange={handleChange}
                 className="w-full border border-gray-300 dark:border-gray-600
                 bg-gray-50 dark:bg-[#2a2a2a]
@@ -164,15 +174,10 @@ export default function AddTask() {
               <label className="block text-sm mb-2 text-gray-600 dark:text-gray-300">
                 Assign To
               </label>
-              <input
-                type="text"
-                name="assignedTo"
-                onChange={handleChange}
-                className="w-full border border-gray-300 dark:border-gray-600
-                bg-gray-50 dark:bg-[#2a2a2a]
-                text-gray-800 dark:text-white
-                px-4 py-2 rounded-lg"
-              />
+              <select name="assignedTo" value={formData.assignedTo} onChange={handleChange} required disabled={loading} className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 dark:bg-[#2a2a2a] dark:text-white">
+                <option value="">Select employee</option>
+                {eligibleEmployees.map(employee => <option key={employee._id} value={employee.email}>{employee.name} — {employee.email}</option>)}
+              </select>
             </div>
 
             <div>
@@ -182,6 +187,9 @@ export default function AddTask() {
               <input
                 type="date"
                 name="dueDate"
+                required
+                value={formData.dueDate}
+                max={selectedProject?.endDate?.slice(0, 10)}
                 onChange={handleChange}
                 className="w-full border border-gray-300 dark:border-gray-600
                 bg-gray-50 dark:bg-[#2a2a2a]
@@ -195,7 +203,7 @@ export default function AddTask() {
           <div className="flex justify-end pt-4">
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || loading}
               className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition"
             >
               {isSubmitting ? "Creating..." : "Create Task"}

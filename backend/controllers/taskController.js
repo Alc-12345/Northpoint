@@ -85,10 +85,16 @@ export const deleteTask = async (req, res) => {
 };
 
 export const addWorkUpdate = async (req, res) => {
-  const { hours, note, status, progress, description, etlNodeId } = req.body;
+  const { hours, note, status, progress, description, etlNodeId, workDate } = req.body;
   if (typeof hours !== "number" || !Number.isFinite(hours) || hours <= 0 || typeof note !== "string" || !note.trim()) {
     res.status(400);
     throw new Error("Enter positive working hours and describe the work done");
+  }
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  const logDate = workDate || today;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(logDate) || !Number.isFinite(Date.parse(logDate)) || new Date(logDate).toISOString().slice(0, 10) !== logDate || logDate > today || hours > 24) {
+    res.status(400);
+    throw new Error("Choose a valid work date up to today and at most 24 hours");
   }
   const task = await Task.findById(req.params.id);
   if (!task) { res.status(404); throw new Error("Task not found"); }
@@ -108,7 +114,7 @@ export const addWorkUpdate = async (req, res) => {
     {
       $set: changes,
       $inc: { totalWorkingHours: hours },
-      $push: { workLogs: { hours, note: note.trim(), employee: req.user.email, createdAt: new Date() } },
+      $push: { workLogs: { hours, note: note.trim(), employee: req.user.email, workDate: logDate, status: changes.status || task.status, progress: changes.progress ?? task.progress, createdAt: new Date() } },
     },
     { new: true, runValidators: true }
   );

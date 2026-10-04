@@ -5,14 +5,19 @@ import Project from "../models/Project.js";
 const nextProjectCode = async () =>
   `PRJ-${new Date().getFullYear()}-${String((await Project.countDocuments()) + 1).padStart(3, "0")}`;
 
-const projectQuery = () =>
-  Project.find()
+const projectQuery = (filter = {}) =>
+  Project.find(filter)
     .populate("client", "name email contact")
     .populate("assignedTeam", "name email role department skills status photo")
     .sort({ createdAt: -1 });
 
 export const getProjects = async (req, res) => {
-  const projects = await projectQuery();
+  let filter = {};
+  if (req.user?.role === "employee") {
+    const employees = await Employee.find({ $or: [{ user: req.user._id }, { email: req.user.email }] }).select("_id");
+    filter = { assignedTeam: { $in: employees.map(employee => employee._id) } };
+  }
+  const projects = await projectQuery(filter);
   res.json(projects);
 };
 

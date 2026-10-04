@@ -1,6 +1,6 @@
 import { Routes, Route, Form } from "react-router-dom";
 import MainLayout from "./Layout/MainLayout";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./Pages/Dashboard";
 import AllEmployees from "./Pages/AllEmployees";
 import EmployeeDetail from "./Components/Employeeinner/EmployeeDetail";
 import "./index.css";
@@ -25,6 +25,7 @@ import EmployeeDashboard from "./Pages/EmployeeDashboard";
 import EmployeeLayout from "./Layout/EmployeeLayout";
 import EmployeeProfile from "./Pages/EmployeeProfile";
 import EmployeeProjects from "./Pages/EmployeeProjects";
+import EmployeeWorkLog from "./Pages/EmployeeWorkLog";
 import EmployeeTasks from "./Pages/EmployeeTasks";
 import EmployeeCalendar from "./Pages/EmployeeCalendar.jsx";
 import EmployeeAttendance from "./Pages/EmployeeAttendance.jsx";
@@ -58,6 +59,7 @@ function App() {
       <Route path="/training/*" element={<TrainingManagement />} />
       <Route path="/student/practice-lab" element={<EmployeeLayout><PracticeLab /></EmployeeLayout>} />
 
+      <Route path="/employee-work-log" element={<EmployeeLayout><EmployeeWorkLog /></EmployeeLayout>} />
       {/* Dashboard */}
       <Route
         path="/"

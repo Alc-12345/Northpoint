@@ -136,6 +136,10 @@ const EmployeeSidebar = ({ children }) => {
             <FiCheckSquare /> Tasks
           </NavLink>
 
+          <NavLink to="/employee-work-log" className={({ isActive }) => `${linkClass} ${isActive ? activeClass : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}>
+            <FiClock /> Daily Updates & Hours
+          </NavLink>
+
           <NavLink
             to="/employee-calendar"
             className={({ isActive }) =>

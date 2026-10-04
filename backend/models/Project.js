@@ -11,7 +11,7 @@ const projectSchema = new mongoose.Schema(
     lead: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Lead",
-      default: null,
+      default: undefined,
       unique: true,
       sparse: true,
     },

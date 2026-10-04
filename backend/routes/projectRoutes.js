@@ -1,4 +1,5 @@
 import express from "express";
+import { optionalAuth } from "../middleware/authMiddleware.js";
 
 import {
   assignTeam,
@@ -10,6 +11,7 @@ import {
 } from "../controllers/projectController.js";
 
 const router = express.Router();
+router.use(optionalAuth);
 
 router.route("/").get(getProjects).post(createProject);
 router.post("/:id/team", assignTeam);

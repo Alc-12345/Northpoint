@@ -18,7 +18,7 @@ const EmployeeProjects = () => {
             (employee) => employee.email === authUser.email || employee.name === authUser.name
           )
         );
-        setProjects(assignedProjects.length ? assignedProjects : data);
+        setProjects(assignedProjects);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -39,6 +39,7 @@ const EmployeeProjects = () => {
       {error && <div className="mb-4 text-sm text-red-600">{error}</div>}
       {isLoading && <div className="text-sm text-gray-500">Loading projects...</div>}
 
+      {!isLoading && !error && !projects.length && <p className="text-gray-500">No projects assigned yet.</p>}
       {/* Projects Grid */}
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
 
@@ -110,9 +111,9 @@ const EmployeeProjects = () => {
               </div>
 
               {/* View Button */}
-              <Link to={`/projects/${project._id}`} className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium">
+              <Link to="/employee-tasks" className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium">
                 <FiEye />
-                View
+                Tasks
               </Link>
 
             </div>
