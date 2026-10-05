@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import request from "supertest";
 import jwt from "jsonwebtoken";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { documentHtml } from "../../src/utils/hrDocumentDownload.js";
+import { documentHtml } from "../../frontend/src/utils/hrDocumentDownload.js";
 import app from "../app.js";
 import User from "../models/User.js";
 import { documentTypes, validateDocument, quotationTotals, fillTemplate } from "../../shared/hrDocuments.js";

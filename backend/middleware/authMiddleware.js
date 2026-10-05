@@ -56,3 +56,11 @@ export const requireSuperadmin = (req, res, next) => {
 
   return next();
 };
+
+export const requireAdmin = (req, res, next) => {
+  if (!["admin", "superadmin"].includes(req.user?.role)) {
+    res.status(403);
+    return next(new Error("Only administrators can perform this action"));
+  }
+  return next();
+};

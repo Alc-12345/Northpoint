@@ -8,19 +8,19 @@ import {
   getLeads,
   updateLead,
 } from "../controllers/leadController.js";
-import { protect, requireSuperadmin } from "../middleware/authMiddleware.js";
+import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router
   .route("/")
-  .post(protect, requireSuperadmin, createLead)
-  .get(protect, requireSuperadmin, getLeads);
-router.post("/:id/convert", protect, requireSuperadmin, convertLeadToProject);
+  .post(protect, requireAdmin, createLead)
+  .get(protect, requireAdmin, getLeads);
+router.post("/:id/convert", protect, requireAdmin, convertLeadToProject);
 router
   .route("/:id")
-  .get(protect, requireSuperadmin, getLeadById)
-  .put(protect, requireSuperadmin, updateLead)
-  .delete(protect, requireSuperadmin, deleteLead);
+  .get(protect, requireAdmin, getLeadById)
+  .put(protect, requireAdmin, updateLead)
+  .delete(protect, requireAdmin, deleteLead);
 
 export default router;

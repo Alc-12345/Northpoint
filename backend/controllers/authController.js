@@ -69,12 +69,12 @@ export const login = async (req, res) => {
   const { email, identifier, username, clientId, employeeId, password } = req.body;
   const loginId = email || identifier || username || clientId || employeeId;
 
-  if (!loginId || !password) {
+  if (typeof loginId !== "string" || !loginId.trim() || typeof password !== "string" || !password) {
     res.status(400);
     throw new Error("Login ID and password are required");
   }
 
-  const login = loginId.toLowerCase();
+  const login = loginId.trim().toLowerCase();
   const user = await User.findOne({
     $or: [{ email: login }, { username: login }],
   })
