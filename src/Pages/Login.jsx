@@ -23,6 +23,8 @@ export default function Login() {
 
   const dashboardByRole = {
     superadmin: "/",
+    admin: "/",
+    hr: "/",
     employee: "/employee-dashboard",
     client: "/client/dashboard",
   };

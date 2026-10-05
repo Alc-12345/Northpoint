@@ -36,3 +36,16 @@ Available API resources:
 - `/api/tasks`
 
 Each resource supports `GET /`, `POST /`, `GET /:id`, `PUT /:id`, and `DELETE /:id`.
+
+## Temporary development logins
+
+Run `npm run seed:temp-logins` to create these accounts in the configured database. Running it again preserves matching accounts and never resets existing credentials.
+
+| Role | Username | Email | Password |
+| --- | --- | --- | --- |
+| Admin | tempadmin | temp.admin@northpoint.test | NorthpointAdmin!2026 |
+| Employee | tempemployee | temp.employee@northpoint.test | NorthpointEmployee!2026 |
+
+Log in at `/login` using the username or email. The employee also has a linked profile so administrators can assign projects and tasks. These accounts are for temporary development use; remove them when finished.
+
+The API uses port 5001 (`http://localhost:5001/api`) to avoid the macOS AirPlay/Control Center service on port 5000. Restart Vite after changing `.env`.

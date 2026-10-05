@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  FiArrowLeft,
   FiDownload,
   FiPlay,
   FiRefreshCw,
@@ -15,6 +16,7 @@ import { exportWorkflow } from "../utils/workflowUtils";
 export default function CanvasToolbar({
   nodes = [],
   edges = [],
+  onBack,
   onSave,
   onRun,
   onImport,
@@ -29,6 +31,9 @@ export default function CanvasToolbar({
   return (
     <div className="flex min-h-12 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[#383944] bg-[#292a35] px-2.5 py-1.5">
       <div className="flex min-w-0 items-center gap-2">
+        <button type="button" onClick={onBack} className="flex items-center gap-1.5 rounded bg-slate-700 px-2.5 py-1.5 text-xs text-white transition hover:bg-slate-600" aria-label="Back from ETL">
+          <FiArrowLeft size={16} /> Back
+        </button>
         <h2 className="text-sm font-semibold text-white">ETL Builder</h2>
         <span className="hidden text-xs text-slate-400 xl:inline">Workflow editor</span>
         {apiMessage && <span className="max-w-48 truncate text-[10px] text-slate-400">{apiMessage}</span>}

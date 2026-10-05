@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test:backend": "node --test backend/tests/*.test.js",
-    "test": "npm run test:backend"
+    "test": "npm run test:backend",
+    "seed:temp-logins": "node backend/scripts/seedTempLogins.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",

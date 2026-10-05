@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { normalizeEtlNodes } from "../../shared/etlNodes.js";
 import { mergeTaskNodes } from "../../shared/taskWorkflow.js";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -52,6 +53,16 @@ const withSerializableData = (nodes) =>
   }));
 
 export default function ETLBuilder() {
+  const navigate = useNavigate();
+  const handleBack = () => {
+    saveWorkflow(withSerializableData(nodes), edges);
+    if (window.history.state?.idx > 0) navigate(-1);
+    else {
+      let user = {};
+      try { user = JSON.parse(localStorage.getItem("authUser") || "{}"); } catch { /* Use the admin dashboard fallback. */ }
+      navigate(user.role === "employee" ? "/employee-dashboard" : user.role === "client" ? "/client/dashboard" : "/");
+    }
+  };
   const fileInputRef = useRef(null);
   const flowRef = useRef(null);
   const undoRef = useRef([]);
@@ -168,7 +179,7 @@ export default function ETLBuilder() {
     setNodes((prev) => prev.filter((node) => node.id !== id));
     setEdges((prev) => prev.filter((edge) => edge.source !== id && edge.target !== id));
     setSelectedNode((prev) => prev?.id === id ? null : prev);
-  }, [rememberSnapshot, nodes]);
+  }, [rememberSnapshot, nodes, setNodes, setEdges]);
 
   const handleOperationChange = useCallback(
     (id, operation) => {
@@ -315,6 +326,7 @@ export default function ETLBuilder() {
   return (
     <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#20212b] text-white">
       <CanvasToolbar
+        onBack={handleBack}
         nodes={withSerializableData(nodes)}
         edges={edges}
         onSave={handleSave}
