@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   FiHome,
   FiUsers,
@@ -28,7 +28,9 @@ import logo from "../assets/logo.png"; // Adjust the path to your logo image
 import { logout } from "../utils/auth";
 
 const Sidebar = ({ children }) => {
-const [activeMenu, setActiveMenu] = useState(null);
+const { pathname } = useLocation();
+const routeMenu = pathname.startsWith("/employees") || pathname === "/payroll" ? "employees" : pathname.startsWith("/projects") || ["/add-project", "/assign-project", "/add-teams"].includes(pathname) ? "projects" : null;
+const [activeMenu, setActiveMenu] = useState(routeMenu);
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
@@ -89,149 +91,21 @@ const [activeMenu, setActiveMenu] = useState(null);
             <FiHome /> Dashboard
           </NavLink>
 
-          {/* Employees Dropdown */}
-          <div>
-            <button
-             onClick={() => toggleMenu("employees")}
-              className="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
-            >
-              <span className="flex items-center gap-3">
-                <FiUsers /> Employees
-              </span>
-              <FiChevronDown
-                className={`transition-transform ${
-                  activeMenu === "employees" ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-
-            {activeMenu === "employees" && (
-              <div className="ml-6 mt-2 space-y-1 text-sm">
-                  
-                <NavLink
-                  to="/employees/attendance"
-                  className={({ isActive }) =>
-                    `block px-3 py-2 rounded ${
-                      isActive
-                        ? "bg-[#18a8e6] text-white"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-800"
-                    }`
-                  }
-                >
-                  Attendance
-                </NavLink>
-              </div>
-            )}
-          </div>
-          <div>
-
-          {/* Core HR */}
-          <button
-                onClick={() => toggleMenu("hr")}
-              className="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
-            >
-              <span className="flex items-center gap-3">
-                <FiClock />HR
-              </span>
-              <FiChevronDown
-                  className={`transition-transform ${
-                  activeMenu === "hr" ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-            {activeMenu === "hr" && (
-              <div className="ml-6 mt-2 space-y-1 text-sm">
-                <NavLink
-                  to="/employees/add"
-                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-                  Add Employee
-                </NavLink>
-            
-                
-              </div>
-            )}
-             {activeMenu === "hr" && (
-              <div className="ml-6 mt-2 space-y-1 text-sm">
-                <NavLink
-                  to="/employees/all"
-                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-                  All Employees
-                </NavLink>
-                
-              </div>
-              
-            )}
-            
-            {activeMenu === "hr" && (
-              <div className="ml-6 mt-2 space-y-1 text-sm">
-                <NavLink
-                  to="/projects"
-                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-                  Add Project
-                </NavLink>
-                
-              </div>
-              
-            )}
-            {activeMenu === "hr" && (
-              <div className="ml-6 mt-2 space-y-1 text-sm">
-                <NavLink
-                  to="/projectDetails"
-                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-                 Project
-                </NavLink>
-                
-              </div>
-              
-            )}
-            {activeMenu === "hr" && (
-              <div className="ml-6 mt-2 space-y-1 text-sm">
-                <NavLink
-                  to="/add-teams"
-                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-                  Teams
-                </NavLink>
-              </div>
-            )}
-            {/* {activeMenu === "hr" && (
-              <div className="ml-6 mt-2 space-y-1 text-sm">
-                <NavLink
-                  to="/client-billing-finance"
-                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                > Finance
-                </NavLink>
-              </div>
-            )}
-            {activeMenu === "hr" && (
-              <div className="ml-6 mt-2 space-y-1 text-sm">
-                <NavLink
-                  to="/payroll"
-                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-                Salary
-                 </NavLink>
-              </div>
-            )} */}
-                  {/* {activeMenu === "hr" && (
-              <div className="ml-6 mt-2 space-y-1 text-sm">
-                <NavLink
-                  to="/add-task"
-                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-               Add Task
-                 </NavLink>
-              </div>
-            )} */}
-          </div>
-{/* 
-          <NavLink to="/client-billing-finance" className={linkClass}>
-            <FiDollarSign /> Finance
-          </NavLink> */}
+          {[
+            { key: "employees", label: "Employees", icon: <FiUsers />, links: [["Attendance", "/employees/attendance"], ["Add Employee", "/employees/add"], ["Salary", "/payroll"]] },
+            { key: "projects", label: "Projects", icon: <FiFolder />, links: [["Add Project", "/projects"], ["Assign Project", "/assign-project"], ["Progress", "/projects/progress"]] },
+          ].map(({ key, label, icon, links }) => (
+            <div key={key}>
+              <button type="button" onClick={() => toggleMenu(key)} aria-expanded={activeMenu === key}
+                className="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                <span className="flex items-center gap-3">{icon} {label}</span>
+                <FiChevronDown className={activeMenu === key ? "rotate-180" : ""} />
+              </button>
+              {activeMenu === key && <div className="ml-6 mt-2 space-y-1 text-sm">
+                {links.map(([text, to]) => <NavLink key={to} to={to} end className={({ isActive }) => `block px-3 py-2 rounded ${isActive ? activeClass : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}>{text}</NavLink>)}
+              </div>}
+            </div>
+          ))}
 
           {/* Tasks Dropdown */}
           <div>

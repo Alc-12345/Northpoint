@@ -8,6 +8,8 @@ import Attendance from "./Pages/Attendance";
 import TaskManagement from "./Pages/TaskManagement";
 import AddTask from "./Pages/AddTask";
 import ProjectManagement from "./Pages/ProjectManagement";
+import AssignProject from "./Pages/AssignProject";
+import AdminProjectProgress from "./Pages/AdminProjectProgress";
 import AddProject from "./Pages/AddProject";
 import ClientBillingFinance from "./Pages/ClientBillingFinance";
 import PayrollPage from "./Pages/Payroll";
@@ -60,6 +62,9 @@ function App() {
       <Route path="/student/practice-lab" element={<EmployeeLayout><PracticeLab /></EmployeeLayout>} />
 
       <Route path="/employee-work-log" element={<EmployeeLayout><EmployeeWorkLog /></EmployeeLayout>} />
+      <Route path="/assign-project" element={<MainLayout><AssignProject /></MainLayout>} />
+      <Route path="/projects/progress" element={<MainLayout><AdminProjectProgress /></MainLayout>} />
+      <Route path="/projects/:id/progress" element={<MainLayout><AdminProjectProgress /></MainLayout>} />
       {/* Dashboard */}
       <Route
         path="/"
