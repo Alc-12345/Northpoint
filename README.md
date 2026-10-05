@@ -19,7 +19,15 @@ If you are developing a production application, we recommend using TypeScript wi
 
 The backend is set up with Express and MongoDB using a controller, route, and model structure.
 
-Create `backend/.env` using `backend/.env.example`, then start MongoDB and run:
+Configure MongoDB and the API port in the root `.env` using `.env.example`. Start both the frontend and backend together with:
+
+```bash
+npm run dev
+```
+
+Keep this terminal running. The command reuses a backend already listening on the configured port; otherwise it starts one. To run only the frontend, use `npm run dev:frontend`.
+
+To run only the backend:
 
 ```bash
 npm run server

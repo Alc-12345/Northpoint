@@ -4,14 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev.js",
     "server": "node backend/app.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test:backend": "node --test backend/tests/*.test.js",
     "test": "npm run test:backend",
-    "seed:temp-logins": "node backend/scripts/seedTempLogins.js"
+    "seed:temp-logins": "node backend/scripts/seedTempLogins.js",
+    "dev:frontend": "vite"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
