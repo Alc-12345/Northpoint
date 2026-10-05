@@ -5,7 +5,6 @@ import {
   FiUsers,
   FiClock,
   FiDollarSign,
-  FiCheckSquare,
   FiFolder,
   FiFileText,
   FiUser,
@@ -29,7 +28,7 @@ import { logout } from "../utils/auth";
 
 const Sidebar = ({ children }) => {
 const { pathname } = useLocation();
-const routeMenu = pathname.startsWith("/employees") || pathname === "/payroll" ? "employees" : pathname.startsWith("/projects") || ["/add-project", "/assign-project", "/add-teams"].includes(pathname) ? "projects" : null;
+const routeMenu = pathname.startsWith("/employees") || pathname === "/payroll" ? "employees" : pathname.startsWith("/projects") || ["/add-project", "/assign-project", "/add-teams"].includes(pathname) ? "projects" : pathname.startsWith("/hr/") ? "hr" : null;
 const [activeMenu, setActiveMenu] = useState(routeMenu);
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,6 +93,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
           {[
             { key: "employees", label: "Employees", icon: <FiUsers />, links: [["Attendance", "/employees/attendance"], ["Add Employee", "/employees/add"], ["Salary", "/payroll"]] },
             { key: "projects", label: "Projects", icon: <FiFolder />, links: [["Add Project", "/projects"], ["Assign Project", "/assign-project"], ["Progress", "/projects/progress"]] },
+            { key: "hr", label: "HR", icon: <FiFileText />, links: [["Internship", "/hr/internship"], ["Offer Letter", "/hr/offer-letter"], ["Quotation", "/hr/quotation"]] },
           ].map(({ key, label, icon, links }) => (
             <div key={key}>
               <button type="button" onClick={() => toggleMenu(key)} aria-expanded={activeMenu === key}
@@ -107,44 +107,6 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
             </div>
           ))}
 
-          {/* Tasks Dropdown */}
-          <div>
-            <button
-              onClick={() => toggleMenu("tasks")}
-              className="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
-            >
-              <span className="flex items-center gap-3">
-                <FiCheckSquare /> Tasks
-              </span>
-              <FiChevronDown
-                className={`transition-transform ${activeMenu === "tasks" ? "rotate-180" : ""}`}
-              />
-            </button>
-
-            {activeMenu === "tasks" && (
-              <div className="ml-6 mt-2 space-y-1 text-sm">
-                <NavLink
-                  to="/tasks"
-                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-                  All Tasks
-                </NavLink>
-                
-                <NavLink
-                  to="/add-task"
-                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-                  Add Task
-                </NavLink>
-                <NavLink
-                  to="/assign-task"
-                  className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-                  Assign Task
-                </NavLink>
-              </div>
-            )}
-          </div>
           <div>
             <button
                 onClick={() => toggleMenu("Finance")}

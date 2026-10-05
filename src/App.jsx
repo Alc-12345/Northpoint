@@ -8,6 +8,7 @@ import Attendance from "./Pages/Attendance";
 import TaskManagement from "./Pages/TaskManagement";
 import AddTask from "./Pages/AddTask";
 import ProjectManagement from "./Pages/ProjectManagement";
+import HrDocuments from "./Pages/HrDocuments";
 import AssignProject from "./Pages/AssignProject";
 import AdminProjectProgress from "./Pages/AdminProjectProgress";
 import AddProject from "./Pages/AddProject";
@@ -65,6 +66,7 @@ function App() {
       <Route path="/assign-project" element={<MainLayout><AssignProject /></MainLayout>} />
       <Route path="/projects/progress" element={<MainLayout><AdminProjectProgress /></MainLayout>} />
       <Route path="/projects/:id/progress" element={<MainLayout><AdminProjectProgress /></MainLayout>} />
+      <Route path="/hr/:type" element={<MainLayout><HrDocuments /></MainLayout>} />
       {/* Dashboard */}
       <Route
         path="/"

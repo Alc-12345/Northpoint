@@ -85,6 +85,12 @@ export const taskApi = {
   remove: (id) => unwrap(api.delete(`/tasks/${id}`)),
 };
 
+export const hrDocumentApi = {
+  getAll: (type) => unwrap(api.get(`/hr/documents/${type}`)),
+  create: (type, data) => unwrap(api.post(`/hr/documents/${type}`, data)),
+  update: (type, id, data) => unwrap(api.put(`/hr/documents/${type}/${id}`, data)),
+};
+
 export const hrApi = {
   getSummary: () => unwrap(api.get("/hr")),
 };

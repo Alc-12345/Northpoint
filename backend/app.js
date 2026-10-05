@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes.js";
 import clientRoutes from "./routes/clientRoutes.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
 import etlRoutes from "./routes/etlRoutes.js";
+import hrDocumentRoutes from "./routes/hrDocumentRoutes.js";
 import hrRoutes from "./routes/hrRoutes.js";
 import leadRoutes from "./routes/leadRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
@@ -48,6 +49,7 @@ app.use("/api/leads", leadRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/hr", hrRoutes);
+app.use("/api/hr/documents", hrDocumentRoutes);
 app.use("/api/training", trainingRoutes);
 app.use("/api/training/practice", practiceLabRoutes);
 
