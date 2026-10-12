@@ -7,7 +7,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import { documentHtml } from "../../frontend/src/utils/hrDocumentDownload.js";
 import app from "../app.js";
 import User from "../models/User.js";
-import { documentTypes, validateDocument, quotationTotals, fillTemplate } from "../../shared/hrDocuments.js";
+import { documentTypes, validateDocument, quotationTotals, fillTemplate } from "../shared/hrDocuments.js";
 
 let mongo;
 let adminToken;

@@ -1,6 +1,6 @@
 import Task from '../models/Task.js';
 import EtlWorkflow from '../models/EtlWorkflow.js';
-import { taskWorkflowNodes } from '../../shared/taskWorkflow.js';
+import { taskWorkflowNodes } from '../shared/taskWorkflow.js';
 
 export const withTaskUpdates = async (nodes = []) => {
   const [tasks, saved] = await Promise.all([

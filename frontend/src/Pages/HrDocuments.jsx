@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { hrDocumentApi } from "../services/api";
-import { documentTypes, fillTemplate, quotationTotals, validateDocument } from "../../../shared/hrDocuments";
+import { documentTypes, fillTemplate, quotationTotals, validateDocument } from "../../../backend/shared/hrDocuments";
 import { downloadDocument, printDocument } from "../utils/hrDocumentDownload";
 
 const inputClass = "w-full rounded-lg border border-gray-300 bg-white p-2 text-gray-800 dark:border-[#243244] dark:bg-[#0b1220] dark:text-gray-200";

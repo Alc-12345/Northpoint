@@ -127,16 +127,15 @@ export default function ActiveProjects() {
             <tr>
               <th className="text-left py-3">Project Name</th>
               <th className="text-left py-3">Project Lead</th>
-              <th className="text-left py-3">Progress</th>
-              <th className="text-left py-3">Assignee</th>
+                <th className="text-left py-3">Assignee</th>
               <th className="text-left py-3">Status</th>
-              <th className="text-left py-3">Due Date</th>
+              <th className="text-left py-3">Due  Date</th>
             </tr>
           </thead>
 
           {/* Table Body */}
           <tbody>
-
+ 
             {data.map((project, index) => (
 
               <tr

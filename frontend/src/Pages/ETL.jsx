@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { normalizeEtlNodes } from "../../../shared/etlNodes.js";
-import { mergeTaskNodes } from "../../../shared/taskWorkflow.js";
+import { normalizeEtlNodes } from "../../../backend/shared/etlNodes.js";
+import { mergeTaskNodes } from "../../../backend/shared/taskWorkflow.js";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import CanvasArea from "../Components/CanvasArea";
 import CanvasToolbar from "../Components/CanvasToolbar";

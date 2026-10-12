@@ -1,4 +1,4 @@
-import { documentTypes, fillTemplate, quotationTotals } from "../../../shared/hrDocuments.js";
+import { documentTypes, fillTemplate, quotationTotals } from "../../../backend/shared/hrDocuments.js";
 
 const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 const money = value => Number(value).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

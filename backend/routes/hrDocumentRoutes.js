@@ -1,7 +1,7 @@
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
 import HrDocument from "../models/HrDocument.js";
-import { documentTypes, validateDocument } from "../../shared/hrDocuments.js";
+import { documentTypes, validateDocument } from "../shared/hrDocuments.js";
 
 const router = express.Router();
 router.use(protect, (req, res, next) => {

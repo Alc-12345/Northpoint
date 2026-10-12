@@ -56,8 +56,8 @@ describe("Lead API", () => {
 
     assert.equal(response.body.message, "Lead submitted successfully");
     assert.equal(response.body.lead.email, "visitor@example.com");
-    assert.equal(response.body.lead.source, "company-website");
-    assert.equal(response.body.lead.status, "New");
+    assert.equal(response.body.lead.source, "Manual");
+    assert.equal(response.body.lead.status, "New Lead");
   });
 });
 

@@ -1,4 +1,4 @@
-import { normalizeEtlNodes } from "../../../shared/etlNodes.js";
+import { normalizeEtlNodes } from "../../../backend/shared/etlNodes.js";
 
 // Save Workflow
 

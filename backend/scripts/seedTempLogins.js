@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import User from "../models/User.js";
 import Employee from "../models/Employee.js";
 
-dotenv.config({ quiet: true });
+dotenv.config({ path: new URL("../.env", import.meta.url), quiet: true });
 
 const accounts = [
   { name: "Temporary Admin", email: "temp.admin@northpoint.test", username: "tempadmin", role: "admin", password: "NorthpointAdmin!2026" },

@@ -10,7 +10,7 @@ import Employee from '../models/Employee.js';
 import Project from '../models/Project.js';
 import User from '../models/User.js';
 import EtlWorkflow from '../models/EtlWorkflow.js';
-import { mergeTaskNodes } from '../../shared/taskWorkflow.js';
+import { mergeTaskNodes } from '../shared/taskWorkflow.js';
 
 let mongo;
 let token;

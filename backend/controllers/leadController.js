@@ -60,12 +60,13 @@ const nextCode = async (Model, prefix) => {
       new: true,
       upsert: true,
       setDefaultsOnInsert: true,
+      updatePipeline: true,
     });
   } catch (error) {
     // Two first-time requests can both attempt the upsert. Once one inserts
     // the counter, advance that record instead of exposing a duplicate-key 409.
     if (error?.code !== 11000) throw error;
-    counter = await Counter.findByIdAndUpdate(counterId, increment, { new: true });
+    counter = await Counter.findByIdAndUpdate(counterId, increment, { new: true, updatePipeline: true });
   }
 
   return `${prefix}-${year}-${String(counter.sequence).padStart(3, "0")}`;

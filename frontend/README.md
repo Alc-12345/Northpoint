@@ -1,6 +1,6 @@
 # Northpoint Frontend
 
-This folder contains the React frontend, public assets, build configuration, and uses the common utilities in `../shared/`.
+This folder contains the React frontend, public assets, build configuration, and uses the common utilities in `../backend/shared/`.
 
 ```bash
 cd frontend
@@ -11,7 +11,7 @@ npm run dev
 Start the backend in a separate terminal from the repository root:
 
 ```bash
-npm run server
+npm --prefix backend start
 ```
 
 The frontend connects to `http://localhost:5001/api`. Set `VITE_API_URL` in `.env` to change it, then restart Vite. Only frontend environment variables are copied into this folder.
