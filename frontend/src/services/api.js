@@ -1,5 +1,5 @@
 import axios from "axios";
-import { clearAuthSession } from "../utils/auth";
+import { clearAuthSession, isPanelPreview } from "../utils/auth";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5001/api",
@@ -22,7 +22,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && error.config?.url !== "/auth/login") {
+    if (error.response?.status === 401 && error.config?.url !== "/auth/login" && !isPanelPreview()) {
       clearAuthSession();
       if (window.location.pathname !== "/login") window.location.replace("/login");
     }

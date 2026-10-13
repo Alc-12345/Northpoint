@@ -1,12 +1,10 @@
 export const operationGroups = {
   source: {
     label: "Source",
-    description: "Files, SQL, and APIs",
+    description: "Upload and store files",
     operations: [
-      { label: "CSV Input", type: "csv" },
-      { label: "Excel Input", type: "excel" },
-      { label: "SQL Input", type: "sql" },
-      { label: "API Input", type: "api" },
+      { label: "CSV File", type: "csv" },
+      { label: "JSON File", type: "json-file" },
     ],
   },
   transform: {
@@ -14,10 +12,9 @@ export const operationGroups = {
     description: "Clean and reshape rows",
     operations: [
       { label: "Filter Rows", type: "filter" },
-      { label: "Formula", type: "formula" },
-      { label: "Select Columns", type: "select" },
-      { label: "Split Column", type: "split" },
-      { label: "JSON Flatten", type: "json" },
+      { label: "Reshape Columns", type: "select" },
+      { label: "SQL Function", type: "sql-function" },
+      { label: "Math Function", type: "math" },
     ],
   },
   combine: {
@@ -31,7 +28,7 @@ export const operationGroups = {
   },
   output: {
     label: "Output",
-    description: "Preview or publish data",
+    description: "Show processed data",
     operations: [
       { label: "Preview Data", type: "preview" },
       { label: "Output Dataset", type: "output" },
@@ -39,7 +36,7 @@ export const operationGroups = {
   },
   frontend: {
     label: "Frontend",
-    description: "UI pages and client views",
+    description: "Track frontend work progress",
     operations: [
       { label: "React Page", type: "react-page" },
       { label: "Dashboard UI", type: "dashboard-ui" },
@@ -49,7 +46,7 @@ export const operationGroups = {
   },
   backend: {
     label: "Backend",
-    description: "APIs, services, and jobs",
+    description: "Track backend work progress",
     operations: [
       { label: "REST API", type: "rest-api" },
       { label: "Auth Service", type: "auth-service" },
@@ -59,7 +56,7 @@ export const operationGroups = {
   },
   server: {
     label: "Server",
-    description: "Deploy and runtime setup",
+    description: "Track server work progress",
     operations: [
       { label: "Node Server", type: "node-server" },
       { label: "Express Route", type: "express-route" },

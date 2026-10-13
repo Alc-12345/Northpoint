@@ -1,3 +1,4 @@
+import { executeWorkflow } from "../shared/etlEngine.js";
 import { withTaskUpdates } from "../services/taskWorkflow.js";
 import EtlWorkflow from "../models/EtlWorkflow.js";
 
@@ -38,25 +39,13 @@ export const saveWorkflow = async (req, res) => {
 
 export const runWorkflow = async (req, res) => {
   const { nodes = [], edges = [] } = req.body;
-  const outputRows = nodes.map((node, index) => ({
-    step: index + 1,
-    node: node.data?.label || node.id,
-    operation: node.data?.type || "unknown",
-    status: "Completed",
-    progress: "100%",
-  }));
-
-  const completedNodes = (await withTaskUpdates(nodes)).map((node) => node.data?.taskId ? node : ({
-    ...node,
-    data: {
-      ...(node.data || {}),
-      status: "Completed",
-      progress: 100,
-      outputRows: ["preview", "output"].includes(node.data?.type)
-        ? outputRows
-        : node.data?.outputRows || [],
-    },
-  }));
+  let result;
+  try {
+    result = executeWorkflow(await withTaskUpdates(nodes), edges);
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+  const { nodes: completedNodes, outputRows } = result;
 
   const workflow = await EtlWorkflow.findOneAndUpdate(
     { key: DEFAULT_KEY },

@@ -9,6 +9,7 @@ import {
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { authApi } from "../services/api";
+import { clearAuthSession, startPanelPreview } from "../utils/auth";
 import logo from "../assets/Logo.png";
 
 export default function Login() {
@@ -46,6 +47,7 @@ export default function Login() {
 
       const data = await authApi.login(form);
 
+      clearAuthSession();
       localStorage.setItem("authToken", data.token);
       localStorage.setItem("authUser", JSON.stringify(data.user));
 
@@ -80,7 +82,32 @@ export default function Login() {
           Welcome Back! Please login to continue.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="mb-8 space-y-3">
+          <h1 className="text-center text-xl font-semibold text-white">Open a panel</h1>
+          <p className="text-center text-sm text-gray-400">Temporary access — no login required.</p>
+          {[
+            { label: "Admin Panel", role: "admin", path: "/" },
+            { label: "Employee Panel", role: "employee", path: "/employee-dashboard" },
+            { label: "Client Panel", role: "client", path: "/client/dashboard" },
+            { label: "Training Panel", role: "admin", path: "/training" },
+            { label: "Student Practice Panel", role: "employee", path: "/student/practice-lab" },
+          ].map((panel) => (
+            <button
+              key={panel.path}
+              type="button"
+              onClick={() => {
+                startPanelPreview(panel.role);
+                navigate(panel.path);
+              }}
+              className="w-full flex items-center justify-between rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 font-semibold text-cyan-200 transition hover:bg-cyan-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300"
+            >
+              {panel.label}
+              <FiLogIn size={18} />
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6 border-t border-white/10 pt-6">
           {error && (
             <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
               {error}

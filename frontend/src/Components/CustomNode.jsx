@@ -20,6 +20,9 @@ import {
 } from "react-icons/fi";
 
 const icons = {
+  "sql-function": <FiCode size={18} />,
+  math: <FiCode size={18} />,
+  "json-file": <FiFileText size={18} />,
   csv: <FiFileText size={18} />,
   excel: <FiFileText size={18} />,
   sql: <FiDatabase size={18} />,
@@ -49,6 +52,9 @@ const icons = {
 };
 
 const colors = {
+  "sql-function": "#A855F7",
+  math: "#10B981",
+  "json-file": "#22C55E",
   csv: "#3B82F6",
   excel: "#22C55E",
   sql: "#F59E0B",

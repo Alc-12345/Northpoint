@@ -1,3 +1,4 @@
+import { executeWorkflow, isProgressNode } from "../../../backend/shared/etlEngine.js";
 import { useNavigate } from "react-router-dom";
 import { normalizeEtlNodes } from "../../../backend/shared/etlNodes.js";
 import { mergeTaskNodes } from "../../../backend/shared/taskWorkflow.js";
@@ -35,15 +36,6 @@ const initialNodes = [
   },
 ];
 
-const createOutputRows = (nodes) =>
-  nodes.map((node, index) => ({
-    step: index + 1,
-    node: node.data?.label || node.id,
-    operation: node.data?.type || "unknown",
-    status: "Completed",
-    progress: "100%",
-  }));
-
 const withSerializableData = (nodes) =>
   normalizeEtlNodes(nodes).map((node) => ({
     ...node,
@@ -75,6 +67,7 @@ export default function ETLBuilder() {
       nodes: hasLocalWorkflow ? localWorkflow.nodes : initialNodes,
       edges: hasLocalWorkflow ? localWorkflow.edges : [],
       message: hasLocalWorkflow ? "Loaded local workflow" : "",
+      hasLocalWorkflow,
     };
   });
   const [nodes, setNodes] = useState(initialWorkflow.nodes);
@@ -84,19 +77,28 @@ export default function ETLBuilder() {
   const [apiMessage, setApiMessage] = useState(initialWorkflow.message);
 
   useEffect(() => {
+    try { saveWorkflow(withSerializableData(nodes), edges); }
+    catch { queueMicrotask(() => setApiMessage("Browser storage is full. Use Save to store the workflow through the API.")); }
+  }, [nodes, edges]);
+
+  useEffect(() => {
     etlApi
       .getWorkflow()
       .then((workflow) => {
         if (workflow?._id || workflow?.nodes?.length || workflow?.edges?.length) {
-          setNodes(normalizeEtlNodes(workflow.nodes || []));
-          setEdges(workflow.edges || []);
-          setApiMessage("Loaded API workflow");
+          if (initialWorkflow.hasLocalWorkflow) {
+            setNodes(current => mergeTaskNodes(current, normalizeEtlNodes(workflow.nodes || []).filter(node => node.data?.taskId)));
+          } else {
+            setNodes(normalizeEtlNodes(workflow.nodes || []));
+            setEdges(workflow.edges || []);
+            setApiMessage("Loaded API workflow");
+          }
         }
       })
       .catch(() => {
         setApiMessage("Using local workflow");
       });
-  }, []);
+  }, [initialWorkflow.hasLocalWorkflow]);
 
   useEffect(() => {
     let cancelled = false;
@@ -148,24 +150,11 @@ export default function ETLBuilder() {
               ...node,
               data: {
                 ...node.data,
+                ...updatedData,
                 label: updatedData.name,
-                category: updatedData.category,
-                type: updatedData.type,
-                description: updatedData.description,
-                sqlQuery: updatedData.sqlQuery,
-                sqlConnection: updatedData.sqlConnection,
-                sqlTable: updatedData.sqlTable,
-                endpoint: updatedData.endpoint,
-                method: updatedData.method,
-                status: updatedData.status,
-                progress: updatedData.progress,
-                totalWorkingHours: updatedData.totalWorkingHours,
-                fileName: updatedData.fileName,
-                fileSize: updatedData.fileSize,
-                outputRows: updatedData.outputRows,
               },
             }
-          : node
+          : isProgressNode(node.data) ? node : { ...node, data: { ...node.data, outputRows: [], status: "Ready", progress: 0 } }
       );
 
       syncSelectedNode(updatedNodes, id);
@@ -210,8 +199,8 @@ export default function ETLBuilder() {
     const cleanNodes = withSerializableData(nodes);
     const workflow = { nodes: cleanNodes, edges };
 
-    saveWorkflow(cleanNodes, edges);
-    setApiMessage("Saved locally");
+    try { saveWorkflow(cleanNodes, edges); setApiMessage("Saved locally"); }
+    catch { setApiMessage("Browser storage is full. Saving through the API."); }
 
     try {
       const saved = await etlApi.saveWorkflow(workflow);
@@ -226,53 +215,23 @@ export default function ETLBuilder() {
     setIsRunning(true);
     setApiMessage("Running workflow");
 
-    setNodes((prev) =>
-      prev.map((node) => node.data?.taskId ? node : ({
-        ...node,
-        data: {
-          ...node.data,
-          status: "Running",
-          progress: Math.max(Number(node.data?.progress || 0), 10),
-        },
-      }))
-    );
-
     try {
-      const result = await etlApi.runWorkflow({
-        nodes: withSerializableData(nodes),
-        edges,
-      });
-
-      const completedNodeIds = new Set(result?.nodes?.map((node) => node.id));
-      const operatedRows = result?.outputRows || createOutputRows(nodes);
-
-      setNodes((prev) =>
-        prev.map((node) => node.data?.taskId ? node : ({
-          ...node,
-          data: {
-            ...node.data,
-            status: completedNodeIds.size === 0 || completedNodeIds.has(node.id) ? "Completed" : "Ready",
-            progress: completedNodeIds.size === 0 || completedNodeIds.has(node.id) ? 100 : node.data?.progress || 0,
-            outputRows: ["preview", "output"].includes(node.data?.type) ? operatedRows : node.data?.outputRows || [],
-          },
-        }))
-      );
-      setApiMessage(result?.message || "Workflow completed");
+      const workflow = { nodes: withSerializableData(nodes), edges };
+      // Execute the same engine locally so file workflows work without the API.
+      const result = executeWorkflow(workflow.nodes, workflow.edges);
+      setNodes(result.nodes);
+      setSelectedNode(current => current ? result.nodes.find(node => node.id === current.id) : null);
+      setApiMessage(result.message);
+      try {
+        const saved = await etlApi.runWorkflow(workflow);
+        setNodes(current => mergeTaskNodes(current, (saved.nodes || []).filter(node => node.data?.taskId)));
+      } catch (error) {
+        setApiMessage(`Workflow completed locally. API sync unavailable: ${error.message}`);
+      }
     } catch (error) {
-      setNodes((prev) =>
-        prev.map((node) => node.data?.taskId ? node : ({
-          ...node,
-          data: {
-            ...node.data,
-            status: "Completed",
-            progress: 100,
-            outputRows: ["preview", "output"].includes(node.data?.type)
-              ? createOutputRows(nodes)
-              : node.data?.outputRows || [],
-          },
-        }))
-      );
-      setApiMessage(`Simulated run: ${error.message}`);
+      setApiMessage(`Run failed: ${error.message}`);
+      setNodes(current => current.map(node => isProgressNode(node.data) ? node : ({ ...node, data: { ...node.data, status: "Failed", progress: 0, outputRows: [] } })));
+      setSelectedNode(null);
     } finally {
       setIsRunning(false);
     }
@@ -363,7 +322,7 @@ export default function ETLBuilder() {
         </div>
 
         {selectedNode && (
-          <PropertyPanel selectedNode={selectedNode} onUpdate={handleNodeUpdate} onClose={() => setSelectedNode(null)} />
+          <PropertyPanel nodes={nodes} edges={edges} selectedNode={selectedNode} onUpdate={handleNodeUpdate} onClose={() => setSelectedNode(null)} />
         )}
       </div>
     </div>

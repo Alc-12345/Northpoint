@@ -138,3 +138,34 @@ test('employees see only projects assigned to their employee account', async () 
   const other = await request(app).get('/api/projects').set('Authorization', `Bearer ${otherToken}`).expect(200);
   assert.equal(other.body.length, 0);
 });
+
+test('ETL API persists uploaded rows and returns actual filtered output', async () => {
+  const nodes = [
+    { id: 'source', data: { category: 'source', type: 'csv', fileName: 'sales.csv', sourceRows: [{ team: 'A', amount: '10' }, { team: 'B', amount: '2' }] } },
+    { id: 'filter', data: { category: 'transform', type: 'filter', filterColumn: 'amount', filterOperator: 'gt', filterValue: '5' } },
+    { id: 'output', data: { category: 'output', type: 'preview' } },
+  ];
+  const edges = [{ source: 'source', target: 'filter' }, { source: 'filter', target: 'output' }];
+  const result = await request(app).post('/api/etl/run').send({ nodes, edges }).expect(200);
+  assert.deepEqual(result.body.outputRows, [{ team: 'A', amount: '10' }]);
+  const stored = await request(app).get('/api/etl/workflow').expect(200);
+  assert.deepEqual(stored.body.nodes.find(n => n.id === 'source').data.sourceRows, nodes[0].data.sourceRows);
+  await request(app).post('/api/etl/run').send({ nodes, edges: [] }).expect(400);
+});
+
+test('ETL API executes SQL functions and math on stored file rows and rejects division by zero', async () => {
+  const nodes = [
+    { id: 's', data: { category: 'source', type: 'csv', sourceRows: [{ name: 'alice', price: '10', quantity: '3' }] } },
+    { id: 'sql', data: { category: 'transform', type: 'sql-function', functionName: 'upper', functionColumn: 'name', resultColumn: 'name' } },
+    { id: 'math', data: { category: 'transform', type: 'math', functionName: 'multiply', functionColumn: 'price', operandMode: 'column', operandColumn: 'quantity', resultColumn: 'total' } },
+    { id: 'o', data: { category: 'output', type: 'output' } },
+  ];
+  const edges = [{ source: 's', target: 'sql' }, { source: 'sql', target: 'math' }, { source: 'math', target: 'o' }];
+  const response = await request(app).post('/api/etl/run').send({ nodes, edges }).expect(200);
+  assert.deepEqual(response.body.outputRows, [{ name: 'ALICE', price: '10', quantity: '3', total: 30 }]);
+  const stored = await request(app).get('/api/etl/workflow').expect(200);
+  assert.deepEqual(stored.body.nodes.find(n => n.id === 'o').data.outputRows, response.body.outputRows);
+  nodes[2].data = { ...nodes[2].data, functionName: 'divide', operandMode: 'constant', operandValue: 0 };
+  const failure = await request(app).post('/api/etl/run').send({ nodes, edges }).expect(400);
+  assert.match(failure.body.message, /zero/);
+});
