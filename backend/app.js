@@ -1,6 +1,7 @@
 import { pathToFileURL } from "node:url";
 
 import { createServer } from "node:http";
+import workspaceRoutes from "./routes/workspaceRoutes.js";
 import monitoringRoutes from "./routes/monitoringRoutes.js";
 import { attachMonitoringSocket } from "./services/monitoringSocket.js";
 
@@ -57,6 +58,7 @@ app.use("/api/hr/documents", hrDocumentRoutes);
 app.use("/api/training", trainingRoutes);
 app.use("/api/training/practice", practiceLabRoutes);
 
+app.use("/api/workspace", workspaceRoutes);
 app.use("/api", monitoringRoutes);
 
 app.use(notFound);

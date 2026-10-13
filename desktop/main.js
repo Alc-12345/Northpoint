@@ -19,13 +19,14 @@ async function request(path, body, method='POST') {
 }
 function stopLocal(message) { clearInterval(timer);timer=null;last=null;status(message); }
 async function flush() {
-  if(syncing||!monitor||!token)return;
+  if(syncing) await new Promise(resolve=>{const wait=setInterval(()=>{if(!syncing){clearInterval(wait);resolve();}},20);});
+  if(!monitor||!token)return;
   syncing=true;
   try {
     queue=permittedQueue(queue,monitor);
     const batch=queue.slice(0,200);
     await request('/monitoring/events/batch',{monitoringSessionId:monitor._id,events:batch});
-    queue=queue.filter(e=>!batch.some(b=>b.key===e.key));await persist();status(`Monitoring enabled · synchronized ${collectorStatus}`);
+    queue=queue.filter(e=>!batch.some(b=>b.key===e.key));await persist();status(`${timer ? "Monitoring enabled" : "Collection OFF"} · synchronized ${collectorStatus}`);
   } catch(e) {
     // Fail closed: do not continue collecting without current server authorization.
     stopLocal(`Monitoring stopped: ${e.message}. Re-enable explicitly after reconnecting.`);

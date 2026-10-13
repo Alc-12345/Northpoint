@@ -170,7 +170,7 @@ export default function ActiveProjects() {
                   <div className="flex items-center gap-3">
 
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-
+                    
                       <div
                         className={`h-2 rounded-full ${progressColor(project.progress)}`}
                         style={{ width: `${project.progress}%` }}

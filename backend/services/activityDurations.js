@@ -34,11 +34,11 @@ export function calculate(work, monitoring, events, now = new Date()) {
     const key = e[field] || 'uncategorized';
     (out[key] ||= []).push(...intersect(allowed, union([e])));
     return out;
-  }, {});
+  }, Object.create(null));
   const aggregate = (data) => {
     const entries = Object.entries(data).map(([key,ranges]) => [key, union(ranges.map(([start,end])=>({start,end})))]);
     const edges = [...new Set(entries.flatMap(([,ranges])=>ranges.flat()))].sort((a,b)=>a-b);
-    const totals = {};
+    const totals = Object.create(null);
     for (let i=1;i<edges.length;i++) {
       const start=edges[i-1],end=edges[i];
       const matches=entries.filter(([,ranges])=>ranges.some(([a,b])=>a<=start&&b>=end));

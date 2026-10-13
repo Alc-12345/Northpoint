@@ -115,6 +115,8 @@ Correction requests are stored as audit records; a separate admin adjudication w
 
 ## Validation and packaging
 
+Verified on this workspace: **85/85 backend tests**, **2/2 desktop tests**, frontend production build, macOS DMG packaging and Windows NSIS packaging passed. Native Windows runtime and interactive macOS permission smoke tests were not performed. Frontend build retains a large-chunk warning; desktop tooling audit reports eight moderate findings.
+
 ```sh
 cd backend
 npm test

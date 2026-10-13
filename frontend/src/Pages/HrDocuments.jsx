@@ -18,7 +18,7 @@ export default function HrDocuments() {
   return <DocumentManager key={type} type={type} />;
 }
 
-function DocumentManager({ type }) {
+export function DocumentManager({ type }) {
   const config = documentTypes[type];
   const initialValues = () => Object.fromEntries(config.fields.map(field => [field.key, field.key === "issueDate" ? today() : field.key === "companyName" ? "Northpoint" : field.type === "number" ? "0" : ""]));
   const [values, setValues] = useState(initialValues);

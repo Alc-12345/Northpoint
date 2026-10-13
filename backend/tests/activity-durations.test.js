@@ -20,3 +20,8 @@ test('overnight sessions use UTC elapsed time',()=>{
  const s=calculate({checkIn:new Date('2026-10-13T23:00:00Z'),checkOut:new Date('2026-10-14T02:00:00Z')},[],[]);
  assert.equal(s.attendanceSeconds,10800);assert.equal(s.monitoringSeconds,0);
 });
+
+test('application names cannot collide with object prototype keys',()=>{
+ const s=calculate({checkIn:at(0),checkOut:at(100)},[{intervals:[{start:at(0),end:at(100)}]}],[{type:'application',application:'__proto__',start:at(0),end:at(10)}]);
+ assert.equal(s.applications['__proto__'],10);
+});

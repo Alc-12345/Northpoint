@@ -38,7 +38,7 @@ export async function finalize(employee, sessionId, reason = 'checkout') {
       if (m.intervals.at(-1) && !m.intervals.at(-1).end) m.intervals.at(-1).end = boundary;
       m.stop = boundary; m.status = 'stopped'; m.agentStatus = boundary < now ? 'disconnected or authorization expired' : 'session completed'; await m.save({ session });
     }
-    const tasks = await Task.find({ assignedTo: { $in: [String(employee._id), employee.email, employee.name, employee.username].filter(Boolean) } }).session(session).lean();
+    const tasks = await Task.find({ assignedTo: { $in: [String(employee._id), String(employee.user), employee.email, employee.username].filter(Boolean) } }).session(session).lean();
     work.summary = { ...await report(work,session), tasks, employeeName: employee.name, employeeCode: employee.username || String(employee._id), photo: employee.photo, checkIn: work.checkIn, checkOut: now, timezone: work.timezone, agentStatus: monitors.length ? 'session completed' : 'unknown' };
     await work.save({ session });
     await ActivitySummary.updateOne({ session: work._id }, { $set: { employee: employee._id, data: work.summary } }, { upsert: true, session });

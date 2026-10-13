@@ -3,7 +3,6 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   FiHome,
   FiUsers,
-  FiClock,
   FiDollarSign,
   FiFolder,
   FiFileText,
@@ -16,21 +15,21 @@ import {
   FiSettings,
   FiBell,
   FiMail,
-  FiPieChart,
-  FiEdit,
   FiHelpCircle,
   FiCalendar,
   FiLogOut,
   FiBookOpen,
 } from "react-icons/fi";
 import logo from "../assets/logo.png"; // Adjust the path to your logo image
+import "../navigation.css";
 import { logout } from "../utils/auth";
 
 const Sidebar = ({ children }) => {
 const { pathname } = useLocation();
 const routeMenu = pathname.startsWith("/employees") || pathname === "/payroll" ? "employees" : pathname.startsWith("/projects") || ["/add-project", "/assign-project", "/add-teams"].includes(pathname) ? "projects" : pathname.startsWith("/hr/") ? "hr" : null;
 const [activeMenu, setActiveMenu] = useState(routeMenu);
-  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
+  const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 700);
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
@@ -41,6 +40,12 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
     localStorage.setItem("theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    const update = event => setTheme(event.detail.theme);
+    window.addEventListener("northpoint:preferences", update);
+    return () => window.removeEventListener("northpoint:preferences", update);
+  }, []);
+
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
@@ -48,6 +53,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
     logout(navigate);
   };
   const toggleMenu = (menu) => {
+  if (collapsed) setCollapsed(false);
   setActiveMenu(activeMenu === menu ? null : menu);
 };
 
@@ -56,17 +62,14 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
   const activeClass = "bg-[#18a8e6] text-white";
 
   return (
-    <div className="flex">
+    <div className={`nav-shell flex ${collapsed ? "nav-collapsed" : "nav-expanded"}`}>
       {/* ================= LEFT SIDEBAR ================= */}
-      <div className="w-64 h-screen fixed left-0 top-0 bg-white dark:bg-[#0b1220] text-gray-700 dark:text-slate-300 border-r dark:border-[#18a8e6]/50 flex flex-col transition-colors duration-300">
+      <div className="nav-rail w-64 h-screen fixed left-0 top-0 bg-white dark:bg-[#0b1220] text-gray-700 dark:text-slate-300 border-r dark:border-[#18a8e6]/50 flex flex-col transition-colors duration-300">
         {/* Logo */}
-       <div className="flex justify-center mb-1 mt-2 ">
-  <img
-    src={logo}
-    alt="Logo"
-    className="w-20 h-auto"
-  />
-</div>
+        <NavLink to="/" className="nav-brand" aria-label="Northpoint dashboard">
+          <img src={logo} alt="" className="nav-brand-logo" />
+          <div className="nav-brand-copy"><strong>Northpoint</strong><span>Admin workspace</span></div>
+        </NavLink>
         {/* <div className="px-5 pt-3 h-16 border-b dark:border-[#243244]">
         
           <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-white">
@@ -75,7 +78,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
         </div> */}
 
         {/* Scrollable Menu */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+        <div className="nav-menu flex-1 overflow-y-auto px-4 py-4 space-y-2">
           {/* Dashboard */}
           <NavLink
             to="/"
@@ -101,7 +104,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
                 <span className="flex items-center gap-3">{icon} {label}</span>
                 <FiChevronDown className={activeMenu === key ? "rotate-180" : ""} />
               </button>
-              {activeMenu === key && <div className="ml-6 mt-2 space-y-1 text-sm">
+              {activeMenu === key && <div className="nav-submenu ml-6 mt-2 space-y-1 text-sm">
                 {links.map(([text, to]) => <NavLink key={to} to={to} end className={({ isActive }) => `block px-3 py-2 rounded ${isActive ? activeClass : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}>{text}</NavLink>)}
               </div>}
             </div>
@@ -122,7 +125,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
               />
             </button>
             {activeMenu === "Finance" && (
-              <div className="ml-6 mt-2 space-y-1 text-sm">
+              <div className="nav-submenu ml-6 mt-2 space-y-1 text-sm">
                 <NavLink
                   to="/client-billing-finance"
                   className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
@@ -131,7 +134,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
               </div>
             )}
             {activeMenu === "Finance" && (
-              <div className="ml-6 mt-2 space-y-1 text-sm">
+              <div className="nav-submenu ml-6 mt-2 space-y-1 text-sm">
                 <NavLink
                   to="/payroll"
                   className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
@@ -144,6 +147,8 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
           </div>
 
           
+
+          <NavLink to="/documents" className={linkClass}><FiFileText /> Document distribution</NavLink>
 
           {/* Reports */}
           <NavLink to="/reports" className={linkClass}>
@@ -181,11 +186,12 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
       </div>
 
       {/* ================= RIGHT SIDE ================= */}
-      <div className="flex-1 ml-64 min-h-screen bg-gray-100 dark:bg-[#0b1220] transition-colors duration-300">
+      <div className="nav-content flex-1 ml-64 min-h-screen bg-gray-100 dark:bg-[#0b1220] transition-colors duration-300">
         {/* Header */}
-        <div className="h-16 bg-white dark:bg-[#0b1220] border-b dark:border-[#243244] flex items-center justify-between px-6">
+        <div className="nav-header h-16 bg-white dark:bg-[#0b1220] border-b dark:border-[#243244] flex items-center justify-between px-6">
           {/* Left */}
           <div className="flex items-center gap-4">
+            <button type="button" className="nav-icon-button" aria-label={collapsed ? "Expand navigation" : "Collapse navigation"} aria-expanded={!collapsed} onClick={() => setCollapsed(!collapsed)}><FiMenu /></button>
           
 
             <div className="relative">
@@ -201,9 +207,9 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
           </div>
 
           {/* Right */}
-          <div className="flex items-center gap-6">
+          <div className="nav-actions flex items-center gap-6">
             {/* Theme Toggle */}
-            <div className="p-4 border-t dark:border-[#243244] flex items-center justify-between">
+            <div className="nav-theme-toggle flex items-center justify-between gap-2">
               <span className="flex items-center gap-5 text-gray-700 dark:text-white">
                 {theme === "dark" ? <FiMoon /> : <FiSun />}
                 {/* {theme === "dark" ? "Dark" : "Light"} */}
@@ -233,7 +239,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
             <button
               type="button"
               onClick={handleLogout}
-              className="bg-[#18a8e6] text-white px-4 py-1.5 rounded-lg flex items-center gap-2"
+              className="nav-logout bg-[#18a8e6] text-white px-4 py-1.5 rounded-lg flex items-center gap-2"
             >
               <FiLogOut />
               Logout
@@ -253,7 +259,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
         </div>
 
         {/* Page Content */}
-        <div className="p-6">{children}</div>
+        <div className="nav-page p-6">{children}</div>
       </div>
     </div>
   );

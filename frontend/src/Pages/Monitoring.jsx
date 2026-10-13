@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import api from '../services/api';
-import { duration } from '../Components/ActivityNotifications';
+import { duration } from '../utils/duration';
 export default function Monitoring({ employee = false }) {
   const [params]=useSearchParams();
   const [sessions,setSessions]=useState([]),[error,setError]=useState(''),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[accepted,setAccepted]=useState(false),[page,setPage]=useState(1),[total,setTotal]=useState(0),[filters,setFilters]=useState({employee:params.get('employee')||'',from:'',to:'',status:''}),[selected,setSelected]=useState(null),[tick,setTick]=useState(Date.now()),[period,setPeriod]=useState('day'),[overview,setOverview]=useState(null);

@@ -1,4 +1,11 @@
-import { Routes, Route, Form } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import Reports from "./Pages/Reports";
+import Settings from "./Pages/Settings";
+import NotificationCenter from "./Pages/NotificationCenter";
+import DocumentEditor from "./Pages/DocumentEditor";
+import DocumentLibrary from "./Pages/DocumentLibrary";
+import SupportDesk from "./Pages/SupportDesk";
+import NotFound from "./Pages/NotFound";
 import Monitoring from "./Pages/Monitoring";
 import MainLayout from "./Layout/MainLayout";
 import Dashboard from "./Pages/Dashboard";
@@ -45,13 +52,13 @@ import ProjectProgress from "./Pages/ProjectProgress.jsx";
 import DeliverablesPage from "./Pages/DeliverablesPage.jsx";
 import TimelinePage from "./Pages/Timeline.jsx";
 import Feedback from "./Pages/Feedback.jsx";
-import Notification from "./Pages/Notifications.jsx"
+
 import CalendarManager from "./Pages/CalendarManager.jsx";
 import ETL from "./Pages/ETL.jsx";
 import Task from "./Pages/Task.jsx";
 import HourBucket from "./Pages/Bucket.jsx";
 import Login from "./Pages/Login.jsx";
-import HelpDesk from "./Pages/HelpDesk.jsx";
+
 import TrainingManagement from "./Pages/TrainingManagement.jsx";
 import PracticeLab from "./Pages/PracticeLab.jsx";
 
@@ -60,6 +67,18 @@ import PracticeLab from "./Pages/PracticeLab.jsx";
 function App() {
   return (
     <Routes>
+      <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
+      <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
+      <Route path="/notifications" element={<MainLayout><NotificationCenter /></MainLayout>} />
+      <Route path="/documents/new/:type" element={<MainLayout><DocumentEditor /></MainLayout>} />
+      <Route path="/documents" element={<MainLayout><DocumentLibrary admin /></MainLayout>} />
+      <Route path="/employee-settings" element={<EmployeeLayout><Settings /></EmployeeLayout>} />
+      <Route path="/employee-notifications" element={<EmployeeLayout><NotificationCenter /></EmployeeLayout>} />
+      <Route path="/employee-documents" element={<EmployeeLayout><DocumentLibrary /></EmployeeLayout>} />
+      <Route path="/employee-help-desk" element={<EmployeeLayout><SupportDesk /></EmployeeLayout>} />
+      <Route path="/client/settings" element={<ClientLayout><Settings /></ClientLayout>} />
+      <Route path="/client/help-desk" element={<ClientLayout><SupportDesk /></ClientLayout>} />
+      <Route path="/client/notifications" element={<ClientLayout><NotificationCenter /></ClientLayout>} />
       <Route path="/monitoring" element={<MainLayout><Monitoring /></MainLayout>} />
       <Route path="/employee-activity" element={<EmployeeLayout><Monitoring employee /></EmployeeLayout>} />
       <Route path="/training/*" element={<TrainingManagement />} />
@@ -234,7 +253,7 @@ function App() {
   path="/help-desk"
   element={
     <MainLayout>
-      <HelpDesk />
+      <SupportDesk />
     </MainLayout>
   }
 />
@@ -345,7 +364,7 @@ function App() {
         path="/client/Notification"
         element={
           <ClientLayout>
-            <Notification />
+            <NotificationCenter />
           </ClientLayout>
         }
        /> 
@@ -487,6 +506,7 @@ function App() {
           </EmployeeLayout>
         }
        /> 
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

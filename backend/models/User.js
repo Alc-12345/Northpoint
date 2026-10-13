@@ -37,6 +37,8 @@ const userSchema = new mongoose.Schema(
       enum: ["superadmin", "admin", "trainer", "student", "hr", "employee", "client"],
       required: [true, "Role is required"],
     },
+    preferences: { type: new mongoose.Schema({ theme: {type:String,enum:["light","dark"],default:"light"}, timezone: {type:String,default:"UTC"} }, {_id:false}), default: () => ({}) },
+    notificationReadIds: {type:[String],default:[]},
     tokenVersion: { type: Number, default: 0 },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

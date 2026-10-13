@@ -1,6 +1,8 @@
-import React from "react";
+import "../../navigation.css";
+import logo from "../../assets/logo.png";
 import {
   FiGrid,
+  FiBell,
   FiUsers,
   FiCheckSquare,
   FiDollarSign,
@@ -23,6 +25,7 @@ export default function ClientSidebar() {
     logout(navigate);
   };
   const menu = [
+    {icon:<FiBell size={18}/>,label:"Notifications",path:"/client/notifications"},
     {
       icon: <FiGrid size={18} />,
       label: "Dashboard",
@@ -83,26 +86,23 @@ export default function ClientSidebar() {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-[#0B1220] border-r border-[#243244] flex flex-col">
+    <aside className="nav-rail fixed left-0 top-0 h-screen w-64 bg-[#0B1220] border-r border-[#243244] flex flex-col">
 
       {/* Logo */}
-      <div className="h-16 flex items-center px-6 border-b border-[#243244]">
-        <div className="h-10 w-10 rounded-lg bg-[#18A8E6] flex items-center justify-center text-white font-bold">
-          C
-        </div>
-
-        <span className="ml-3 text-white font-semibold text-lg">
-          Client Panel
-        </span>
-      </div>
+      <NavLink to="/client/dashboard" className="nav-brand" aria-label="Northpoint client dashboard">
+        <img src={logo} alt="" className="nav-brand-logo" />
+        <div className="nav-brand-copy"><strong>Northpoint</strong><span>Client workspace</span></div>
+      </NavLink>
 
       {/* Scrollable Menu */}
-  <nav className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-[#18A8E6] scrollbar-track-[#0B1220]">
+  <nav className="nav-menu flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-[#18A8E6] scrollbar-track-[#0B1220]">
 
     {menu.map((item) => (
       <NavLink
         key={item.label}
         to={item.path}
+        aria-label={item.label}
+        title={item.label}
         className={({ isActive }) =>
           `flex items-center gap-3 px-4 py-1 rounded-lg transition-all ${
             isActive
@@ -128,7 +128,7 @@ export default function ClientSidebar() {
           Settings
         </button>
 
-        <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-400 hover:bg-[#172235] hover:text-white transition">
+        <button onClick={() => navigate("/client/help-desk")} className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-400 hover:bg-[#172235] hover:text-white transition">
           <FiHelpCircle />
           Help & Support
         </button>

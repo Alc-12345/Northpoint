@@ -9,6 +9,7 @@ import { io as connect } from 'socket.io-client';
 import { attachMonitoringSocket } from '../services/monitoringSocket.js';
 import app from '../app.js';
 import User from '../models/User.js';
+import Task from '../models/Task.js';
 import Employee from '../models/Employee.js';
 import { WorkSession, MonitoringSession, ActivityEvent, AdminNotification } from '../models/Monitoring.js';
 let mongo,employee,token,adminToken,otherToken;
@@ -86,6 +87,14 @@ test('pause gaps and expired monitoring authorization reject uploads',async()=>{
  await MonitoringSession.updateOne({_id:m._id},{$set:{authorizationExpiresAt:new Date(Date.now()-1000)}});
  await call('post','/monitoring/events/batch',{monitoringSessionId:m._id,events:[]}).expect(409);
  await call('post','/attendance/check-out',{sessionId:work._id}).expect(200);
+});
+test('task status APIs enforce ownership and persist completion history',async()=>{
+ const task=await Task.create({title:'Deliver work',assignedTo:String(employee._id)});
+ const mine=await call('get','/tasks/me').expect(200);assert.ok(mine.body.some(t=>t._id===String(task._id)));
+ await call('patch',`/tasks/${task._id}`,{status:'Completed'},otherToken).expect(404);
+ const done=await call('patch',`/tasks/${task._id}`,{status:'Completed'}).expect(200);
+ assert.ok(done.body.completedAt);assert.equal(done.body.updateHistory.length,1);
+ await call('get',`/tasks/${task._id}`,{},otherToken).expect(403);
 });
 test('employee login opens attendance without monitoring; logout revokes credentials',async()=>{
  const login=await request(app).post('/api/auth/login').send({identifier:employee.email,password:'password',timezone:'Asia/Kolkata'}).expect(200);

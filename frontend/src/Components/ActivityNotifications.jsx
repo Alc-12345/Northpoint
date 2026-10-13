@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-export const duration = seconds => `${Math.floor((seconds || 0)/3600)}h ${Math.floor(((seconds || 0)%3600)/60)}m`;
+import { duration } from '../utils/duration';
 export function LogoutSummary({ data }) {
   return <div className="space-y-1 text-sm">
     <p>{data.employeeCode} · {data.agentStatus}</p>
@@ -28,8 +28,9 @@ export default function ActivityNotifications() {
     socket.on('connect',refresh);
     socket.on('admin:employee-logout',n=>{if(alive&&!seen.current.has(n._id)){seen.current.add(n._id);setPopup(n);window.dispatchEvent(new Event("northpoint:logout"));refresh();}});
     socket.on('admin:notification-count',setUnread);
+    window.addEventListener("northpoint:notifications-read",refresh);
     refresh();const interval=setInterval(refresh,30000);
-    return ()=>{alive=false;clearInterval(interval);socket.disconnect();};
+    return ()=>{alive=false;clearInterval(interval);window.removeEventListener("northpoint:notifications-read",refresh);socket.disconnect();};
   },[]);
   const read=async n=>{await api.patch(`/admin/notifications/${n._id}/read`);setUnread(v=>Math.max(0,v-(!n.readAt?1:0)));setNotifications(v=>v.map(x=>x._id===n._id?{...x,readAt:new Date()}:x));};
   if(!['admin','superadmin'].includes(JSON.parse(localStorage.getItem('authUser') || '{}').role))return null;

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   FiHome,
+  FiHelpCircle,
   FiUser,
   FiFolder,
   FiCheckSquare,
@@ -18,10 +19,13 @@ import {
   FiSearch
   ,FiCode
 } from "react-icons/fi";
+import logo from "../assets/logo.png";
+import "../navigation.css";
 import { logout } from "../utils/auth";
 
 const EmployeeSidebar = ({ children }) => {
 
+  const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 700);
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
@@ -31,6 +35,12 @@ const EmployeeSidebar = ({ children }) => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    const update = event => setTheme(event.detail.theme);
+    window.addEventListener("northpoint:preferences", update);
+    return () => window.removeEventListener("northpoint:preferences", update);
+  }, []);
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -46,23 +56,22 @@ const EmployeeSidebar = ({ children }) => {
   const activeClass = "bg-blue-600 text-white";
 
   return (
-    <div className="flex">
+    <div className={`nav-shell flex ${collapsed ? "nav-collapsed" : "nav-expanded"}`}>
 
       {/* ================= SIDEBAR ================= */}
 
-      <div className="w-64 h-screen fixed left-0 top-0 bg-white dark:bg-[#0b1220] text-gray-700 dark:text-gray-300 border-r dark:border-[#243244] flex flex-col transition-colors duration-300">
+      <div className="nav-rail w-64 h-screen fixed left-0 top-0 bg-white dark:bg-[#0b1220] text-gray-700 dark:text-gray-300 border-r dark:border-[#243244] flex flex-col transition-colors duration-300">
 
         {/* Logo */}
 
-        <div className="p-5 h-16 border-b dark:border-[#243244]">
-          <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-white">
-            <span className="text-blue-600">EMP</span> Panel
-          </h1>
-        </div>
+        <NavLink to="/employee-dashboard" className="nav-brand" aria-label="Northpoint employee dashboard">
+          <img src={logo} alt="" className="nav-brand-logo" />
+          <div className="nav-brand-copy"><strong>Northpoint</strong><span>Employee workspace</span></div>
+        </NavLink>
 
         {/* Menu */}
 
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+        <div className="nav-menu flex-1 overflow-y-auto px-4 py-4 space-y-2">
 
           <NavLink
             to="/employee-dashboard"
@@ -233,6 +242,8 @@ const EmployeeSidebar = ({ children }) => {
 
         </div>
 
+        <NavLink to="/employee-help-desk" className={linkClass}><FiHelpCircle /> Help & support</NavLink>
+
         {/* Logout */}
 
         <div className="p-4 border-t dark:border-[#243244]">
@@ -250,17 +261,17 @@ const EmployeeSidebar = ({ children }) => {
 
       {/* ================= RIGHT SIDE ================= */}
 
-      <div className="flex-1 ml-64 min-h-screen bg-gray-100 dark:bg-[#0b1220] transition-colors duration-300">
+      <div className="nav-content flex-1 ml-64 min-h-screen bg-gray-100 dark:bg-[#0b1220] transition-colors duration-300">
 
         {/* Header */}
 
-        <div className="h-16 bg-white dark:bg-[#0b1220] border-b dark:border-[#243244] flex items-center justify-between px-6">
+        <div className="nav-header h-16 bg-white dark:bg-[#0b1220] border-b dark:border-[#243244] flex items-center justify-between px-6">
 
           {/* Left */}
 
           <div className="flex items-center gap-4">
 
-            <FiMenu className="cursor-pointer text-gray-600 dark:text-gray-300" />
+            <button type="button" className="nav-icon-button" aria-label={collapsed ? "Expand navigation" : "Collapse navigation"} aria-expanded={!collapsed} onClick={() => setCollapsed(!collapsed)}><FiMenu /></button>
 
             <div className="relative">
               <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
@@ -277,7 +288,7 @@ const EmployeeSidebar = ({ children }) => {
 
           {/* Right */}
 
-          <div className="flex items-center gap-6">
+          <div className="nav-actions flex items-center gap-6">
 
             {/* Theme Toggle */}
 
@@ -313,7 +324,7 @@ const EmployeeSidebar = ({ children }) => {
 
         {/* Page Content */}
 
-        <div className="p-6">{children}</div>
+        <div className="nav-page p-6">{children}</div>
 
       </div>
 
