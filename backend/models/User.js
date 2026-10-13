@@ -37,6 +37,7 @@ const userSchema = new mongoose.Schema(
       enum: ["superadmin", "admin", "trainer", "student", "hr", "employee", "client"],
       required: [true, "Role is required"],
     },
+    tokenVersion: { type: Number, default: 0 },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

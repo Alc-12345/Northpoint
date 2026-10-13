@@ -1,12 +1,42 @@
 import express from "express";
-import { protect } from "../middleware/authMiddleware.js";
+import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 import HrDocument from "../models/HrDocument.js";
+import Intern from "../models/Intern.js";
+import OfferEmployee from "../models/OfferEmployee.js";
 import { documentTypes, validateDocument } from "../shared/hrDocuments.js";
 
 const router = express.Router();
 router.use(protect, (req, res, next) => {
   if (!["admin", "superadmin", "hr"].includes(req.user.role)) return res.status(403).json({ message: "HR documents are available to administrators and HR staff" });
   next();
+});
+router.get("/interns", async (req, res) => {
+  res.json(await Intern.find().sort({ createdAt: -1 }));
+});
+router.post("/interns", requireAdmin, async (req, res) => {
+  const data = {};
+  for (const key of ["candidateName", "role", "companyName"]) {
+    if (typeof req.body[key] !== "string" || !req.body[key].trim() || req.body[key].trim().length > 120) return res.status(400).json({ message: `${key} is required and must be at most 120 characters` });
+    data[key] = req.body[key].trim();
+  }
+  const { startDate, duration } = req.body;
+  if (typeof startDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !Number.isFinite(Date.parse(startDate)) || new Date(startDate).toISOString().slice(0, 10) !== startDate) return res.status(400).json({ message: "Enter a valid internship start date" });
+  if (!["3", "6"].includes(duration)) return res.status(400).json({ message: "Choose a 3-month or 6-month duration" });
+  res.status(201).json(await Intern.create({ ...data, startDate, duration, createdBy: req.user._id }));
+});
+router.get("/offer-employees", async (req, res) => {
+  res.json(await OfferEmployee.find().sort({ createdAt: -1 }));
+});
+router.post("/offer-employees", requireAdmin, async (req, res) => {
+  const data = {};
+  for (const key of ["candidateName", "role", "companyName"]) {
+    if (typeof req.body[key] !== "string" || !req.body[key].trim() || req.body[key].trim().length > 120) return res.status(400).json({ message: `${key} is required and must be at most 120 characters` });
+    data[key] = req.body[key].trim();
+  }
+  const { startDate, employmentType } = req.body;
+  if (typeof startDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !Number.isFinite(Date.parse(startDate)) || new Date(startDate).toISOString().slice(0, 10) !== startDate) return res.status(400).json({ message: "Enter a valid employment start date" });
+  if (!["Full-time", "Part-time", "Contract"].includes(employmentType)) return res.status(400).json({ message: "Choose a valid employment type" });
+  res.status(201).json(await OfferEmployee.create({ ...data, startDate, employmentType, createdBy: req.user._id }));
 });
 router.get("/:type", async (req, res) => {
   if (!Object.hasOwn(documentTypes, req.params.type)) return res.status(400).json({ message: "Unknown document type" });

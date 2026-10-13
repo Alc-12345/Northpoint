@@ -15,9 +15,12 @@ import { mergeTaskNodes } from '../shared/taskWorkflow.js';
 let mongo;
 let token;
 let otherToken;
+let adminToken;
 before(async () => {
   mongo = await MongoMemoryServer.create();
   await mongoose.connect(mongo.getUri());
+  const admin = new User({name:'Administrator',email:'admin@example.com',role:'admin'});
+  admin.setPassword('test-password');await admin.save();adminToken=jwt.sign({id:admin._id},process.env.JWT_SECRET || 'dev_jwt_secret_change_me');
   for (const email of ['employee@example.com', 'other@example.com']) {
     const user = new User({ name: email, email, role: 'employee' });
     user.setPassword('test-password');
@@ -63,9 +66,9 @@ test('submitted hours cannot be overwritten, deleted, or changed by stale ETL sa
   const task = await createTask();
   const stale = (await request(app).get('/api/etl/workflow')).body;
   await submit(task, { hours: 2, note: 'Built forms', status: 'In Progress', progress: 50 }).expect(200);
-  await request(app).put(`/api/tasks/${task._id}`).send({ totalWorkingHours: 0, workLogs: [] }).expect(400);
-  await request(app).put(`/api/tasks/${task._id}`).send({ $set: { totalWorkingHours: 0 } }).expect(200);
-  await request(app).delete(`/api/tasks/${task._id}`).expect(400);
+  await request(app).put(`/api/tasks/${task._id}`).set('Authorization', `Bearer ${adminToken}`).send({ totalWorkingHours: 0, workLogs: [] }).expect(400);
+  await request(app).put(`/api/tasks/${task._id}`).set('Authorization', `Bearer ${adminToken}`).send({ $set: { totalWorkingHours: 0 } }).expect(200);
+  await request(app).delete(`/api/tasks/${task._id}`).set('Authorization', `Bearer ${adminToken}`).expect(400);
   for (const endpoint of ['/api/etl/workflow', '/api/etl/run']) {
     const response = await request(app).post(endpoint).send(stale).expect(200);
     const node = response.body.nodes.find(node => node.data.taskId === String(task._id));

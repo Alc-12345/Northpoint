@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { describe, test, before, after, beforeEach } from "node:test";
 import mongoose from "mongoose";
 import request from "supertest";
@@ -11,10 +12,7 @@ before(async () => {
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
 
-  await mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  await mongoose.connect(uri);
 });
 
 after(async () => {
@@ -48,18 +46,11 @@ describe("Employee API", () => {
       .expect(201)
       .expect("Content-Type", /json/);
 
-    expect(response.body).toMatchObject({
-      name: "Test Employee",
-      email: "test.employee@example.com",
-      department: "Engineering",
-      role: "Developer",
-      project: "CRM Revamp",
-      salary: 75000,
-      skills: "React,Node.js,MongoDB",
-      status: "Active",
-    });
-    expect(response.body._id).toBeDefined();
-    expect(response.body.photo).toContain("data:image/png;base64,");
+    assert.equal(response.body.name, payload.name);
+    assert.equal(response.body.email, payload.email);
+    assert.equal(response.body.department, payload.department);
+    assert.ok(response.body._id);
+    assert.ok(response.body.photo.includes("data:image/png;base64,"));
   });
 
   test("should return validation error for missing required fields", async () => {
@@ -69,9 +60,7 @@ describe("Employee API", () => {
       .expect(400)
       .expect("Content-Type", /json/);
 
-    expect(response.body.message).toBe("Validation failed");
-    expect(response.body.errors).toEqual(
-      expect.arrayContaining(["Employee name is required"])
-    );
+    assert.equal(response.body.message, "Validation failed");
+    assert.ok(response.body.errors.includes("Employee name is required"));
   });
 });

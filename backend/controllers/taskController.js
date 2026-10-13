@@ -18,7 +18,7 @@ const validateNodeLink = async (nodeId, taskId, res) => {
 import Task from "../models/Task.js";
 
 export const getTasks = async (req, res) => {
-  const tasks = await Task.find(req.user?.role === "employee" ? { assignedTo: { $in: assignedToUser(req.user) } } : {}).sort({ createdAt: -1 });
+  const tasks = await Task.find(!["admin", "superadmin"].includes(req.user.role) ? { assignedTo: { $in: assignedToUser(req.user) } } : {}).sort({ createdAt: -1 });
   res.json(tasks);
 };
 
@@ -30,6 +30,9 @@ export const getTaskById = async (req, res) => {
     throw new Error("Task not found");
   }
 
+  if (!["admin", "superadmin"].includes(req.user.role) && !assignedToUser(req.user).includes(task.assignedTo)) {
+    res.status(403); throw new Error("You can only view assigned tasks");
+  }
   res.json(task);
 };
 
@@ -51,6 +54,7 @@ export const updateTask = async (req, res) => {
   }
   const payload = taskPayload(req.body);
   await validateNodeLink(payload.etlNodeId, req.params.id, res);
+  if (payload.status !== undefined) payload.completedAt = payload.status === "Completed" ? new Date() : null;
   const task = await Task.findByIdAndUpdate(req.params.id, payload, {
     new: true,
     runValidators: true,
@@ -108,6 +112,7 @@ export const addWorkUpdate = async (req, res) => {
   if (progress !== undefined) changes.progress = progress;
   if (description !== undefined) changes.description = description;
   if (etlNodeId !== undefined) changes.etlNodeId = etlNodeId;
+  if (status !== undefined) changes.completedAt = status === "Completed" ? new Date() : null;
   if (status === "Completed") changes.progress = 100;
   const updated = await Task.findOneAndUpdate(
     { _id: task._id, assignedTo: task.assignedTo },

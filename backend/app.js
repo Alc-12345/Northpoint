@@ -1,5 +1,9 @@
 import { pathToFileURL } from "node:url";
 
+import { createServer } from "node:http";
+import monitoringRoutes from "./routes/monitoringRoutes.js";
+import { attachMonitoringSocket } from "./services/monitoringSocket.js";
+
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -53,15 +57,21 @@ app.use("/api/hr/documents", hrDocumentRoutes);
 app.use("/api/training", trainingRoutes);
 app.use("/api/training/practice", practiceLabRoutes);
 
+app.use("/api", monitoringRoutes);
+
 app.use(notFound);
 app.use(errorHandler);
 
 export const startServer = async () => {
+  if (process.env.NODE_ENV === "production" && (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)) throw new Error("Production requires a JWT_SECRET with at least 32 characters");
   await connectDB();
 
-  app.listen(PORT, () => {
+  const server = createServer(app);
+  attachMonitoringSocket(server);
+  server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
+  return server;
 };
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

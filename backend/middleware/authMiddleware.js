@@ -17,12 +17,13 @@ export const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, getJwtSecret());
     const user = await User.findById(decoded.id);
 
-    if (!user) {
+    if (!user || (decoded.version || 0) !== (user.tokenVersion || 0)) {
       res.status(401);
       return next(new Error("Not authorized, user not found"));
     }
 
     req.user = user;
+    req.authExpiresAt = decoded.exp ? new Date(decoded.exp * 1000) : null;
     return next();
   } catch {
     res.status(401);
@@ -41,6 +42,7 @@ export const optionalAuth = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, getJwtSecret());
     req.user = await User.findById(decoded.id);
+    if (req.user && (decoded.version || 0) !== (req.user.tokenVersion || 0)) req.user = null;
   } catch {
     req.user = null;
   }

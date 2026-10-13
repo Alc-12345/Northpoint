@@ -1,5 +1,6 @@
 import axios from "axios";
 import { clearAuthSession, isPanelPreview } from "../utils/auth";
+import { getPreviewInterns, addPreviewIntern, getPreviewOfferEmployees, addPreviewOfferEmployee } from "../utils/previewInterns";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5001/api",
@@ -43,6 +44,7 @@ export const authApi = {
       api.post("/auth/login", {
         identifier: identifier || email || username,
         password,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       })
     ),
 };
@@ -91,6 +93,10 @@ export const taskApi = {
 };
 
 export const hrDocumentApi = {
+  getOfferEmployees: async () => isPanelPreview() ? getPreviewOfferEmployees() : unwrap(api.get("/hr/documents/offer-employees")),
+  addOfferEmployee: async (data) => isPanelPreview() ? addPreviewOfferEmployee(data) : unwrap(api.post("/hr/documents/offer-employees", data)),
+  getInterns: async () => isPanelPreview() ? getPreviewInterns() : unwrap(api.get("/hr/documents/interns")),
+  addIntern: async (data) => isPanelPreview() ? addPreviewIntern(data) : unwrap(api.post("/hr/documents/interns", data)),
   getAll: (type) => unwrap(api.get(`/hr/documents/${type}`)),
   create: (type, data) => unwrap(api.post(`/hr/documents/${type}`, data)),
   update: (type, id, data) => unwrap(api.put(`/hr/documents/${type}/${id}`, data)),

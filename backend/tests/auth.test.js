@@ -81,7 +81,7 @@ describe("Auth API", () => {
 
     assert.equal(
       response.body.message,
-      "Only superadmin can create employee or client accounts"
+      "Only superadmin can create user accounts"
     );
   });
 

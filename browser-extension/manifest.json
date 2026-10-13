@@ -1,0 +1,1 @@
+{"manifest_version":3,"name":"Northpoint approved website categories","version":"1.0.0","permissions":["tabs","alarms","storage"],"host_permissions":["http://localhost:5001/*","https://*/*"],"background":{"service_worker":"worker.js","type":"module"},"action":{"default_popup":"popup.html"}}

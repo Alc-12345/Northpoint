@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { hrDocumentApi } from "../services/api";
 import { documentTypes, fillTemplate, quotationTotals, validateDocument } from "../../../backend/shared/hrDocuments";
 import { downloadDocument, printDocument } from "../utils/hrDocumentDownload";
+import Interns from "./Interns.jsx";
+import OfferEmployees from "./OfferEmployees.jsx";
 
 const inputClass = "w-full rounded-lg border border-gray-300 bg-white p-2 text-gray-800 dark:border-[#243244] dark:bg-[#0b1220] dark:text-gray-200";
 const buttonClass = "rounded-lg bg-blue-600 px-4 py-2 text-white disabled:opacity-50";
@@ -10,6 +12,8 @@ const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kol
 
 export default function HrDocuments() {
   const { type } = useParams();
+  if (type === "internship") return <Interns />;
+  if (type === "offer-letter") return <OfferEmployees />;
   if (!Object.hasOwn(documentTypes, type)) return <p className="text-gray-700 dark:text-gray-200">Unknown HR document type.</p>;
   return <DocumentManager key={type} type={type} />;
 }

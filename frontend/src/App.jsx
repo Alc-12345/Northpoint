@@ -1,4 +1,5 @@
 import { Routes, Route, Form } from "react-router-dom";
+import Monitoring from "./Pages/Monitoring";
 import MainLayout from "./Layout/MainLayout";
 import Dashboard from "./Pages/Dashboard";
 import AllEmployees from "./Pages/AllEmployees";
@@ -59,6 +60,8 @@ import PracticeLab from "./Pages/PracticeLab.jsx";
 function App() {
   return (
     <Routes>
+      <Route path="/monitoring" element={<MainLayout><Monitoring /></MainLayout>} />
+      <Route path="/employee-activity" element={<EmployeeLayout><Monitoring employee /></EmployeeLayout>} />
       <Route path="/training/*" element={<TrainingManagement />} />
       <Route path="/student/practice-lab" element={<EmployeeLayout><PracticeLab /></EmployeeLayout>} />
 

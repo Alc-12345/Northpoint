@@ -1,12 +1,14 @@
 import jwt from "jsonwebtoken";
 
+import Employee from "../models/Employee.js";
+import { checkIn } from "../services/monitoring.js";
 import User from "../models/User.js";
 
 const allowedRoles = ["superadmin", "admin", "trainer", "student", "hr", "employee", "client"];
 const getJwtSecret = () => process.env.JWT_SECRET || "dev_jwt_secret_change_me";
 
 const signToken = (user) =>
-  jwt.sign({ id: user._id, role: user.role }, getJwtSecret(), {
+  jwt.sign({ id: user._id, role: user.role, version: user.tokenVersion || 0 }, getJwtSecret(), {
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   });
 
@@ -86,5 +88,13 @@ export const login = async (req, res) => {
     throw new Error("Invalid login ID or password");
   }
 
+  if(user.role === "employee") {
+    const employee = await Employee.findOne({user:user._id});
+    if(employee && employee.status !== "Resigned") {
+      let timezone=req.body.timezone || "UTC";
+      try { new Intl.DateTimeFormat("en",{timeZone:timezone}); } catch { timezone="UTC"; }
+      await checkIn(employee,timezone);
+    }
+  }
   res.json(authResponse(user));
 };
