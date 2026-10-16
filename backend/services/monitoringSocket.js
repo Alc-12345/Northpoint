@@ -21,7 +21,12 @@ export async function deliverNotifications() {
 }
 export function sessionUpdated(user, data) { io?.to(`user:${user}`).emit('monitoring:session-updated',data); }
 export function attachMonitoringSocket(server) {
-  io = new Server(server, { cors: { origin: process.env.CLIENT_URL || 'http://localhost:5173' } });
+  const socketClientUrls = (process.env.CLIENT_URL || 'http://localhost:5173')
+    .split(',')
+    .map((url) => url.trim())
+    .filter(Boolean);
+  const socketCorsOrigin = socketClientUrls.length === 1 ? socketClientUrls[0] : socketClientUrls;
+  io = new Server(server, { cors: { origin: socketCorsOrigin } });
   io.use(async (socket,next) => {
     try {
       const decoded = jwt.verify(socket.handshake.auth.token, process.env.JWT_SECRET || 'dev_jwt_secret_change_me');

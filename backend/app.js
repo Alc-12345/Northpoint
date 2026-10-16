@@ -30,9 +30,15 @@ dotenv.config({ path: new URL("./.env", import.meta.url) });
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+const clientUrls = (process.env.CLIENT_URL || "http://localhost:5173")
+  .split(",")
+  .map((url) => url.trim())
+  .filter(Boolean);
+const corsOrigin = clientUrls.length === 1 ? clientUrls[0] : clientUrls;
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: corsOrigin,
     credentials: true,
   })
 );
