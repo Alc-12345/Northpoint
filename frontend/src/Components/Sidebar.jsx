@@ -23,9 +23,11 @@ import {
 import logo from "../assets/logo.png"; // Adjust the path to your logo image
 import "../navigation.css";
 import { logout } from "../utils/auth";
+import { canUseFinance } from "../utils/financeAccess";
 
 const Sidebar = ({ children }) => {
 const { pathname } = useLocation();
+const financeAllowed = canUseFinance();
 const routeMenu = pathname.startsWith("/employees") || pathname === "/payroll" ? "employees" : pathname.startsWith("/projects") || ["/add-project", "/assign-project", "/add-teams"].includes(pathname) ? "projects" : pathname.startsWith("/hr/") ? "hr" : null;
 const [activeMenu, setActiveMenu] = useState(routeMenu);
   const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 700);
@@ -105,12 +107,12 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
                 <FiChevronDown className={activeMenu === key ? "rotate-180" : ""} />
               </button>
               {activeMenu === key && <div className="nav-submenu ml-6 mt-2 space-y-1 text-sm">
-                {links.map(([text, to]) => <NavLink key={to} to={to} end className={({ isActive }) => `block px-3 py-2 rounded ${isActive ? activeClass : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}>{text}</NavLink>)}
+                {links.filter(([, to]) => to !== "/payroll" || financeAllowed).map(([text, to]) => <NavLink key={to} to={to} end className={({ isActive }) => `block px-3 py-2 rounded ${isActive ? activeClass : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}>{text}</NavLink>)}
               </div>}
             </div>
           ))}
 
-          <div>
+          {financeAllowed && <div>
             <button
                 onClick={() => toggleMenu("Finance")}
               className="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
@@ -145,7 +147,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
               </div>
             )}
             
-          </div>
+          </div>}
 
           
 

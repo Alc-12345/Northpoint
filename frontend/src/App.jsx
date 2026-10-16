@@ -1,3 +1,4 @@
+import FinanceAccess from "./Components/FinanceAccess";
 import { Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 const Invoices = lazy(() => import("./Pages/Invoices"));
@@ -69,7 +70,7 @@ import PracticeLab from "./Pages/PracticeLab.jsx";
 function App() {
   return (
     <Routes>
-      <Route path="/finance/invoices" element={<MainLayout><Suspense fallback={<p className="p-8">Loading invoices…</p>}><Invoices /></Suspense></MainLayout>} />
+      <Route path="/finance/invoices" element={<MainLayout><FinanceAccess><Suspense fallback={<p className="p-8">Loading invoices…</p>}><Invoices /></Suspense></FinanceAccess></MainLayout>} />
       <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
       <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
       <Route path="/notifications" element={<MainLayout><NotificationCenter /></MainLayout>} />
@@ -183,7 +184,7 @@ function App() {
         path="/client-billing-finance"
         element={
           <MainLayout>
-            <ClientBillingFinance />
+            <FinanceAccess><ClientBillingFinance /></FinanceAccess>
           </MainLayout>
         }
        />
@@ -191,7 +192,7 @@ function App() {
         path="/payroll"
         element={
           <MainLayout>
-            <PayrollPage />
+            <FinanceAccess><PayrollPage /></FinanceAccess>
           </MainLayout>
         }
        />
@@ -319,7 +320,7 @@ function App() {
   path="/client/finance"
   element={
     <ClientLayout>
-      <Finance />
+      <FinanceAccess><Finance /></FinanceAccess>
     </ClientLayout>
   }
 />

@@ -5,7 +5,6 @@ import {
   FiBell,
   FiUsers,
   FiCheckSquare,
-  FiDollarSign,
   FiClock,
   FiSettings,
   FiHelpCircle,
@@ -40,11 +39,6 @@ export default function ClientSidebar() {
       icon: <FiCheckSquare size={18} />,
       label: "Assign Task",
       path: "/client/tasks",
-    },
-    {
-      icon: <FiDollarSign size={18} />,
-      label: "Finance",
-      path: "/client/finance",
     },
     {
       icon: <FiClock size={18} />,
