@@ -48,7 +48,65 @@ function Field({ label, value, onChange, type = "text", ...rest }) {
     </label>
   );
 }
+function CompanyProfile({ company, onChange }) {
+  return (
+    <section>
+      <h3 className="font-semibold mb-3">Company / Bill From</h3>
+      {company.logo && (
+        <img
+          src={company.logo}
+          alt="Company logo"
+          className="h-16 max-w-52 object-contain mb-3"
+        />
+      )}
+      <label className="block text-sm mb-4">
+        Company logo (PNG / JPEG, up to 1 MB)
+        <input
+          className="block mt-2"
+          type="file"
+          accept="image/png,image/jpeg"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (
+              !["image/png", "image/jpeg"].includes(file.type) ||
+              file.size > 1024 * 1024
+            ) {
+              toast.error("Choose a PNG or JPEG up to 1 MB");
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => onChange("logo", reader.result);
+            reader.readAsDataURL(file);
+          }}
+        />
+      </label>
+      <div className="grid sm:grid-cols-2 gap-4">
+        {[
+          ["name", "Company name"],
+          ["tagline", "Tagline"],
+          ["address", "Company address"],
+          ["email", "Company email"],
+          ["phone", "Phone"],
+          ["taxId", "Company GST / Tax ID"],
+        ].map(([key, label]) => (
+          <Field
+            key={key}
+            label={label}
+            type={key === "email" ? "email" : "text"}
+            required={key === "name"}
+            value={company[key]}
+            onChange={(value) => onChange(key, value)}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
 export default function Invoices() {
+  const [companyDraft, setCompanyDraft] = useState(null);
+  const [companySaving, setCompanySaving] = useState(false);
+  const [companyError, setCompanyError] = useState("");
   const [rows, setRows] = useState([]),
     [settings, setSettings] = useState(null),
     [form, setForm] = useState(null),
@@ -81,11 +139,12 @@ export default function Invoices() {
     [preview],
   );
   useEffect(() => {
-    if (!form && !preview && !deleting) return;
+    if (!form && !preview && !deleting && !companyDraft) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const close = (event) => {
-      if (event.key === "Escape" && !saving) {
+      if (event.key === "Escape" && !saving && !companySaving) {
+        setCompanyDraft(null);
         setForm(null);
         setPreview(null);
         setDeleting(null);
@@ -96,7 +155,7 @@ export default function Invoices() {
       document.body.style.overflow = previous;
       document.removeEventListener("keydown", close);
     };
-  }, [form, preview, deleting, saving]);
+  }, [form, preview, deleting, saving, companyDraft, companySaving]);
   const run = async (action) => {
     try {
       await action();
@@ -180,13 +239,25 @@ export default function Invoices() {
             Manage client invoices and payment details.
           </p>
         </div>
-        <button
-          className="bg-orange-500 text-white px-5 py-2 rounded-lg disabled:opacity-50"
-          disabled={!settings}
-          onClick={create}
-        >
-          Create Invoice
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            className={buttonClass}
+            disabled={!settings}
+            onClick={() => {
+              setCompanyError("");
+              setCompanyDraft(structuredClone(settings));
+            }}
+          >
+            Company Settings
+          </button>
+          <button
+            className="bg-orange-500 text-white px-5 py-2 rounded-lg disabled:opacity-50"
+            disabled={!settings}
+            onClick={create}
+          >
+            Create Invoice
+          </button>
+        </div>
       </div>
       {isPanelPreview() && (
         <p
@@ -319,6 +390,73 @@ export default function Invoices() {
           )}
         </div>
       </div>
+      {companyDraft && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 overflow-y-auto p-4 md:p-8"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Company Settings"
+        >
+          <form
+            className="max-w-2xl mx-auto bg-white dark:bg-[#111C2D] rounded-xl p-6 space-y-5"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setCompanySaving(true);
+              setCompanyError("");
+              try {
+                setSettings(await invoiceApi.saveSettings(companyDraft));
+                setCompanyDraft(null);
+                toast.success(
+                  "Company details saved. New invoices will use them automatically.",
+                );
+              } catch (error) {
+                setCompanyError(error.message);
+              } finally {
+                setCompanySaving(false);
+              }
+            }}
+          >
+            <div className="flex justify-between items-center gap-3">
+              <h2 className="text-xl font-semibold">Company Settings</h2>
+              <button
+                type="button"
+                disabled={companySaving}
+                className={buttonClass}
+                onClick={() => setCompanyDraft(null)}
+              >
+                Close
+              </button>
+            </div>
+            <p className="text-sm text-gray-500">
+              Set your logo, address, phone, email and GST once. These details
+              are reused on every new invoice. Existing invoices retain their
+              saved company details.
+            </p>
+            {companyError && (
+              <p role="alert" className="text-red-500">
+                {companyError}
+              </p>
+            )}
+            <CompanyProfile
+              company={companyDraft.company}
+              onChange={(key, value) =>
+                setCompanyDraft((draft) => ({
+                  ...draft,
+                  company: { ...draft.company, [key]: value },
+                }))
+              }
+            />
+            <div className="flex justify-end">
+              <button
+                disabled={companySaving}
+                className="bg-orange-500 text-white px-5 py-2 rounded-lg disabled:opacity-50"
+              >
+                {companySaving ? "Saving…" : "Save Company Details"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
       {form && (
         <div
           className="fixed inset-0 bg-black/60 z-50 overflow-y-auto p-3 md:p-8"
@@ -352,55 +490,33 @@ export default function Invoices() {
                 ))}
               </div>
             )}
-            <section>
+            <section className="rounded-lg border border-gray-200 dark:border-[#243244] p-4">
               <h3 className="font-semibold mb-3">Company / Bill From</h3>
-              {form.company.logo && (
-                <img
-                  src={form.company.logo}
-                  alt="Company logo"
-                  className="h-16 max-w-52 object-contain mb-3"
-                />
-              )}
-              <label className="block text-sm mb-4">
-                Company logo (PNG / JPEG, up to 1 MB)
-                <input
-                  className="block mt-2"
-                  type="file"
-                  accept="image/png,image/jpeg"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    if (
-                      !["image/png", "image/jpeg"].includes(file.type) ||
-                      file.size > 1024 * 1024
-                    ) {
-                      toast.error("Choose a PNG or JPEG up to 1 MB");
-                      return;
-                    }
-                    const reader = new FileReader();
-                    reader.onload = () =>
-                      nested("company", "logo", reader.result);
-                    reader.readAsDataURL(file);
-                  }}
-                />
-              </label>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {[
-                  ["name", "Company name"],
-                  ["tagline", "Tagline"],
-                  ["address", "Company address"],
-                  ["email", "Company email"],
-                  ["phone", "Phone"],
-                  ["taxId", "Company GST / Tax ID"],
-                ].map(([key, label]) => (
-                  <Field
-                    key={key}
-                    label={label}
-                    value={form.company[key]}
-                    onChange={(value) => nested("company", key, value)}
+              <div className="flex flex-wrap items-start gap-4">
+                {form.company.logo && (
+                  <img
+                    src={form.company.logo}
+                    alt="Company logo"
+                    className="h-14 max-w-40 object-contain"
                   />
-                ))}
+                )}
+                <div className="text-sm space-y-1">
+                  <p className="font-semibold">{form.company.name}</p>
+                  <p className="whitespace-pre-line">{form.company.address}</p>
+                  <p>
+                    {[form.company.phone, form.company.email]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                  {form.company.taxId && (
+                    <p>GST / Tax ID: {form.company.taxId}</p>
+                  )}
+                </div>
               </div>
+              <p className="mt-3 text-xs text-gray-500">
+                Automatically filled from Company Settings. Update company
+                details there for future invoices.
+              </p>
             </section>
             <section>
               <h3 className="font-semibold mb-3">Invoice information</h3>
@@ -639,12 +755,17 @@ export default function Invoices() {
                         "taxPercentage",
                       ].map((key) => [key, form[key]]),
                     );
-                    setSettings(await invoiceApi.saveSettings(config));
+                    setSettings(
+                      await invoiceApi.saveSettings({
+                        ...config,
+                        company: settings.company,
+                      }),
+                    );
                     toast.success("Company defaults saved for future invoices");
                   })
                 }
               >
-                Save company defaults
+                Save payment / tax / terms defaults
               </button>
               <button
                 disabled={saving}

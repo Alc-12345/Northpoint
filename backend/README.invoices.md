@@ -6,7 +6,7 @@ The JavaScript implementation uses the existing Express authentication middlewar
 
 ## Workflow
 
-Create an invoice, configure company branding/contact details, add client details and items, select tax and status, and save. Use **Save company defaults** in the form to reuse company, bank, terms, tax, and payment settings on future invoices. Previously saved invoices keep their own snapshots. The supplied bank details and all nine terms are the initial defaults; the actual company logo/address/contact details should be configured in the form.
+Use **Company Settings** on the invoice list to configure the logo, company name, address, phone, email and GST once. Every new invoice automatically uses these saved details; the invoice form shows a read-only company summary. Create an invoice, add client details and items, select tax and status, and save. Use **Save payment / tax / terms defaults** in the invoice form to reuse bank, terms, tax, and payment settings on future invoices. Previously saved invoices keep their own snapshots. The supplied bank details and all nine terms are the initial defaults; the actual company logo/address/contact details should be configured in the form.
 
 The list supports search and invoice number, client, date, and status filters. Each row supports view, edit, PDF download, and confirmed deletion. The preview embeds the generated PDF itself, with edit, download, print, open, and close actions. The Open PDF action provides a native viewer fallback on mobile/browser configurations without embedded PDF support.
 
