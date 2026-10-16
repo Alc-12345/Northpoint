@@ -10,6 +10,8 @@ Create an invoice, configure company branding/contact details, add client detail
 
 The list supports search and invoice number, client, date, and status filters. Each row supports view, edit, PDF download, and confirmed deletion. The preview embeds the generated PDF itself, with edit, download, print, open, and close actions. The Open PDF action provides a native viewer fallback on mobile/browser configurations without embedded PDF support.
 
+The login page’s **Admin Panel** shortcut opens a tokenless preview. In that mode, invoice CRUD and company defaults use isolated session storage; no live invoice endpoints are called. A visible banner identifies preview data, which is cleared when leaving the session. Non-admin preview roles cannot access the invoice store. Sign in with real administrator credentials to persist invoices in MongoDB.
+
 ## API
 
 All routes require a bearer token and the existing admin/superadmin authorization:

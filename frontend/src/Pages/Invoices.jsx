@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
+import { isPanelPreview } from "../utils/auth";
 import { invoiceApi } from "../services/api";
 import {
   calculate,
@@ -187,6 +188,15 @@ export default function Invoices() {
           Create Invoice
         </button>
       </div>
+      {isPanelPreview() && (
+        <p
+          role="status"
+          className="mb-4 rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-gray-800"
+        >
+          Preview mode: invoices and company defaults are saved only for this
+          preview session. Sign in as an administrator to use live invoices.
+        </p>
+      )}
       {loadError && (
         <p role="alert" className="text-red-500 mb-4">
           {loadError}

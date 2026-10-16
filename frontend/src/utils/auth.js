@@ -10,6 +10,8 @@ export const clearAuthSession = () => {
   sessionStorage.removeItem("panelPreview");
   sessionStorage.removeItem("northpoint.preview.interns");
   sessionStorage.removeItem("northpoint.preview.offerEmployees");
+  sessionStorage.removeItem("northpoint.preview.invoices");
+  sessionStorage.removeItem("northpoint.preview.invoiceSettings");
   localStorage.removeItem("authToken");
   localStorage.removeItem("authUser");
 };

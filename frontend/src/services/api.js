@@ -1,3 +1,4 @@
+import { previewInvoiceApi } from "../utils/previewInvoices";
 import axios from "axios";
 import { clearAuthSession, isPanelPreview } from "../utils/auth";
 import { getPreviewInterns, addPreviewIntern, getPreviewOfferEmployees, addPreviewOfferEmployee } from "../utils/previewInterns";
@@ -125,11 +126,11 @@ export const practiceLabApi = {
 export default api;
 
 export const invoiceApi = {
- getAll: () => unwrap(api.get('/invoices')),
- getById: id => unwrap(api.get(`/invoices/${id}`)),
- create: data => unwrap(api.post('/invoices', data)),
- update: (id, data) => unwrap(api.put(`/invoices/${id}`, data)),
- remove: id => unwrap(api.delete(`/invoices/${id}`)),
- getSettings: () => unwrap(api.get('/invoices/settings')),
- saveSettings: data => unwrap(api.put('/invoices/settings', data)),
+  getAll: async () => isPanelPreview() ? previewInvoiceApi.getAll() : unwrap(api.get('/invoices')),
+  getById: async id => isPanelPreview() ? previewInvoiceApi.getById(id) : unwrap(api.get(`/invoices/${id}`)),
+  create: async data => isPanelPreview() ? previewInvoiceApi.create(data) : unwrap(api.post('/invoices', data)),
+  update: async (id, data) => isPanelPreview() ? previewInvoiceApi.update(id, data) : unwrap(api.put(`/invoices/${id}`, data)),
+  remove: async id => isPanelPreview() ? previewInvoiceApi.remove(id) : unwrap(api.delete(`/invoices/${id}`)),
+  getSettings: async () => isPanelPreview() ? previewInvoiceApi.getSettings() : unwrap(api.get('/invoices/settings')),
+  saveSettings: async data => isPanelPreview() ? previewInvoiceApi.saveSettings(data) : unwrap(api.put('/invoices/settings', data)),
 };
