@@ -19,7 +19,7 @@ import {
   FiSearch
   ,FiCode
 } from "react-icons/fi";
-import logo from "../assets/logo.png";
+import logo from "../assets/Logo.png";
 import "../navigation.css";
 import { logout } from "../utils/auth";
 

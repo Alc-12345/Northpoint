@@ -1,5 +1,5 @@
 import "../../navigation.css";
-import logo from "../../assets/logo.png";
+import logo from "../../assets/Logo.png";
 import {
   FiGrid,
   FiBell,

@@ -1,15 +1,15 @@
-import StatCard from "../components/inner/StatCard";
-import ProjectOverview from "../components/inner/ProjectOverview";
-import MyTodo from "../components/inner/MyTodo";
-import TotalEarning from "../components/inner/TotalEarning";
-import DashboardHeader from "../components/inner/DashboardHeader";
-import ActiveProjects from "../components/inner/ActiveProjects";
-import ActiveUser from "../components/inner/ActiveUser";
-import Chat from "../components/inner/Chat";
-import BestSellingProducts from "../components/inner/BestSellingProducts";
-import UpcomingSchedules from "../components/inner/UpcomingSchedules";
-import ProjectStatus from "../components/inner/ProjectStatus";
-import Employees from "../components/inner/Employees";
+import StatCard from "../Components/inner/StatCard";
+import ProjectOverview from "../Components/inner/ProjectOverview";
+import MyTodo from "../Components/inner/MyTodo";
+import TotalEarning from "../Components/inner/TotalEarning";
+import DashboardHeader from "../Components/inner/DashboardHeader";
+import ActiveProjects from "../Components/inner/ActiveProjects";
+import ActiveUser from "../Components/inner/ActiveUser";
+import Chat from "../Components/inner/Chat";
+import BestSellingProducts from "../Components/inner/BestSellingProducts";
+import UpcomingSchedules from "../Components/inner/UpcomingSchedules";
+import ProjectStatus from "../Components/inner/ProjectStatus";
+import Employees from "../Components/inner/Employees";
 
 export default function Dashboard() {
   return (

@@ -20,7 +20,7 @@ import {
   FiLogOut,
   FiBookOpen,
 } from "react-icons/fi";
-import logo from "../assets/logo.png"; // Adjust the path to your logo image
+import logo from "../assets/Logo.png"; // Adjust the path to your logo image
 import "../navigation.css";
 import { logout } from "../utils/auth";
 import { canUseFinance } from "../utils/financeAccess";
