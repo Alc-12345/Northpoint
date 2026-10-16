@@ -7,11 +7,13 @@ import {
   calculate,
   defaultSettings,
 } from "../../../backend/shared/invoices.js";
+const drawnText = [];
 const originalAddPage = PDFDocument.prototype.addPage;
 PDFDocument.prototype.addPage = function (...args) {
   const page = originalAddPage.apply(this, args),
     draw = page.drawText.bind(page);
   page.drawText = (text, options) => {
+    drawnText.push({ text, ...options });
     assert.ok(
       options.x >= 39 &&
         options.x + options.font.widthOfTextAtSize(text, options.size) <= 556,
@@ -90,7 +92,8 @@ test("standard invoice with company contacts, logo, three items and all default 
   data.company = {
     ...data.company,
     name: "Austin Legacy Corp",
-    address: "123 Business Road, Mumbai, Maharashtra 400001",
+    address:
+      "C16, Third Floor, Sukh Sampatti Building, Makarwali Rd, Near Stephen Chauraha, C Block, Panchsheel Nagar, Ajmer, Rajasthan 305001",
     email: "accounts@example.com",
     phone: "+91 9876543210",
     taxId: "27ABCDE1234F1Z5",
@@ -98,7 +101,18 @@ test("standard invoice with company contacts, logo, three items and all default 
   };
   data.client.email = "client@example.com";
   data.client.taxId = "27FGHIJ5678K1Z5";
+  const start = drawnText.length;
   const blob = await invoicePdf(data, fonts);
   const doc = await PDFDocument.load(await blob.arrayBuffer());
   assert.equal(doc.getPageCount(), 1);
+  const events = drawnText.slice(start);
+  const find = (text) => events.find((event) => event.text === text);
+  assert.equal(find("FROM").y, find("BILL TO").y);
+  assert.equal(find("FROM").y, find("INVOICE DETAILS").y);
+  assert.equal(
+    events.filter((event) => event.text === "Austin Legacy Corp").length,
+    1,
+  );
+  assert.ok(find("Project service 1").size > find("DESCRIPTION").size);
+  assert.ok(find("1").size > find("QTY").size);
 });

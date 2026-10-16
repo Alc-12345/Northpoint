@@ -113,8 +113,8 @@ export async function invoicePdf(invoice, suppliedFonts) {
     const logo = invoice.company.logo.startsWith("data:image/png")
       ? await doc.embedPng(invoice.company.logo)
       : await doc.embedJpg(invoice.company.logo);
-    const scale = Math.min(105 / logo.width, 48 / logo.height);
-    logoHeight = logo.height * scale + 10;
+    const scale = Math.min(210 / logo.width, 64 / logo.height);
+    logoHeight = logo.height * scale;
     page.drawImage(logo, {
       x: 40,
       y: y - logo.height * scale,
@@ -122,34 +122,18 @@ export async function invoicePdf(invoice, suppliedFonts) {
       height: logo.height * scale,
     });
   }
-  const leftBottom = block(
-    invoice.company.name.replace(/\s+/g, " "),
-    40,
-    y - logoHeight,
-    295,
-    18,
-  );
-  const taglineBottom = block(
-    invoice.company.tagline.replace(/\s+/g, " "),
-    40,
-    leftBottom - 5,
-    280,
-    8,
-  );
+  // The logo carries the branding; avoid repeating the company name below it.
   text("INVOICE", 390, y, 26, true);
-  let rightBottom = block(
-    `Invoice No: ${invoice.invoiceNumber}\nIssued: ${invoice.invoiceDate}\nDue: ${invoice.dueDate}`,
-    390,
-    y - 40,
-    165,
-    9,
-  );
-  y = Math.min(taglineBottom - 12, rightBottom - 12);
+  y -= Math.max(logoHeight, 32) + 18;
   line(y);
   y -= 16;
-  text("FROM", 40, y, 9, true);
-  text("BILL TO", 310, y, 9, true);
-  y -= 16;
+  const headings = () => {
+    text("FROM", 40, y, 9, true);
+    text("BILL TO", 255, y, 9, true);
+    text("INVOICE DETAILS", 415, y, 9, true);
+    y -= 16;
+  };
+  headings();
   const from = wrap(
     [
       invoice.company.name,
@@ -160,7 +144,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
     ]
       .filter(Boolean)
       .join("\n"),
-    230,
+    195,
     9,
   );
   const to = wrap(
@@ -173,18 +157,22 @@ export async function invoicePdf(invoice, suppliedFonts) {
     ]
       .filter(Boolean)
       .join("\n"),
-    245,
+    140,
     9,
   );
-  for (let i = 0; i < Math.max(from.length, to.length); i++) {
+  const metadata = wrap(
+    `Invoice No: ${invoice.invoiceNumber}\nIssued: ${invoice.invoiceDate}\nDue: ${invoice.dueDate}`,
+    140,
+    9,
+  );
+  for (let i = 0; i < Math.max(from.length, to.length, metadata.length); i++) {
     if (y < 48) {
       newPage();
-      text("FROM (CONTINUED)", 40, y, 9, true);
-      text("BILL TO (CONTINUED)", 310, y, 9, true);
-      y -= 20;
+      headings();
     }
     if (i < from.length) text(from[i], 40, y, 9);
-    if (i < to.length) text(to[i], 310, y, 9);
+    if (i < to.length) text(to[i], 255, y, 9);
+    if (i < metadata.length) text(metadata[i], 415, y, 9);
     y -= 12;
   }
   y -= 12;
@@ -225,18 +213,18 @@ export async function invoicePdf(invoice, suppliedFonts) {
       ["QTY", 350],
       ["RATE", 400],
       ["AMOUNT", 480],
-    ].forEach(([s, x]) => text(s, x, y, 9, true));
+    ].forEach(([s, x]) => text(s, x, y, 8, true));
     y -= 24;
     line(y + 6);
   };
   tableHeader();
   for (const item of invoice.items) {
-    const lines = wrap(item.description, 285);
+    const lines = wrap(item.description, 285, 11);
     const numbers = [
       String(item.quantity),
       money(item.rate),
       money(item.amount),
-    ].map((s, i) => wrap(s, [42, 70, 75][i], 8));
+    ].map((s, i) => wrap(s, [42, 70, 75][i], 10));
     let offset = 0;
     while (offset < lines.length) {
       if (y < 85) {
@@ -245,19 +233,19 @@ export async function invoicePdf(invoice, suppliedFonts) {
       }
       const count = Math.min(
         lines.length - offset,
-        Math.max(1, Math.floor((y - 60) / 14)),
+        Math.max(1, Math.floor((y - 60) / 15)),
       );
       lines
         .slice(offset, offset + count)
-        .forEach((s, i) => text(s, 40, y - i * 14));
+        .forEach((s, i) => text(s, 40, y - i * 15, 11));
       if (!offset)
         numbers.forEach((parts, i) =>
-          parts.forEach((s, j) => text(s, [350, 400, 480][i], y - j * 12, 8)),
+          parts.forEach((s, j) => text(s, [350, 400, 480][i], y - j * 14, 10)),
         );
       y -=
         Math.max(
-          count * 14,
-          offset === 0 ? Math.max(...numbers.map((n) => n.length)) * 12 : 0,
+          count * 15,
+          offset === 0 ? Math.max(...numbers.map((n) => n.length)) * 14 : 0,
         ) + 12;
       offset += count;
     }
