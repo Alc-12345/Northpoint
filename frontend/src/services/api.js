@@ -3,8 +3,11 @@ import axios from "axios";
 import { clearAuthSession, isPanelPreview } from "../utils/auth";
 import { getPreviewInterns, addPreviewIntern, getPreviewOfferEmployees, addPreviewOfferEmployee } from "../utils/previewInterns";
 
+const rawBaseUrl = (import.meta.env.VITE_API_URL || "http://localhost:5001/api").trim().replace(/\/+$/, "");
+const baseURL = rawBaseUrl.endsWith("/api") ? rawBaseUrl : `${rawBaseUrl}/api`;
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5001/api",
+  baseURL,
   headers: {
     "Content-Type": "application/json",
   },

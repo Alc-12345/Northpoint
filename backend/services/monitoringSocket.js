@@ -23,10 +23,21 @@ export function sessionUpdated(user, data) { io?.to(`user:${user}`).emit('monito
 export function attachMonitoringSocket(server) {
   const socketClientUrls = (process.env.CLIENT_URL || 'http://localhost:5173')
     .split(',')
-    .map((url) => url.trim())
+    .map((url) => url.trim().replace(/\/+$/, ''))
     .filter(Boolean);
-  const socketCorsOrigin = socketClientUrls.length === 1 ? socketClientUrls[0] : socketClientUrls;
-  io = new Server(server, { cors: { origin: socketCorsOrigin } });
+  io = new Server(server, {
+    cors: {
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const normalized = origin.replace(/\/+$/, '');
+        if (socketClientUrls.some((u) => u === '*' || u === normalized)) {
+          return callback(null, origin);
+        }
+        return callback(new Error('Unauthorized by CORS'));
+      },
+      credentials: true,
+    },
+  });
   io.use(async (socket,next) => {
     try {
       const decoded = jwt.verify(socket.handshake.auth.token, process.env.JWT_SECRET || 'dev_jwt_secret_change_me');

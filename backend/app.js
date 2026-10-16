@@ -32,13 +32,22 @@ const PORT = process.env.PORT || 5001;
 
 const clientUrls = (process.env.CLIENT_URL || "http://localhost:5173")
   .split(",")
-  .map((url) => url.trim())
+  .map((url) => url.trim().replace(/\/+$/, ""))
   .filter(Boolean);
-const corsOrigin = clientUrls.length === 1 ? clientUrls[0] : clientUrls;
 
 app.use(
   cors({
-    origin: corsOrigin,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const normalized = origin.replace(/\/+$/, "");
+      const isAllowed = clientUrls.some(
+        (u) => u === "*" || u === normalized
+      );
+      if (isAllowed) {
+        return callback(null, origin);
+      }
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     credentials: true,
   })
 );

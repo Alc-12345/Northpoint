@@ -20,7 +20,9 @@ export const logout = async (navigate) => {
   const token = localStorage.getItem("authToken");
   if (token && !isPanelPreview()) {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5001/api"}/auth/logout`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: "{}" });
+      const rawUrl = (import.meta.env.VITE_API_URL || "http://localhost:5001/api").trim().replace(/\/+$/, "");
+      const apiUrl = rawUrl.endsWith("/api") ? rawUrl : `${rawUrl}/api`;
+      const response = await fetch(`${apiUrl}/auth/logout`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: "{}" });
       if (!response.ok && response.status !== 401) throw new Error("Logout could not be finalized. Please retry.");
     } catch (error) { window.alert(error.message); return; }
   }

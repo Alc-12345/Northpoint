@@ -24,7 +24,9 @@ export default function ActivityNotifications() {
     if(!token || !['admin','superadmin'].includes(user.role))return;
     let alive=true;
     const refresh=()=>api.get('/admin/notifications').then(({data})=>{if(alive){setNotifications(data.notifications);setUnread(data.unread);}}).catch(()=>{});
-    const socket=io((import.meta.env.VITE_API_URL || 'http://localhost:5001/api').replace(/\/api\/?$/,''),{auth:{token}});
+    const rawBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5001/api').trim().replace(/\/+$/, '');
+    const socketBaseUrl = rawBaseUrl.replace(/\/api\/?$/, '');
+    const socket = io(socketBaseUrl, { auth: { token } });
     socket.on('connect',refresh);
     socket.on('admin:employee-logout',n=>{if(alive&&!seen.current.has(n._id)){seen.current.add(n._id);setPopup(n);window.dispatchEvent(new Event("northpoint:logout"));refresh();}});
     socket.on('admin:notification-count',setUnread);
