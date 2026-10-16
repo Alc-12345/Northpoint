@@ -206,13 +206,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
     if (i < to.length) text(to[i], 245, y, 9);
     if (i < metadata.length) {
       const entry = metadata[i];
-      text(
-        entry.text,
-        right - measure(entry.text, entry.size, entry.strong),
-        y,
-        entry.size,
-        entry.strong,
-      );
+      text(entry.text, 420, y, entry.size, entry.strong);
     }
     y -= 13;
   }
@@ -345,21 +339,28 @@ export async function invoicePdf(invoice, suppliedFonts) {
     /\n\s*\n/g,
     "\n",
   );
+  const approvalReserve = 65;
   let termsSize = 8.5;
   for (const size of [10, 9.5, 9, 8.75, 8.5])
-    if (wrap(terms, 333, size).length * Math.max(11, size + 2) <= y - bottom) {
+    if (
+      wrap(terms, 333, size).length * Math.max(11, size + 2) <=
+      y - bottom - approvalReserve
+    ) {
       termsSize = size;
       break;
     }
   const rightLines = wrap(terms, 333, termsSize),
     leading = Math.max(11, termsSize + 2);
-  const qrRows = qr ? 14 : 0;
+  const qrRows = qr ? 11 : 0;
   for (
     let i = 0;
     i < Math.max(leftLines.length + qrRows, rightLines.length);
     i++
   ) {
-    if (y < bottom + 10 || (qr && i === leftLines.length && y - bottom < 138)) {
+    if (
+      y < bottom + approvalReserve + 10 ||
+      (qr && i === leftLines.length && y - bottom - approvalReserve < 138)
+    ) {
       newPage();
       heading("PAYMENT DETAILS", left, y, 199);
       heading("TERMS & CONDITIONS", 235, y, 338);
@@ -391,6 +392,13 @@ export async function invoicePdf(invoice, suppliedFonts) {
     if (i < rightLines.length) text(rightLines[i], 240, y, termsSize);
     y -= leading;
   }
+  // Reserve space below the invoice content for a handwritten approval/signature.
+  if (y < bottom + 55) newPage();
+  const approvalTop = Math.min(y - 10, 92);
+  heading("APPROVED BY", left, approvalTop, 230);
+  heading("SIGNATURE", right - 200, approvalTop, 200);
+  stroke(left + 5, approvalTop - 39, left + 225, approvalTop - 39);
+  stroke(right - 195, approvalTop - 39, right - 5, approvalTop - 39);
   const pages = doc.getPages();
   pages.forEach((p, i) =>
     p.drawText(`${invoice.invoiceNumber}  |  ${i + 1} / ${pages.length}`, {

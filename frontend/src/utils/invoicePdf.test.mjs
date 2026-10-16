@@ -122,6 +122,12 @@ test("standard invoice with company contacts, logo, three items and all default 
   );
   assert.ok(find("Project service 1").size > find("DESCRIPTION").size);
   assert.ok(find("1").size > find("QTY").size);
+  assert.ok(find("APPROVED BY"));
+  assert.ok(find("SIGNATURE"));
+  assert.equal(find("INVOICE NO.").x, 420);
+  assert.equal(find("ISSUED").x, 420);
+  assert.equal(find("DUE").x, 420);
+  assert.equal(find("Oct 16, 2026").x, 420);
   assert.ok(find("ISSUED"));
   assert.ok(find("Oct 16, 2026"));
   assert.ok(find("DUE"));
