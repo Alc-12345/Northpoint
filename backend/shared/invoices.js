@@ -20,6 +20,7 @@ export const defaultSettings = {
     phone: "",
     taxId: "",
     logo: "",
+    paymentQr: "",
   },
   paymentDetails: {
     method: "Bank Transfer",
@@ -71,7 +72,16 @@ export function validateInvoice(data) {
     )
       errors.push(`${key} must be text of at most ${limit} characters.`);
   for (const [section, keys] of Object.entries({
-    company: ["name", "tagline", "address", "email", "phone", "taxId", "logo"],
+    company: [
+      "name",
+      "tagline",
+      "address",
+      "email",
+      "phone",
+      "taxId",
+      "logo",
+      "paymentQr",
+    ],
     client: ["name", "company", "address", "email", "taxId"],
     paymentDetails: [
       "method",
@@ -91,21 +101,29 @@ export function validateInvoice(data) {
     }
     for (const key of keys) {
       const value = data[section][key];
-      const limit = key === "logo" ? 1500000 : key === "address" ? 500 : 150;
+      const limit = ["logo", "paymentQr"].includes(key)
+        ? 1500000
+        : key === "address"
+          ? 500
+          : 150;
       if (value != null && (typeof value !== "string" || value.length > limit))
         errors.push(
           `${section}.${key} must be text of at most ${limit} characters.`,
         );
     }
   }
-  if (
-    data.company?.logo &&
-    (typeof data.company.logo !== "string" ||
-      !/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(
-        data.company.logo,
-      ))
-  )
-    errors.push("Company logo must be a PNG or JPEG image.");
+  for (const key of ["logo", "paymentQr"]) {
+    if (
+      data.company?.[key] &&
+      (typeof data.company[key] !== "string" ||
+        !/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(
+          data.company[key],
+        ))
+    )
+      errors.push(
+        `Company ${key === "logo" ? "logo" : "payment QR"} must be a PNG or JPEG image.`,
+      );
+  }
   if (
     data.dueDays != null &&
     (!Number.isInteger(Number(data.dueDays)) ||

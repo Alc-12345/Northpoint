@@ -12,6 +12,7 @@ const invoiceSchema = new mongoose.Schema(
       phone: String,
       taxId: String,
       logo: String,
+      paymentQr: String,
     },
     client: {
       name: { type: String, required: true },

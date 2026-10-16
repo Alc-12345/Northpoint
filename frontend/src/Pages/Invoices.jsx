@@ -81,6 +81,46 @@ function CompanyProfile({ company, onChange }) {
           }}
         />
       </label>
+      <div className="mb-5 space-y-2">
+        <label className="block text-sm">
+          Payment QR image (PNG / JPEG, up to 1 MB)
+          <input
+            className="block mt-2"
+            type="file"
+            accept="image/png,image/jpeg"
+            onChange={(event) => {
+              const file = event.target.files[0];
+              if (!file) return;
+              if (
+                !["image/png", "image/jpeg"].includes(file.type) ||
+                file.size > 1024 * 1024
+              ) {
+                toast.error("Choose a PNG or JPEG up to 1 MB");
+                return;
+              }
+              const reader = new FileReader();
+              reader.onload = () => onChange("paymentQr", reader.result);
+              reader.readAsDataURL(file);
+            }}
+          />
+        </label>
+        {company.paymentQr && (
+          <>
+            <img
+              src={company.paymentQr}
+              alt="Payment QR"
+              className="h-28 w-28 object-contain bg-white p-2"
+            />
+            <button
+              type="button"
+              className={buttonClass}
+              onClick={() => onChange("paymentQr", "")}
+            >
+              Remove QR
+            </button>
+          </>
+        )}
+      </div>
       <div className="grid sm:grid-cols-2 gap-4">
         {[
           ["name", "Company name"],
@@ -547,11 +587,6 @@ export default function Invoices() {
                   label="Reference / quote number"
                   value={form.referenceNumber}
                   onChange={(v) => change("referenceNumber", v)}
-                />
-                <Field
-                  label="Payment terms"
-                  value={form.paymentTerms}
-                  onChange={(v) => change("paymentTerms", v)}
                 />
                 <Field
                   label="Due days"

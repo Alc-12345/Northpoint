@@ -62,9 +62,12 @@ test("invoice endpoints require admin authentication", async () => {
 });
 test("CRUD recalculates totals, enforces uniqueness and preserves snapshots", async () => {
   const body = data();
+  body.company.paymentQr =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=";
   body.total = 1;
   body.items[0].amount = 1;
   const created = await api("post", "").send(body).expect(201);
+  assert.equal(created.body.company.paymentQr, body.company.paymentQr);
   assert.equal(created.body.subtotal, 9300);
   assert.equal(created.body.taxAmount, 1395);
   assert.equal(created.body.total, 10695);
@@ -118,6 +121,7 @@ test("invalid dates, items, clients, bank details and taxes are rejected", async
     { paymentDetails: { accountNumber: "123ABC" } },
     { paymentDetails: { ifscCode: "INVALID" } },
     { invoiceNumber: "../../bad" },
+    { company: { ...defaultSettings.company, paymentQr: "invalid" } },
   ]) {
     const response = await api("post", "")
       .send({ ...data(), ...update })

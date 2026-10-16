@@ -12,15 +12,21 @@ const originalAddPage = PDFDocument.prototype.addPage;
 PDFDocument.prototype.addPage = function (...args) {
   const page = originalAddPage.apply(this, args),
     draw = page.drawText.bind(page);
+  const drawImage = page.drawImage.bind(page);
+  page.drawImage = (image, options) => {
+    assert.ok(options.x >= 22 && options.x + options.width <= 574);
+    assert.ok(options.y >= 34 && options.y + options.height <= 816);
+    return drawImage(image, options);
+  };
   page.drawText = (text, options) => {
     drawnText.push({ text, ...options });
     assert.ok(
-      options.x >= 39 &&
-        options.x + options.font.widthOfTextAtSize(text, options.size) <= 556,
+      options.x >= 21 &&
+        options.x + options.font.widthOfTextAtSize(text, options.size) <= 574,
       `Text exceeds horizontal margins: ${text}`,
     );
     assert.ok(
-      options.y >= 24 && options.y <= 800,
+      options.y >= 15 && options.y <= 816,
       `Text exceeds vertical margins: ${text}`,
     );
     return draw(text, options);
@@ -102,6 +108,7 @@ test("standard invoice with company contacts, logo, three items and all default 
   data.client.email = "client@example.com";
   data.client.taxId = "27FGHIJ5678K1Z5";
   const start = drawnText.length;
+  data.company.paymentQr = data.company.logo;
   const blob = await invoicePdf(data, fonts);
   const doc = await PDFDocument.load(await blob.arrayBuffer());
   assert.equal(doc.getPageCount(), 1);
@@ -115,4 +122,28 @@ test("standard invoice with company contacts, logo, three items and all default 
   );
   assert.ok(find("Project service 1").size > find("DESCRIPTION").size);
   assert.ok(find("1").size > find("QTY").size);
+  assert.ok(find("ISSUED"));
+  assert.ok(find("Oct 16, 2026"));
+  assert.ok(find("DUE"));
+  assert.ok(find("Oct 23, 2026"));
+  assert.ok(find("AMOUNT IN WORDS"));
+  assert.ok(find("PAYMENT QR"));
+  assert.ok(
+    !events.some((event) => event.text.includes("Balance payable within")),
+  );
+});
+
+test("Indian amount in words handles zero, paise, lakh, crore and rounding", async () => {
+  const { amountInWords } = await import("./amountInWords.js");
+  assert.equal(
+    amountInWords(23600),
+    "Twenty Three Thousand Six Hundred Rupees Only",
+  );
+  assert.equal(amountInWords(0), "Zero Rupees Only");
+  assert.equal(amountInWords(1.01), "One Rupee and One Paisa Only");
+  assert.equal(
+    amountInWords(12345678.25),
+    "One Crore Twenty Three Lakh Forty Five Thousand Six Hundred Seventy Eight Rupees and Twenty Five Paise Only",
+  );
+  assert.throws(() => amountInWords(-1), /Invalid/);
 });
