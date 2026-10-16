@@ -5,6 +5,7 @@ import workspaceRoutes from "./routes/workspaceRoutes.js";
 import monitoringRoutes from "./routes/monitoringRoutes.js";
 import { attachMonitoringSocket } from "./services/monitoringSocket.js";
 
+import invoiceRoutes from "./routes/invoiceRoutes.js";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -46,6 +47,7 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/api/invoices", invoiceRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/etl", etlRoutes);

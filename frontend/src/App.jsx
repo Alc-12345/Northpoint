@@ -1,4 +1,6 @@
 import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
+const Invoices = lazy(() => import("./Pages/Invoices"));
 import Reports from "./Pages/Reports";
 import Settings from "./Pages/Settings";
 import NotificationCenter from "./Pages/NotificationCenter";
@@ -67,6 +69,7 @@ import PracticeLab from "./Pages/PracticeLab.jsx";
 function App() {
   return (
     <Routes>
+      <Route path="/finance/invoices" element={<MainLayout><Suspense fallback={<p className="p-8">Loading invoices…</p>}><Invoices /></Suspense></MainLayout>} />
       <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
       <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
       <Route path="/notifications" element={<MainLayout><NotificationCenter /></MainLayout>} />
