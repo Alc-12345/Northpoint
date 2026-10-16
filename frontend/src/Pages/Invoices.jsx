@@ -94,7 +94,6 @@ function CompanyProfile({ company, onChange }) {
             key={key}
             label={label}
             type={key === "email" ? "email" : "text"}
-            required={key === "name"}
             value={company[key]}
             onChange={(value) => onChange(key, value)}
           />

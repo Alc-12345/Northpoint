@@ -24,7 +24,7 @@ All routes require a bearer token and the existing admin/superadmin authorizatio
 - `GET /api/invoices/settings`
 - `PUT /api/invoices/settings`
 
-PDF generation runs in the browser using `pdf-lib`, so a server PDF route is not needed. Files download as `INV-{invoiceNumber}.pdf`. The white A4 renderer uses embedded, licensed Noto Sans fonts for selectable Latin text and rupee symbols. Unsupported scripts produce an explicit error. It wraps table rows and terms across pages, repeats table headings, and keeps the totals block together. No HTML screenshots are used.
+PDF generation runs in the browser using `pdf-lib`, so a server PDF route is not needed. Files download as `INV-{invoiceNumber}.pdf`. The white A4 renderer uses embedded, licensed Noto Sans fonts for selectable Latin text and rupee symbols. Unsupported scripts produce an explicit error. The compact layout fits a standard invoice with three items, company logo/contact details, and the nine default terms on one A4 page. It uses the largest terms font that fits, with an 8.5 pt minimum. Longer invoices still wrap table rows and terms across pages, repeat table headings, and keep the totals block together. No HTML screenshots are used.
 
 The `Invoice` collection has a unique invoice number index, timestamps, and creator/updater IDs. The API recalculates item amounts and totals and ignores client-supplied calculated amounts. `InvoiceSettings` stores the company defaults. Collections are created by Mongoose on first use.
 

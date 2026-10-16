@@ -56,7 +56,7 @@ test("PDF is a valid A4 document with embedded selectable text fonts", async () 
     fonts,
   );
   const doc = await PDFDocument.load(await blob.arrayBuffer());
-  assert.ok(doc.getPageCount() >= 1);
+  assert.equal(doc.getPageCount(), 1);
   assert.equal(doc.getPage(0).getWidth(), 595.28);
   assert.equal(doc.getPage(0).getHeight(), 841.89);
   assert.equal(doc.getTitle(), "Invoice ALC-2026-0001");
@@ -77,4 +77,28 @@ test("long descriptions, 150 items, and long terms paginate", async () => {
     await (await invoicePdf(data, fonts)).arrayBuffer(),
   );
   assert.ok(doc.getPageCount() > 10);
+});
+
+test("standard invoice with company contacts, logo, three items and all default terms fits one page", async () => {
+  const data = invoice(
+    Array.from({ length: 3 }, (_, i) => ({
+      description: `Project service ${i + 1}`,
+      quantity: 1,
+      rate: 3100,
+    })),
+  );
+  data.company = {
+    ...data.company,
+    name: "Austin Legacy Corp",
+    address: "123 Business Road, Mumbai, Maharashtra 400001",
+    email: "accounts@example.com",
+    phone: "+91 9876543210",
+    taxId: "27ABCDE1234F1Z5",
+    logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=",
+  };
+  data.client.email = "client@example.com";
+  data.client.taxId = "27FGHIJ5678K1Z5";
+  const blob = await invoicePdf(data, fonts);
+  const doc = await PDFDocument.load(await blob.arrayBuffer());
+  assert.equal(doc.getPageCount(), 1);
 });

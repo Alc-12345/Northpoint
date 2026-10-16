@@ -144,12 +144,12 @@ export async function invoicePdf(invoice, suppliedFonts) {
     165,
     9,
   );
-  y = Math.min(taglineBottom - 20, rightBottom - 20);
+  y = Math.min(taglineBottom - 12, rightBottom - 12);
   line(y);
-  y -= 22;
+  y -= 16;
   text("FROM", 40, y, 9, true);
   text("BILL TO", 310, y, 9, true);
-  y -= 20;
+  y -= 16;
   const from = wrap(
     [
       invoice.company.name,
@@ -161,6 +161,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
       .filter(Boolean)
       .join("\n"),
     230,
+    9,
   );
   const to = wrap(
     [
@@ -173,6 +174,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
       .filter(Boolean)
       .join("\n"),
     245,
+    9,
   );
   for (let i = 0; i < Math.max(from.length, to.length); i++) {
     if (y < 48) {
@@ -181,11 +183,11 @@ export async function invoicePdf(invoice, suppliedFonts) {
       text("BILL TO (CONTINUED)", 310, y, 9, true);
       y -= 20;
     }
-    if (i < from.length) text(from[i], 40, y);
-    if (i < to.length) text(to[i], 310, y);
-    y -= 14;
+    if (i < from.length) text(from[i], 40, y, 9);
+    if (i < to.length) text(to[i], 310, y, 9);
+    y -= 12;
   }
-  y -= 18;
+  y -= 12;
   if (invoice.referenceNumber || invoice.paymentTerms) {
     const referenceLines = wrap(
       [
@@ -198,7 +200,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
       515,
       9,
     );
-    ensure(referenceLines.length * 13 + 16);
+    ensure(referenceLines.length * 13 + 8);
     y =
       block(
         [
@@ -212,7 +214,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
         y,
         515,
         9,
-      ) - 16;
+      ) - 8;
   }
   const tableHeader = () => {
     ensure(40);
@@ -261,7 +263,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
     }
     line(y + 5);
   }
-  ensure(115);
+  ensure(100);
   y -= 15;
   for (const [label, value] of [
     ["Subtotal", invoice.subtotal],
@@ -278,13 +280,13 @@ export async function invoicePdf(invoice, suppliedFonts) {
     text(label, 330, y, 11, label === "Total");
     const s = money(value);
     text(s, 555 - measure(s, 11, label === "Total"), y, 11, label === "Total");
-    y -= 27;
+    y -= 23;
   }
-  y -= 20;
-  ensure(170);
+  y -= 12;
+  ensure(150);
   text("PAYMENT DETAILS", 40, y, 10, true);
-  text("TERMS & CONDITIONS", 310, y, 10, true);
-  y -= 22;
+  text("TERMS & CONDITIONS", 245, y, 10, true);
+  y -= 18;
   const bank = invoice.paymentDetails;
   const leftLines = wrap(
     [
@@ -294,10 +296,27 @@ export async function invoicePdf(invoice, suppliedFonts) {
       `Account Number: ${bank.accountNumber}`,
       `IFSC Code: ${bank.ifscCode}`,
     ].join("\n"),
-    235,
+    185,
     9,
   );
-  const rightLines = wrap(invoice.termsAndConditions, 245, 9);
+  // Prefer a single A4 page without scaling or rasterizing the invoice.
+  // Compact paragraph spacing and use the largest readable terms font that fits.
+  const terms = String(invoice.termsAndConditions || "").replace(
+    /\n\s*\n/g,
+    "\n",
+  );
+  let termsSize = 8.5;
+  for (const candidate of [9, 8.75, 8.5]) {
+    if (
+      wrap(terms, 310, candidate).length * Math.max(11, candidate + 2) <=
+      y - 48
+    ) {
+      termsSize = candidate;
+      break;
+    }
+  }
+  const rightLines = wrap(terms, 310, termsSize);
+  const detailLeading = Math.max(11, termsSize + 2);
   for (let i = 0; i < Math.max(leftLines.length, rightLines.length); i++) {
     if (y < 48) {
       newPage();
@@ -305,8 +324,8 @@ export async function invoicePdf(invoice, suppliedFonts) {
       y -= 24;
     }
     if (i < leftLines.length) text(leftLines[i], 40, y, 9);
-    if (i < rightLines.length) text(rightLines[i], 310, y, 9);
-    y -= 13;
+    if (i < rightLines.length) text(rightLines[i], 245, y, termsSize);
+    y -= detailLeading;
   }
   const pages = doc.getPages();
   pages.forEach((p, i) =>
