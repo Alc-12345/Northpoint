@@ -169,7 +169,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
       .filter(Boolean)
       .join("\n"),
     194,
-    9,
+    11,
   );
   const to = wrap(
     [
@@ -182,7 +182,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
       .filter(Boolean)
       .join("\n"),
     145,
-    9,
+    11,
   );
   const metadata = [];
   for (const [label, value] of [
@@ -208,8 +208,8 @@ export async function invoicePdf(invoice, suppliedFonts) {
       headings();
       columnTop = y + 25;
     }
-    if (i < from.length) text(from[i], left + 5, y, 9);
-    if (i < to.length) text(to[i], 250, y, 9);
+    if (i < from.length) text(from[i], left + 5, y, 11);
+    if (i < to.length) text(to[i], 250, y, 11);
     if (i < metadata.length) {
       const entry = metadata[i];
       text(entry.text, 425, y, entry.size, entry.strong);
