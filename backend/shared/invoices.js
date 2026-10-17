@@ -42,7 +42,10 @@ export function calculate(items, taxPercentage) {
     ...item,
     quantity: Number(item.quantity),
     rate: Number(item.rate),
-    amount: roundMoney(Number(item.quantity) * Number(item.rate)),
+    discount: Number(item.discount ?? 0),
+    amount: roundMoney(
+      Number(item.quantity) * Number(item.rate) * (1 - Number(item.discount ?? 0) / 100),
+    ),
   }));
   const subtotal = roundMoney(
     computed.reduce((sum, item) => sum + item.amount, 0),
@@ -186,6 +189,12 @@ export function validateInvoice(data) {
         errors.push(
           `Item ${i + 1}: quantity must be greater than zero and no more than 1,000,000,000.`,
         );
+      if (
+        !Number.isFinite(Number(item.discount ?? 0)) ||
+        Number(item.discount ?? 0) < 0 ||
+        Number(item.discount ?? 0) > 100
+      )
+        errors.push(`Item ${i + 1}: discount must be between 0 and 100%.`);
       if (
         item.rate === "" ||
         !Number.isFinite(Number(item.rate)) ||

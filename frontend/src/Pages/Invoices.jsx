@@ -217,7 +217,7 @@ export default function Invoices() {
       client: { name: "", company: "", address: "", email: "", taxId: "" },
       referenceNumber: "",
       status: "Draft",
-      items: [{ description: "", quantity: 1, rate: 0 }],
+      items: [{ description: "", quantity: 1, rate: 0, discount: 0 }],
     });
   };
   const edit = (invoice) => {
@@ -644,6 +644,7 @@ export default function Invoices() {
                         "Description",
                         "Quantity",
                         "Rate (INR)",
+                        "Discount (%)",
                         "Amount",
                         "",
                       ].map((s, i) => (
@@ -656,16 +657,17 @@ export default function Invoices() {
                   <tbody>
                     {form.items.map((item, i) => (
                       <tr key={i}>
-                        {["description", "quantity", "rate"].map((key) => (
+                        {["description", "quantity", "rate", "discount"].map((key) => (
                           <td className="p-2" key={key}>
                             <input
                               aria-label={`Item ${i + 1} ${key}`}
                               className={`${inputClass} ${key === "description" ? "min-w-60" : "min-w-24"}`}
                               type={key === "description" ? "text" : "number"}
                               min={key === "quantity" ? "0.000001" : "0"}
+                              max={key === "discount" ? "100" : undefined}
                               step="any"
                               required
-                              value={item[key]}
+                              value={item[key] ?? (key === "discount" ? 0 : "")}
                               onChange={(e) =>
                                 change(
                                   "items",
@@ -708,7 +710,7 @@ export default function Invoices() {
                 onClick={() =>
                   change("items", [
                     ...form.items,
-                    { description: "", quantity: 1, rate: 0 },
+                    { description: "", quantity: 1, rate: 0, discount: 0 },
                   ])
                 }
               >

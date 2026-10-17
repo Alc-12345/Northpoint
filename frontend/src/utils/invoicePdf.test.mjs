@@ -160,3 +160,32 @@ test("Indian amount in words handles zero, paise, lakh, crore and rounding", asy
   );
   assert.throws(() => amountInWords(-1), /Invalid/);
 });
+
+test("discounts reduce each item before tax and appear in the PDF", async () => {
+  const data = invoice([
+    { description: "Discounted service", quantity: 2, rate: 1000, discount: 12.5 },
+    { description: "Free service", quantity: 1, rate: 100, discount: 100 },
+    { description: "Regular service", quantity: 1, rate: 250 },
+  ]);
+  assert.equal(data.items[0].amount, 1750);
+  assert.equal(data.items[1].amount, 0);
+  assert.equal(data.items[2].discount, 0);
+  assert.equal(data.subtotal, 2000);
+  assert.equal(data.taxAmount, 300);
+  assert.equal(data.total, 2300);
+  const start = drawnText.length;
+  await invoicePdf(data, fonts);
+  const events = drawnText.slice(start);
+  const heading = events.find((event) => event.text === "DISCOUNT (%)");
+  assert.ok(heading);
+  assert.ok(events.some((event) => event.text === "12.5" && event.x === heading.x));
+});
+
+test("invalid discount percentages are rejected", async () => {
+  const { validateInvoice } = await import("../../../backend/shared/invoices.js");
+  for (const discount of [-1, 101, "invalid", Infinity]) {
+    const data = invoice([{ description: "Service", quantity: 1, rate: 100, discount }]);
+    data.status = "Draft";
+    assert.ok(validateInvoice(data).some((error) => error.includes("discount")));
+  }
+});

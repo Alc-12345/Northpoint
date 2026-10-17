@@ -244,20 +244,22 @@ export async function invoicePdf(invoice, suppliedFonts) {
     });
     [
       ["DESCRIPTION", left],
-      ["QTY", 340],
-      ["RATE", 390],
+      ["QTY", 285],
+      ["RATE", 330],
+      ["DISCOUNT (%)", 410],
       ["AMOUNT", 485],
     ].forEach(([value, x]) => text(value, x, y - 2, 8, true));
     y -= 30;
   };
   tableHeader();
   for (const item of invoice.items) {
-    const lines = wrap(item.description, 300, 11);
+    const lines = wrap(item.description, 250, 11);
     const numbers = [
       String(item.quantity),
       money(item.rate),
+      String(item.discount ?? 0),
       money(item.amount),
-    ].map((value, i) => wrap(value, [40, 80, 88][i], 10));
+    ].map((value, i) => wrap(value, [35, 70, 65, 88][i], 10));
     let offset = 0;
     while (offset < lines.length) {
       if (y < bottom + 45) {
@@ -274,7 +276,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
       if (!offset)
         numbers.forEach((parts, i) =>
           parts.forEach((value, j) =>
-            text(value, [340, 390, 485][i], y - j * 14, 10),
+            text(value, [285, 330, 410, 485][i], y - j * 14, 10),
           ),
         );
       y -=
