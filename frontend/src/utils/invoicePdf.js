@@ -403,6 +403,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
   // Keep the computer-generated invoice notice above the page footer.
   if (y < bottom + 30) newPage();
   const noticeTop = Math.min(y - 10, 92);
+  line(noticeTop + 6);
   text(
     "This is a computer-generated invoice and does not require a signature.",
     left,
