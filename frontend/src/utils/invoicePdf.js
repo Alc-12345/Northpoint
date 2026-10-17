@@ -141,7 +141,13 @@ export async function invoicePdf(invoice, suppliedFonts) {
       height: logoHeight,
     });
   }
-  text("INVOICE", right - measure("INVOICE", 30, true), y, 30, true);
+  text(
+    "INVOICE",
+    right - measure("INVOICE", 30, true),
+    y - Math.max(0, (logoHeight - 34) / 2),
+    30,
+    true,
+  );
   y -= Math.max(logoHeight, 34) + 12;
   line(y);
   y -= 12;
@@ -162,7 +168,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
     ]
       .filter(Boolean)
       .join("\n"),
-    199,
+    194,
     9,
   );
   const to = wrap(
@@ -175,7 +181,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
     ]
       .filter(Boolean)
       .join("\n"),
-    150,
+    145,
     9,
   );
   const metadata = [];
@@ -185,7 +191,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
     ["DUE", date(invoice.dueDate)],
   ]) {
     metadata.push({ text: label, size: 8, strong: true });
-    wrap(value, 153, 11).forEach((value) =>
+    wrap(value, 148, 11).forEach((value) =>
       metadata.push({ text: value, size: 11, strong: false }),
     );
     metadata.push({ text: "", size: 8 });
@@ -202,11 +208,11 @@ export async function invoicePdf(invoice, suppliedFonts) {
       headings();
       columnTop = y + 25;
     }
-    if (i < from.length) text(from[i], left, y, 9);
-    if (i < to.length) text(to[i], 245, y, 9);
+    if (i < from.length) text(from[i], left + 5, y, 9);
+    if (i < to.length) text(to[i], 250, y, 9);
     if (i < metadata.length) {
       const entry = metadata[i];
-      text(entry.text, 420, y, entry.size, entry.strong);
+      text(entry.text, 425, y, entry.size, entry.strong);
     }
     y -= 13;
   }
@@ -241,7 +247,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
       ["QTY", 340],
       ["RATE", 390],
       ["AMOUNT", 485],
-    ].forEach(([value, x]) => text(value, x + 3, y - 2, 8, true));
+    ].forEach(([value, x]) => text(value, x, y - 2, 8, true));
     y -= 30;
   };
   tableHeader();
@@ -339,12 +345,12 @@ export async function invoicePdf(invoice, suppliedFonts) {
     /\n\s*\n/g,
     "\n",
   );
-  const approvalReserve = 65;
+  const noticeReserve = 65;
   let termsSize = 8.5;
   for (const size of [10, 9.5, 9, 8.75, 8.5])
     if (
       wrap(terms, 333, size).length * Math.max(11, size + 2) <=
-      y - bottom - approvalReserve
+      y - bottom - noticeReserve
     ) {
       termsSize = size;
       break;
@@ -358,8 +364,8 @@ export async function invoicePdf(invoice, suppliedFonts) {
     i++
   ) {
     if (
-      y < bottom + approvalReserve + 10 ||
-      (qr && i === leftLines.length && y - bottom - approvalReserve < 138)
+      y < bottom + noticeReserve + 10 ||
+      (qr && i === leftLines.length && y - bottom - noticeReserve < 138)
     ) {
       newPage();
       heading("PAYMENT DETAILS", left, y, 199);
@@ -392,13 +398,15 @@ export async function invoicePdf(invoice, suppliedFonts) {
     if (i < rightLines.length) text(rightLines[i], 240, y, termsSize);
     y -= leading;
   }
-  // Reserve space below the invoice content for a handwritten approval/signature.
-  if (y < bottom + 55) newPage();
-  const approvalTop = Math.min(y - 10, 92);
-  heading("APPROVED BY", left, approvalTop, 230);
-  heading("SIGNATURE", right - 200, approvalTop, 200);
-  stroke(left + 5, approvalTop - 39, left + 225, approvalTop - 39);
-  stroke(right - 195, approvalTop - 39, right - 5, approvalTop - 39);
+  // Keep the computer-generated invoice notice above the page footer.
+  if (y < bottom + 30) newPage();
+  const noticeTop = Math.min(y - 10, 92);
+  text(
+    "This is a computer-generated invoice and does not require a signature.",
+    left,
+    noticeTop,
+    9,
+  );
   const pages = doc.getPages();
   pages.forEach((p, i) =>
     p.drawText(`${invoice.invoiceNumber}  |  ${i + 1} / ${pages.length}`, {
