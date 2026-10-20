@@ -152,6 +152,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
           
 
           <NavLink to="/documents" className={linkClass}><FiFileText /> Document distribution</NavLink>
+          <NavLink to="/merge-pdf" className={({ isActive }) => `${linkClass} ${isActive ? activeClass : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}><FiFileText /> Merge PDFs</NavLink>
 
           {/* Reports */}
           <NavLink to="/reports" className={linkClass}>

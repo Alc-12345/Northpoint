@@ -2,6 +2,7 @@ import FinanceAccess from "./Components/FinanceAccess";
 import { Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 const Invoices = lazy(() => import("./Pages/Invoices"));
+const MergePdf = lazy(() => import("./Pages/MergePdf"));
 import Reports from "./Pages/Reports";
 import Settings from "./Pages/Settings";
 import NotificationCenter from "./Pages/NotificationCenter";
@@ -70,6 +71,7 @@ import PracticeLab from "./Pages/PracticeLab.jsx";
 function App() {
   return (
     <Routes>
+      <Route path="/merge-pdf" element={<MainLayout><Suspense fallback={<p className="p-8">Loading PDF merge…</p>}><MergePdf /></Suspense></MainLayout>} />
       <Route path="/finance/invoices" element={<MainLayout><FinanceAccess><Suspense fallback={<p className="p-8">Loading invoices…</p>}><Invoices /></Suspense></FinanceAccess></MainLayout>} />
       <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
       <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
