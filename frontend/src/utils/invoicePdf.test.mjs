@@ -91,7 +91,7 @@ test("long descriptions, 150 items, and long terms paginate", async () => {
   assert.ok(doc.getPageCount() > 10);
 });
 
-test("standard invoice with company contacts, logo, three items and all default terms fits one page", async () => {
+test("invoice with spaced client entries keeps columns separate and paginates all default terms", async () => {
   const data = invoice(
     Array.from({ length: 3 }, (_, i) => ({
       description: `Project service ${i + 1}`,
@@ -115,7 +115,7 @@ test("standard invoice with company contacts, logo, three items and all default 
   data.company.paymentQr = data.company.logo;
   const blob = await invoicePdf(data, fonts);
   const doc = await PDFDocument.load(await blob.arrayBuffer());
-  assert.equal(doc.getPageCount(), 1);
+  assert.equal(doc.getPageCount(), 2);
   const events = drawnText.slice(start);
   const find = (text) => events.find((event) => event.text === text);
   assert.equal(find("FROM").y, find("BILL TO").y);
@@ -146,6 +146,23 @@ test("standard invoice with company contacts, logo, three items and all default 
   for (const value of ["Example Client", "123 Business Road", "27FGHIJ5678K1Z5"]) {
     assert.equal(find(value).font, find("Oct 16, 2026").font);
     assert.equal(find(value).size, find("Oct 16, 2026").size);
+  }
+  assert.equal(
+    find("Example Company").y - find("CLIENT ADDRESS").y,
+    find("Oct 16, 2026").y - find("DUE").y,
+  );
+  assert.equal(
+    find("client@example.com").y - find("GST / TAX ID").y,
+    find("Oct 16, 2026").y - find("DUE").y,
+  );
+  for (const value of [
+    "CLIENT NAME", "Example Client", "Example Company",
+    "CLIENT ADDRESS", "123 Business Road", "client@example.com",
+    "GST / TAX ID", "27FGHIJ5678K1Z5",
+  ]) {
+    const entry = find(value);
+    assert.equal(entry.x, 250);
+    assert.ok(entry.x + entry.font.widthOfTextAtSize(entry.text, entry.size) <= 395);
   }
   assert.ok(find("ISSUED"));
   assert.ok(find("Oct 16, 2026"));

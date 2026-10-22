@@ -180,7 +180,10 @@ export async function invoicePdf(invoice, suppliedFonts) {
     ["GST / TAX ID", invoice.client.taxId],
   ]) {
     if (!value) continue;
-    if (label) to.push({ text: label, size: 8, strong: true });
+    if (label) {
+      if (to.length) to.push({ text: "", size: 8 });
+      to.push({ text: label, size: 8, strong: true });
+    }
     wrap(value, 145, 11).forEach((line) =>
       to.push({ text: line, size: 11, strong: false }),
     );
