@@ -171,19 +171,20 @@ export async function invoicePdf(invoice, suppliedFonts) {
     194,
     11,
   );
-  const to = wrap(
-    [
-      invoice.client.name,
-      invoice.client.company,
-      invoice.client.address,
-      invoice.client.email,
-      invoice.client.taxId && `GST / TAX ID: ${invoice.client.taxId}`,
-    ]
-      .filter(Boolean)
-      .join("\n"),
-    135,
-    11,
-  );
+  const to = [];
+  for (const [label, value] of [
+    ["CLIENT NAME", invoice.client.name],
+    [null, invoice.client.company],
+    ["CLIENT ADDRESS", invoice.client.address],
+    [null, invoice.client.email],
+    ["GST / TAX ID", invoice.client.taxId],
+  ]) {
+    if (!value) continue;
+    if (label) to.push({ text: label, size: 8, strong: true });
+    wrap(value, 145, 11).forEach((line) =>
+      to.push({ text: line, size: 11, strong: false }),
+    );
+  }
   const metadata = [];
   for (const [label, value] of [
     ["INVOICE NO.", invoice.invoiceNumber],
@@ -201,24 +202,24 @@ export async function invoicePdf(invoice, suppliedFonts) {
     stroke(232, columnTop, 232, y + 3);
     stroke(408, columnTop, 408, y + 3);
   };
-  let billToRow = 0;
   for (let i = 0; i < Math.max(from.length, to.length, metadata.length); i++) {
-    if (y - billToRow * 2 < bottom + 12) {
+    if (y < bottom + 12) {
       separators();
       newPage();
       headings();
       columnTop = y + 25;
-      billToRow = 0;
     }
     if (i < from.length) text(from[i], left + 5, y, 11);
-    if (i < to.length) text(to[i], 250, y - billToRow++ * 2, 11, true);
+    if (i < to.length) {
+      const entry = to[i];
+      text(entry.text, 250, y, entry.size, entry.strong);
+    }
     if (i < metadata.length) {
       const entry = metadata[i];
       text(entry.text, 425, y, entry.size, entry.strong);
     }
     y -= 13;
   }
-  y -= Math.max(0, to.length * 15 - Math.max(from.length, to.length, metadata.length) * 13);
   separators();
   y -= 10;
   // Payment terms are deliberately omitted from the invoice output.

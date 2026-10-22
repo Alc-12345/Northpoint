@@ -139,6 +139,14 @@ test("standard invoice with company contacts, logo, three items and all default 
   assert.equal(find("ISSUED").x, 425);
   assert.equal(find("DUE").x, 425);
   assert.equal(find("Oct 16, 2026").x, 425);
+  for (const label of ["CLIENT NAME", "CLIENT ADDRESS", "GST / TAX ID"]) {
+    assert.equal(find(label).font, find("INVOICE NO.").font);
+    assert.equal(find(label).size, find("INVOICE NO.").size);
+  }
+  for (const value of ["Example Client", "123 Business Road", "27FGHIJ5678K1Z5"]) {
+    assert.equal(find(value).font, find("Oct 16, 2026").font);
+    assert.equal(find(value).size, find("Oct 16, 2026").size);
+  }
   assert.ok(find("ISSUED"));
   assert.ok(find("Oct 16, 2026"));
   assert.ok(find("DUE"));
