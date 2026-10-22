@@ -9,11 +9,16 @@ import {
   validateInvoice,
 } from "../../../backend/shared/invoices.js";
 import { downloadInvoice, invoicePdf } from "../utils/invoicePdf";
-const withCompanyLogo = (invoice, config) => ({
+const withCompanyDetails = (invoice, config) => ({
   ...invoice,
   company: {
     ...invoice.company,
-    logo: config?.company?.logo || invoice.company.logo || "",
+    ...Object.fromEntries(
+      ["logo", "address", "email", "taxId"].map((key) => [
+        key,
+        config?.company?.[key] || invoice.company[key] || "",
+      ]),
+    ),
   },
 });
 const inputClass =
@@ -230,7 +235,7 @@ export default function Invoices() {
   const edit = (invoice) => {
     setPreview(null);
     setErrors([]);
-    setForm(structuredClone(withCompanyLogo(invoice, settings)));
+    setForm(structuredClone(withCompanyDetails(invoice, settings)));
   };
   const totals = form ? calculate(form.items, form.taxPercentage) : null;
   const save = async (e) => {
@@ -258,14 +263,14 @@ export default function Invoices() {
       invoiceApi.getSettings(),
     ]);
     setSettings(config);
-    const invoice = withCompanyLogo(savedInvoice, config);
+    const invoice = withCompanyDetails(savedInvoice, config);
     const blob = await invoicePdf(invoice);
     setPreview({ invoice, url: URL.createObjectURL(blob) });
   };
   const download = async (row) => {
     const config = await invoiceApi.getSettings();
     setSettings(config);
-    await downloadInvoice(withCompanyLogo(row, config));
+    await downloadInvoice(withCompanyDetails(row, config));
   };
   const filtered = rows.filter(
     (row) =>
@@ -485,8 +490,8 @@ export default function Invoices() {
             </div>
             <p className="text-sm text-gray-500">
               Set your logo, address, phone, email and GST once. These details
-              are reused on every new invoice. Existing invoices retain their
-              saved company details.
+              are reused on new invoices. Your saved logo, address, email and
+              GST / Tax ID are also used when opening or downloading existing invoices.
             </p>
             {companyError && (
               <p role="alert" className="text-red-500">
@@ -571,7 +576,7 @@ export default function Invoices() {
               </div>
               <p className="mt-3 text-xs text-gray-500">
                 Automatically filled from Company Settings. Update company
-                details there for future invoices.
+                details there to update the From section.
               </p>
             </section>
             <section>
