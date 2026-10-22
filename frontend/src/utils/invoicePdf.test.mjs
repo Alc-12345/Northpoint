@@ -91,7 +91,7 @@ test("long descriptions, 150 items, and long terms paginate", async () => {
   assert.ok(doc.getPageCount() > 10);
 });
 
-test("invoice with spaced client entries keeps columns separate and paginates all default terms", async () => {
+test("invoice with labeled company and client entries and all default terms fits one page", async () => {
   const data = invoice(
     Array.from({ length: 3 }, (_, i) => ({
       description: `Project service ${i + 1}`,
@@ -115,7 +115,7 @@ test("invoice with spaced client entries keeps columns separate and paginates al
   data.company.paymentQr = data.company.logo;
   const blob = await invoicePdf(data, fonts);
   const doc = await PDFDocument.load(await blob.arrayBuffer());
-  assert.equal(doc.getPageCount(), 2);
+  assert.equal(doc.getPageCount(), 1);
   const events = drawnText.slice(start);
   const find = (text) => events.find((event) => event.text === text);
   assert.equal(find("FROM").y, find("BILL TO").y);
@@ -164,6 +164,14 @@ test("invoice with spaced client entries keeps columns separate and paginates al
     assert.equal(entry.x, 250);
     assert.ok(entry.x + entry.font.widthOfTextAtSize(entry.text, entry.size) <= 395);
   }
+  assert.equal(find("CLIENT COMPANY").x, 250);
+  assert.equal(find("CLIENT COMPANY").font, find("INVOICE NO.").font);
+  assert.ok(find("CLIENT COMPANY").y < find("Example Client").y);
+  for (const label of ["COMPANY NAME", "COMPANY ADDRESS", "COMPANY EMAIL", "COMPANY PHONE"]) {
+    assert.equal(find(label).x, 27);
+    assert.equal(find(label).font, find("INVOICE NO.").font);
+  }
+  assert.equal(find("Austin Legacy Corp").font, find("Oct 16, 2026").font);
   assert.ok(find("ISSUED"));
   assert.ok(find("Oct 16, 2026"));
   assert.ok(find("DUE"));

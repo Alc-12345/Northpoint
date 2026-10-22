@@ -158,71 +158,68 @@ export async function invoicePdf(invoice, suppliedFonts) {
     y -= 25;
   };
   headings();
-  const from = wrap(
-    [
-      invoice.company.name,
-      invoice.company.address,
-      invoice.company.email,
-      invoice.company.phone,
-      invoice.company.taxId && `GST / TAX ID: ${invoice.company.taxId}`,
-    ]
-      .filter(Boolean)
-      .join("\n"),
-    194,
-    11,
-  );
-  const to = [];
-  for (const [label, value] of [
-    ["CLIENT NAME", invoice.client.name],
-    [null, invoice.client.company],
-    ["CLIENT ADDRESS", invoice.client.address],
-    [null, invoice.client.email],
-    ["GST / TAX ID", invoice.client.taxId],
-  ]) {
-    if (!value) continue;
-    if (label) {
-      if (to.length) to.push({ text: "", size: 8 });
-      to.push({ text: label, size: 8, strong: true });
+  const detailEntries = (fields, width) => {
+    const entries = [];
+    for (const [label, value] of fields) {
+      if (!value) continue;
+      if (entries.length) entries.push({ text: "", size: 8, height: 5 });
+      entries.push({ text: label, size: 8, strong: true, height: 11 });
+      wrap(value, width, 10).forEach((line) =>
+        entries.push({ text: line, size: 10, strong: false, height: 12 }),
+      );
     }
-    wrap(value, 145, 11).forEach((line) =>
-      to.push({ text: line, size: 11, strong: false }),
-    );
-  }
-  const metadata = [];
-  for (const [label, value] of [
+    return entries;
+  };
+  const from = detailEntries([
+    ["COMPANY NAME", invoice.company.name],
+    ["COMPANY ADDRESS", invoice.company.address],
+    ["COMPANY EMAIL", invoice.company.email],
+    ["COMPANY PHONE", invoice.company.phone],
+    ["GST / TAX ID", invoice.company.taxId],
+  ], 194);
+  const to = detailEntries([
+    ["CLIENT NAME", invoice.client.name],
+    ["CLIENT COMPANY", invoice.client.company],
+    ["CLIENT ADDRESS", invoice.client.address],
+    ["CLIENT EMAIL", invoice.client.email],
+    ["GST / TAX ID", invoice.client.taxId],
+  ], 145);
+  const metadata = detailEntries([
     ["INVOICE NO.", invoice.invoiceNumber],
     ["ISSUED", date(invoice.invoiceDate)],
     ["DUE", date(invoice.dueDate)],
-  ]) {
-    metadata.push({ text: label, size: 8, strong: true });
-    wrap(value, 148, 11).forEach((value) =>
-      metadata.push({ text: value, size: 11, strong: false }),
-    );
-    metadata.push({ text: "", size: 8 });
-  }
+  ], 148);
   let columnTop = y + 25;
   const separators = () => {
     stroke(232, columnTop, 232, y + 3);
     stroke(408, columnTop, 408, y + 3);
   };
-  for (let i = 0; i < Math.max(from.length, to.length, metadata.length); i++) {
-    if (y < bottom + 12) {
+  const positioned = [];
+  let columnsHeight = 0;
+  for (const [entries, x] of [[from, left + 5], [to, 250], [metadata, 425]]) {
+    let offset = 0;
+    for (const entry of entries) {
+      if (entry.text) positioned.push({ ...entry, x, offset });
+      offset += entry.height;
+    }
+    columnsHeight = Math.max(columnsHeight, offset);
+  }
+  const columnsStart = y;
+  let pageOffset = 0;
+  for (const entry of positioned.sort((a, b) => a.offset - b.offset)) {
+    const top = columnsStart - entry.offset + pageOffset;
+    if (top < bottom + 12) {
       separators();
       newPage();
       headings();
       columnTop = y + 25;
+      pageOffset = y - columnsStart + entry.offset;
+    } else {
+      y = top;
     }
-    if (i < from.length) text(from[i], left + 5, y, 11);
-    if (i < to.length) {
-      const entry = to[i];
-      text(entry.text, 250, y, entry.size, entry.strong);
-    }
-    if (i < metadata.length) {
-      const entry = metadata[i];
-      text(entry.text, 425, y, entry.size, entry.strong);
-    }
-    y -= 13;
+    text(entry.text, entry.x, y, entry.size, entry.strong);
   }
+  y = columnsStart - columnsHeight + pageOffset;
   separators();
   y -= 10;
   // Payment terms are deliberately omitted from the invoice output.
@@ -324,7 +321,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
       11,
       label === "TOTAL",
     );
-    y -= 24;
+    y -= 20;
   }
   y -= 12;
   const bank = invoice.paymentDetails;
@@ -354,19 +351,19 @@ export async function invoicePdf(invoice, suppliedFonts) {
     /\n\s*\n/g,
     "\n",
   );
-  const noticeReserve = 65;
-  let termsSize = 8.5;
-  for (const size of [10, 9.5, 9, 8.75, 8.5])
+  const noticeReserve = 35;
+  let termsSize = 8;
+  for (const size of [10, 9.5, 9, 8.75, 8.5, 8])
     if (
-      wrap(terms, 333, size).length * Math.max(11, size + 2) <=
+      wrap(terms, 333, size).length * Math.max(10, size + 2) <=
       y - bottom - noticeReserve
     ) {
       termsSize = size;
       break;
     }
   const rightLines = wrap(terms, 333, termsSize),
-    leading = Math.max(11, termsSize + 2);
-  const qrRows = qr ? 11 : 0;
+    leading = Math.max(10, termsSize + 2);
+  const qrRows = qr ? 10 : 0;
   for (
     let i = 0;
     i < Math.max(leftLines.length + qrRows, rightLines.length);
@@ -374,7 +371,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
   ) {
     if (
       y < bottom + noticeReserve + 10 ||
-      (qr && i === leftLines.length && y - bottom - noticeReserve < 138)
+      (qr && i === leftLines.length && y - bottom - noticeReserve < 118)
     ) {
       newPage();
       heading("PAYMENT DETAILS", left, y, 199);
@@ -391,15 +388,15 @@ export async function invoicePdf(invoice, suppliedFonts) {
       // Keep the uploaded code square, with a white quiet zone for scanning.
       page.drawRectangle({
         x: left + 3,
-        y: y - 133,
-        width: 106,
-        height: 106,
+        y: y - 113,
+        width: 86,
+        height: 86,
         color: rgb(1, 1, 1),
       });
-      const scale = Math.min(94 / qr.width, 94 / qr.height);
+      const scale = Math.min(74 / qr.width, 74 / qr.height);
       page.drawImage(qr, {
-        x: left + 9 + (94 - qr.width * scale) / 2,
-        y: y - 127 + (94 - qr.height * scale) / 2,
+        x: left + 9 + (74 - qr.width * scale) / 2,
+        y: y - 107 + (74 - qr.height * scale) / 2,
         width: qr.width * scale,
         height: qr.height * scale,
       });
