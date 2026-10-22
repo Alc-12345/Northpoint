@@ -130,9 +130,18 @@ export async function invoicePdf(invoice, suppliedFonts) {
       : doc.embedJpg(value);
   newPage();
   let logoHeight = 0;
-  if (invoice.company.logo) {
-    const logo = await embedImage(invoice.company.logo),
-      scale = Math.min(280 / logo.width, 74 / logo.height);
+  {
+    const logo = invoice.company.logo
+      ? await embedImage(invoice.company.logo)
+      : await doc.embedPng(
+          await fetch(new URL("../assets/Logo.png", import.meta.url)).then(
+            (response) => {
+              if (!response.ok) throw new Error("Unable to load company logo");
+              return response.arrayBuffer();
+            },
+          ),
+        );
+    const scale = Math.min(280 / logo.width, 74 / logo.height);
     logoHeight = logo.height * scale;
     page.drawImage(logo, {
       x: left,

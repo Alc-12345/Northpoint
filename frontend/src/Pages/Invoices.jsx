@@ -9,6 +9,7 @@ import {
   validateInvoice,
 } from "../../../backend/shared/invoices.js";
 import { downloadInvoice, invoicePdf } from "../utils/invoicePdf";
+const defaultLogo = new URL("../assets/Logo.png", import.meta.url).href;
 const inputClass =
   "w-full border border-gray-200 dark:border-[#243244] bg-white dark:bg-[#0b1220] text-gray-800 dark:text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500";
 const buttonClass =
@@ -52,9 +53,9 @@ function CompanyProfile({ company, onChange }) {
   return (
     <section>
       <h3 className="font-semibold mb-3">Company / Bill From</h3>
-      {company.logo && (
+      {(
         <img
-          src={company.logo}
+          src={company.logo || defaultLogo}
           alt="Company logo"
           className="h-16 max-w-52 object-contain mb-3"
         />
@@ -532,9 +533,9 @@ export default function Invoices() {
             <section className="rounded-lg border border-gray-200 dark:border-[#243244] p-4">
               <h3 className="font-semibold mb-3">Company / Bill From</h3>
               <div className="flex flex-wrap items-start gap-4">
-                {form.company.logo && (
+                {(
                   <img
-                    src={form.company.logo}
+                    src={form.company.logo || defaultLogo}
                     alt="Company logo"
                     className="h-14 max-w-40 object-contain"
                   />

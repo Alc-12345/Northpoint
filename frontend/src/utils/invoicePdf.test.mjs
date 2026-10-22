@@ -7,6 +7,14 @@ import {
   calculate,
   defaultSettings,
 } from "../../../backend/shared/invoices.js";
+const originalFetch = globalThis.fetch;
+globalThis.fetch = async (url, ...args) => {
+  if (url instanceof URL && url.pathname.endsWith("/assets/Logo.png")) {
+    return new Response(await readFile(url));
+  }
+  return originalFetch(url, ...args);
+};
+const drawnImages = [];
 const drawnText = [];
 const originalAddPage = PDFDocument.prototype.addPage;
 PDFDocument.prototype.addPage = function (...args) {
@@ -14,6 +22,7 @@ PDFDocument.prototype.addPage = function (...args) {
     draw = page.drawText.bind(page);
   const drawImage = page.drawImage.bind(page);
   page.drawImage = (image, options) => {
+    drawnImages.push({ image, ...options });
     assert.ok(options.x >= 22 && options.x + options.width <= 574);
     assert.ok(options.y >= 34 && options.y + options.height <= 816);
     return drawImage(image, options);
@@ -56,7 +65,8 @@ const invoice = (items) => ({
   ...calculate(items, 15),
   taxPercentage: 15,
 });
-test("PDF is a valid A4 document with embedded selectable text fonts", async () => {
+test("PDF is a valid A4 document with embedded selectable text fonts and a default company logo", async () => {
+  const imageStart = drawnImages.length;
   const blob = await invoicePdf(
     invoice([
       { description: "Application development", quantity: 1, rate: 9300 },
@@ -64,6 +74,7 @@ test("PDF is a valid A4 document with embedded selectable text fonts", async () 
     fonts,
   );
   const doc = await PDFDocument.load(await blob.arrayBuffer());
+  assert.equal(drawnImages.length - imageStart, 1);
   assert.equal(doc.getPageCount(), 1);
   assert.equal(doc.getPage(0).getWidth(), 595.28);
   assert.equal(doc.getPage(0).getHeight(), 841.89);
