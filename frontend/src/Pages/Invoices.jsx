@@ -617,11 +617,11 @@ export default function Invoices() {
               <h3 className="font-semibold mb-3">Client / Bill To</h3>
               <div className="grid sm:grid-cols-2 gap-4">
                 {[
-                  ["name", "Client name *"],
-                  ["company", "Client company"],
-                  ["address", "Client address"],
-                  ["email", "Client email"],
-                  ["taxId", "Client GST / VAT / Tax ID"],
+                  ["name", "Client Name *"],
+                  ["company", "Client Company"],
+                  ["address", "Client Address"],
+                  ["email", "Client Email"],
+                  ["taxId", "Client GST "],
                 ].map(([key, label]) => (
                   <Field
                     key={key}

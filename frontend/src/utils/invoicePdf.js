@@ -181,7 +181,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
     ]
       .filter(Boolean)
       .join("\n"),
-    145,
+    135,
     11,
   );
   const metadata = [];
@@ -201,21 +201,24 @@ export async function invoicePdf(invoice, suppliedFonts) {
     stroke(232, columnTop, 232, y + 3);
     stroke(408, columnTop, 408, y + 3);
   };
+  let billToRow = 0;
   for (let i = 0; i < Math.max(from.length, to.length, metadata.length); i++) {
-    if (y < bottom + 12) {
+    if (y - billToRow * 2 < bottom + 12) {
       separators();
       newPage();
       headings();
       columnTop = y + 25;
+      billToRow = 0;
     }
     if (i < from.length) text(from[i], left + 5, y, 11);
-    if (i < to.length) text(to[i], 250, y, 11);
+    if (i < to.length) text(to[i], 250, y - billToRow++ * 2, 11, true);
     if (i < metadata.length) {
       const entry = metadata[i];
       text(entry.text, 425, y, entry.size, entry.strong);
     }
     y -= 13;
   }
+  y -= Math.max(0, to.length * 15 - Math.max(from.length, to.length, metadata.length) * 13);
   separators();
   y -= 10;
   // Payment terms are deliberately omitted from the invoice output.
