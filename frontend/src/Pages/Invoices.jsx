@@ -9,7 +9,13 @@ import {
   validateInvoice,
 } from "../../../backend/shared/invoices.js";
 import { downloadInvoice, invoicePdf } from "../utils/invoicePdf";
-const defaultLogo = new URL("../assets/Logo.png", import.meta.url).href;
+const withCompanyLogo = (invoice, config) => ({
+  ...invoice,
+  company: {
+    ...invoice.company,
+    logo: config?.company?.logo || invoice.company.logo || "",
+  },
+});
 const inputClass =
   "w-full border border-gray-200 dark:border-[#243244] bg-white dark:bg-[#0b1220] text-gray-800 dark:text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500";
 const buttonClass =
@@ -53,9 +59,9 @@ function CompanyProfile({ company, onChange }) {
   return (
     <section>
       <h3 className="font-semibold mb-3">Company / Bill From</h3>
-      {(
+      {company.logo && (
         <img
-          src={company.logo || defaultLogo}
+          src={company.logo}
           alt="Company logo"
           className="h-16 max-w-52 object-contain mb-3"
         />
@@ -224,7 +230,7 @@ export default function Invoices() {
   const edit = (invoice) => {
     setPreview(null);
     setErrors([]);
-    setForm(structuredClone(invoice));
+    setForm(structuredClone(withCompanyLogo(invoice, settings)));
   };
   const totals = form ? calculate(form.items, form.taxPercentage) : null;
   const save = async (e) => {
@@ -247,9 +253,19 @@ export default function Invoices() {
     }
   };
   const view = async (row) => {
-    const invoice = await invoiceApi.getById(row._id);
+    const [savedInvoice, config] = await Promise.all([
+      invoiceApi.getById(row._id),
+      invoiceApi.getSettings(),
+    ]);
+    setSettings(config);
+    const invoice = withCompanyLogo(savedInvoice, config);
     const blob = await invoicePdf(invoice);
     setPreview({ invoice, url: URL.createObjectURL(blob) });
+  };
+  const download = async (row) => {
+    const config = await invoiceApi.getSettings();
+    setSettings(config);
+    await downloadInvoice(withCompanyLogo(row, config));
   };
   const filtered = rows.filter(
     (row) =>
@@ -407,7 +423,7 @@ export default function Invoices() {
                       </button>
                       <button
                         className={buttonClass}
-                        onClick={() => run(() => downloadInvoice(row))}
+                        onClick={() => run(() => download(row))}
                       >
                         PDF
                       </button>
@@ -533,9 +549,9 @@ export default function Invoices() {
             <section className="rounded-lg border border-gray-200 dark:border-[#243244] p-4">
               <h3 className="font-semibold mb-3">Company / Bill From</h3>
               <div className="flex flex-wrap items-start gap-4">
-                {(
+                {form.company.logo && (
                   <img
-                    src={form.company.logo || defaultLogo}
+                    src={form.company.logo}
                     alt="Company logo"
                     className="h-14 max-w-40 object-contain"
                   />
@@ -830,7 +846,7 @@ export default function Invoices() {
             </button>
             <button
               className={buttonClass}
-              onClick={() => run(() => downloadInvoice(preview.invoice))}
+              onClick={() => run(() => download(preview.invoice))}
             >
               Download PDF
             </button>

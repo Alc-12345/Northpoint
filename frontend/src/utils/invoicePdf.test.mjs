@@ -7,13 +7,6 @@ import {
   calculate,
   defaultSettings,
 } from "../../../backend/shared/invoices.js";
-const originalFetch = globalThis.fetch;
-globalThis.fetch = async (url, ...args) => {
-  if (url instanceof URL && url.pathname.endsWith("/assets/Logo.png")) {
-    return new Response(await readFile(url));
-  }
-  return originalFetch(url, ...args);
-};
 const drawnImages = [];
 const drawnText = [];
 const originalAddPage = PDFDocument.prototype.addPage;
@@ -65,7 +58,7 @@ const invoice = (items) => ({
   ...calculate(items, 15),
   taxPercentage: 15,
 });
-test("PDF is a valid A4 document with embedded selectable text fonts and a default company logo", async () => {
+test("PDF is a valid A4 document with embedded selectable text fonts without an uploaded company logo", async () => {
   const imageStart = drawnImages.length;
   const blob = await invoicePdf(
     invoice([
@@ -74,7 +67,7 @@ test("PDF is a valid A4 document with embedded selectable text fonts and a defau
     fonts,
   );
   const doc = await PDFDocument.load(await blob.arrayBuffer());
-  assert.equal(drawnImages.length - imageStart, 1);
+  assert.equal(drawnImages.length - imageStart, 0);
   assert.equal(doc.getPageCount(), 1);
   assert.equal(doc.getPage(0).getWidth(), 595.28);
   assert.equal(doc.getPage(0).getHeight(), 841.89);
