@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { hrDocumentApi } from "../services/api";
 import { documentTypes, fillTemplate, quotationTotals, validateDocument } from "../../../backend/shared/hrDocuments";
-import { downloadDocument, printDocument } from "../utils/hrDocumentDownload";
+import { documentHtml, downloadDocument, printDocument } from "../utils/hrDocumentDownload";
 import Interns from "./Interns.jsx";
 import OfferEmployees from "./OfferEmployees.jsx";
 
@@ -56,6 +56,12 @@ export function DocumentManager({ type }) {
   const edit = record => { setValues(record.values); setTemplate(record.template); setItems(record.items); setEditingId(record._id); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const print = record => { try { printDocument(record); } catch (err) { setError(err.message); } };
   const totals = quotationTotals(items, values.taxRate);
+  const fieldGroups = type === "quotation" ? [
+    { title: "Company / Bill From", keys: ["companyName", "companyAddress", "signatory"] },
+    { title: "Client / Bill To", keys: ["recipientName", "recipientEmail", "recipientAddress"] },
+    { title: "Quotation Details", keys: ["documentNumber", "issueDate", "validUntil", "projectName"] },
+    { title: "Scope, Payment & Terms", keys: ["scope", "paymentTerms", "deliveryTimeline", "taxRate", "notes"] },
+  ] : [{ title: "Document details", keys: config.fields.map(field => field.key) }];
   const filtered = records.filter(record => `${record.values.recipientName} ${record.values.documentNumber}`.toLowerCase().includes(search.toLowerCase()));
   return <div className="text-gray-800 dark:text-gray-200">
     <div className="mb-6 flex items-center justify-between gap-4"><div><h1 className="text-2xl font-bold">{config.title}</h1><p className="mt-2 text-sm text-gray-500">Fill the fields, set the document format, and save. Saved documents can be edited or downloaded anytime.</p></div><button type="button" disabled={saving} onClick={reset} className={buttonClass}>New Document</button></div>
@@ -64,10 +70,10 @@ export function DocumentManager({ type }) {
     <form onSubmit={save} className="mb-8 rounded-xl border bg-white p-6 dark:border-[#243244] dark:bg-[#111C2D]">
       <h2 className="mb-5 text-lg font-semibold">{editingId ? "Edit saved document" : "Create document"}</h2>
       <fieldset disabled={saving}>
-        <div className="grid gap-4 md:grid-cols-2">{config.fields.map(field => <div key={field.key}>
+        <div className="grid gap-6 md:grid-cols-2">{fieldGroups.map(group => <section key={group.title}><h3 className="mb-3 font-semibold">{group.title}</h3><div className="grid gap-4">{group.keys.map(key => config.fields.find(field => field.key === key)).map(field => <div key={field.key}>
           <label htmlFor={field.key} className="mb-1 block text-sm">{field.label}{field.required ? " *" : ""}</label>
           {field.type === "textarea" ? <textarea id={field.key} required={field.required} maxLength={10000} rows={3} value={values[field.key] || ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} /> : <input id={field.key} type={field.type || "text"} required={field.required} min={field.type === "number" ? 0 : undefined} max={field.max} step={field.type === "number" ? "0.01" : undefined} value={values[field.key] ?? ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />}
-        </div>)}</div>
+        </div>)}</div></section>)}</div>
         {type === "quotation" && <div className="mt-6"><h2 className="mb-3 font-semibold">Quotation Items (INR)</h2>
           {items.map((item, index) => <div key={index} className="mb-3 grid gap-2 md:grid-cols-[2fr_1fr_1fr_auto]">
             {[['description', 'Description', 'text'], ['quantity', 'Quantity', 'number'], ['rate', 'Rate (INR)', 'number']].map(([key, label, fieldType]) => <label key={key} className="text-sm">{label}<input aria-label={`${label} for item ${index + 1}`} type={fieldType} required min={key === "quantity" ? 0.01 : key === "rate" ? 0 : undefined} step={fieldType === "number" ? "0.01" : undefined} value={item[key]} onChange={event => setItems(items.map((row, rowIndex) => rowIndex === index ? { ...row, [key]: event.target.value } : row))} className={inputClass} /></label>)}
@@ -81,7 +87,7 @@ export function DocumentManager({ type }) {
           <label htmlFor="template" className="mb-1 block text-sm">Template text</label><textarea id="template" required maxLength={30000} rows={12} value={template} onChange={event => setTemplate(event.target.value)} className={inputClass} />
           <button type="button" onClick={() => setTemplate(config.template)} className="mt-2 text-sm text-cyan-500">Reset to standard format</button>
         </details>
-        <details className="mt-4"><summary className="cursor-pointer font-semibold">Preview Letter Text</summary><div className="mt-3 whitespace-pre-wrap break-words rounded-lg bg-gray-50 p-5 dark:bg-[#0b1220]">{fillTemplate(template, values)}</div></details>
+        <details className="mt-4"><summary className="cursor-pointer font-semibold">{type === "quotation" ? "Preview Quotation" : "Preview Letter Text"}</summary>{type === "quotation" ? <iframe title="Quotation preview" sandbox="" srcDoc={documentHtml({ type, values, items, template })} className="mt-3 h-[850px] w-full rounded-lg border bg-white" /> : <div className="mt-3 whitespace-pre-wrap break-words rounded-lg bg-gray-50 p-5 dark:bg-[#0b1220]">{fillTemplate(template, values)}</div>}</details>
         <button type="submit" className={`${buttonClass} mt-6`}>{saving ? "Saving..." : editingId ? "Save Changes" : "Save Document"}</button>
       </fieldset>
     </form>

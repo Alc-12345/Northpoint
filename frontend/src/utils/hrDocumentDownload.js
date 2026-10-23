@@ -1,9 +1,24 @@
+import { amountInWords } from "./amountInWords.js";
 import { documentTypes, fillTemplate, quotationTotals } from "../../../backend/shared/hrDocuments.js";
 
 const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 const money = value => Number(value).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+function quotationHtml({ values: v, items = [], template }) {
+  const totals = quotationTotals(items, v.taxRate);
+  const field = (label, value) => `<p><b>${label}</b><span>${escape(value)}</span></p>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(v.documentNumber)} - Quotation</title><style>
+  *{box-sizing:border-box}body{font:14px/1.5 Arial,sans-serif;color:#1f242b;background:#eee;margin:0}main{max-width:850px;margin:24px auto;background:white;padding:30px}header{display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:1px solid #ccd1d9;margin-bottom:18px;padding-bottom:18px}header strong{font-size:22px}h1{font-size:30px;margin:0}h2{font-size:11px;background:#edf0f5;padding:6px;text-transform:uppercase;margin:0 0 12px}.columns{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:18px}.columns section+section{border-left:1px solid #ccd1d9;padding-left:14px}p{margin:0 0 12px;white-space:pre-wrap;overflow-wrap:anywhere}p b{display:block;font-size:10px;text-transform:uppercase}p span{display:block}table{border-collapse:collapse;width:100%;table-layout:fixed;margin:20px 0}th{background:#edf0f5;font-size:11px;text-transform:uppercase}th,td{text-align:right;padding:10px 6px;border-bottom:1px solid #ccd1d9;vertical-align:top;overflow-wrap:anywhere}th:first-child,td:first-child{text-align:left;width:49%;white-space:pre-wrap}.summary,.terms{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0}.totals div{display:flex;justify-content:space-between;gap:12px;padding:6px}.total{background:#edf0f5;font-weight:bold}.letter{white-space:pre-wrap;overflow-wrap:anywhere}.signature{text-align:right;border-top:1px solid #ccd1d9;padding-top:15px;margin-top:30px}.project{margin-top:20px}@page{size:A4;margin:12mm}@media screen and (max-width:600px){.columns,.summary,.terms{grid-template-columns:1fr}main{padding:16px}header{flex-wrap:wrap}}@media print{body{background:white}main{padding:0;margin:0;max-width:none}tr,.summary,.signature{break-inside:avoid}thead{display:table-header-group}h2{break-after:avoid}}
+  </style></head><body><main><header><strong>${escape(v.companyName)}</strong><h1>QUOTATION</h1></header>
+  <div class="columns"><section><h2>From</h2>${field("Company name", v.companyName)}${field("Company address", v.companyAddress)}</section><section><h2>Bill to</h2>${field("Client name", v.recipientName)}${field("Client address", v.recipientAddress)}${field("Client email", v.recipientEmail)}</section><section><h2>Quotation details</h2>${field("Quotation no.", v.documentNumber)}${field("Issued", v.issueDate)}${field("Valid until", v.validUntil)}</section></div>
+  <div class="project">${field("Project / service", v.projectName)}${field("Scope of work", v.scope)}</div>
+  <table aria-label="Quotation items"><thead><tr><th>Description</th><th>Qty</th><th>Rate (INR)</th><th>Amount (INR)</th></tr></thead><tbody>${items.map(item => `<tr><td>${escape(item.description)}</td><td>${escape(item.quantity)}</td><td>${money(item.rate)}</td><td>${money(Number(item.quantity) * Number(item.rate))}</td></tr>`).join("")}</tbody></table>
+  <div class="summary"><section><h2>Amount in words</h2>${escape(amountInWords(totals.total))}</section><section class="totals"><div><span>Subtotal</span><span>INR ${money(totals.subtotal)}</span></div><div><span>Tax (${escape(v.taxRate)}%)</span><span>INR ${money(totals.tax)}</span></div><div class="total"><span>Total</span><span>INR ${money(totals.total)}</span></div></section></div>
+  <div class="terms"><section><h2>Payment & delivery</h2>${field("Payment terms", v.paymentTerms)}${field("Delivery timeline", v.deliveryTimeline)}</section><section><h2>Terms & conditions</h2><div class="letter">${escape(fillTemplate(template, v))}</div></section></div><div class="signature">${field("Authorized signatory", v.signatory)}For ${escape(v.companyName)}</div></main></body></html>`;
+}
+
 export function documentHtml(document) {
+  if (document.type === "quotation") return quotationHtml(document);
   const { values, type, template, items } = document;
   const totals = quotationTotals(items, values.taxRate);
   const details = documentTypes[type].fields.filter(field => values[field.key] !== "" && values[field.key] != null).map(field => `<tr><th>${escape(field.label)}</th><td>${escape(values[field.key])}</td></tr>`).join("");
