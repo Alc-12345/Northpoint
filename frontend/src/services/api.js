@@ -1,5 +1,6 @@
 import { previewInvoiceApi } from "../utils/previewInvoices";
 import axios from "axios";
+import { canUseFinance } from "../utils/financeAccess";
 import { clearAuthSession, isPanelPreview } from "../utils/auth";
 import { getPreviewInterns, addPreviewIntern, getPreviewOfferEmployees, addPreviewOfferEmployee } from "../utils/previewInterns";
 
@@ -128,7 +129,7 @@ export const practiceLabApi = {
 
 export default api;
 
-export const invoiceApi = {
+const invoiceActions = {
   getAll: async () => isPanelPreview() ? previewInvoiceApi.getAll() : unwrap(api.get('/invoices')),
   getById: async id => isPanelPreview() ? previewInvoiceApi.getById(id) : unwrap(api.get(`/invoices/${id}`)),
   create: async data => isPanelPreview() ? previewInvoiceApi.create(data) : unwrap(api.post('/invoices', data)),
@@ -137,3 +138,16 @@ export const invoiceApi = {
   getSettings: async () => isPanelPreview() ? previewInvoiceApi.getSettings() : unwrap(api.get('/invoices/settings')),
   saveSettings: async data => isPanelPreview() ? previewInvoiceApi.saveSettings(data) : unwrap(api.put('/invoices/settings', data)),
 };
+
+// Check every entry point, including calls made outside the invoice page.
+export const invoiceApi = Object.fromEntries(
+  Object.entries(invoiceActions).map(([name, action]) => [name, async (...args) => {
+    if (!canUseFinance()) throw new Error("Invoice amounts are available only to administrators.");
+    if (import.meta.env.PROD && !isPanelPreview()) {
+      const endpoint = new URL(baseURL, window.location.origin);
+      if (window.location.protocol !== "https:" || endpoint.protocol !== "https:")
+        throw new Error("Invoices require a secure HTTPS connection.");
+    }
+    return action(...args);
+  }]),
+);

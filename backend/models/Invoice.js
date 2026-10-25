@@ -33,6 +33,7 @@ const invoiceSchema = new mongoose.Schema(
         amount: Number,
       },
     ],
+    financialData: String,
     subtotal: Number,
     taxPercentage: Number,
     taxAmount: Number,

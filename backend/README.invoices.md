@@ -2,7 +2,7 @@
 
 Open **Finance → Invoices** (`/finance/invoices`) as an admin or superadmin. Existing Finance pages and links are retained.
 
-The JavaScript implementation uses the existing Express authentication middleware, Mongoose connection, Axios client, Tailwind styles, and installed Sonner/PDF libraries. No environment variables or external PDF service are required.
+The JavaScript implementation uses the existing Express authentication middleware, Mongoose connection, Axios client, Tailwind styles, and installed Sonner/PDF libraries. A server-only `INVOICE_ENCRYPTION_KEY` is required for invoice amounts; no external PDF service is required.
 
 ## Workflow
 
@@ -37,3 +37,11 @@ node --test backend/tests/invoices.test.js frontend/src/utils/invoicePdf.test.mj
 ```
 
 API tests use an isolated MongoMemoryServer database. PDF tests load embedded fonts, validate A4 output, assert text stays within page bounds, and exercise long descriptions, many items, and multi-page terms. Browser/OS print behavior should additionally be verified in the deployment environment.
+
+## Amount security and deployment
+
+Set `INVOICE_ENCRYPTION_KEY` to a securely generated 32-byte key encoded as 64 hex characters (see `.env.example`). Keep it in the backend secret store and back it up securely. Never expose it through Vite variables or browser code. Losing this key makes encrypted invoices unreadable; changing it requires decrypting and re-encrypting existing records with the old and new keys.
+
+New and updated invoices store line items (including rates, quantities, discounts and amounts), subtotal, tax percentage, tax amount and total in an AES-256-GCM authenticated encrypted envelope. Each write uses a random IV, and authentication binds the envelope to its invoice number. The backend decrypts only after existing admin/superadmin authorization. Responses use `Cache-Control: no-store`. Live invoice data is held in browser memory for authorized display and PDF creation. Use HTTPS for the frontend and API in deployment; readable amounts necessarily exist in an authorized administrator's browser and exported PDFs. Preview session storage contains demo data only; do not enter confidential invoices in tokenless preview mode.
+
+Existing plaintext invoices remain readable for compatibility. Before enabling the new version, back up the database and run `cd backend && node scripts/encryptInvoiceAmounts.js` during a maintenance window with the encryption key and database URI configured. This removes plaintext financial fields from existing records. Existing database backups retain their prior contents. The migration is safe to rerun. New writes fail if the key is missing or invalid.

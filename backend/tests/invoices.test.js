@@ -12,6 +12,7 @@ import {
   defaultSettings,
   validateInvoice,
 } from "../shared/invoices.js";
+process.env.INVOICE_ENCRYPTION_KEY = "ab".repeat(32);
 let mongo, admin, employee;
 before(async () => {
   mongo = await MongoMemoryServer.create();
@@ -73,6 +74,13 @@ test("CRUD recalculates totals, enforces uniqueness and preserves snapshots", as
   assert.equal(created.body.total, 10695);
   assert.equal(created.body.items[0].amount, 9300);
   assert.ok(created.body.createdBy);
+  const stored = await Invoice.collection.findOne({ _id: new mongoose.Types.ObjectId(created.body._id) });
+  assert.ok(stored.financialData.startsWith("v1:"));
+  for (const field of ["total", "subtotal", "taxAmount", "taxPercentage"])
+    assert.equal(stored[field], undefined);
+  assert.equal(stored.items?.length || 0, 0);
+  assert.equal(created.body.financialData, undefined);
+  assert.equal(created.headers["cache-control"], "no-store");
   await api("post", "").send(body).expect(409);
   assert.equal((await api("get", "").expect(200)).body.length, 1);
   const id = created.body._id;
@@ -105,6 +113,10 @@ test("CRUD recalculates totals, enforces uniqueness and preserves snapshots", as
     (await api("get", `/${id}`).expect(200)).body.paymentDetails.accountNumber,
     "2602220017926460",
   );
+  const updated = await Invoice.collection.findOne({ _id: stored._id });
+  assert.equal(updated.total, undefined);
+  assert.equal(updated.items, undefined);
+  assert.notEqual(updated.financialData, stored.financialData);
   await api("delete", `/${id}`).expect(200);
   await api("get", `/${id}`).expect(404);
   await api("delete", `/${id}`).expect(404);

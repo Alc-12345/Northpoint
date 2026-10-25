@@ -7,8 +7,13 @@ import {
   defaultSettings,
   validateInvoice,
 } from "../shared/invoices.js";
+import { encryptInvoice, decryptInvoice, plaintextFinancialFields } from "../utils/invoiceEncryption.js";
 const router = express.Router();
 router.use(protect, requireAdmin);
+router.use((req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 router.get("/settings", async (req, res) =>
   res.json(
     (await InvoiceSettings.findOne({ key: "company" }))?.values ||
@@ -42,12 +47,12 @@ router.put("/settings", async (req, res) => {
   res.json(values);
 });
 router.get("/", async (req, res) =>
-  res.json(await Invoice.find().sort({ createdAt: -1 })),
+  res.json((await Invoice.find().sort({ createdAt: -1 })).map(decryptInvoice)),
 );
 router.get("/:id", async (req, res) => {
   const invoice = await Invoice.findById(req.params.id);
   if (!invoice) return res.status(404).json({ message: "Invoice not found" });
-  res.json(invoice);
+  res.json(decryptInvoice(invoice));
 });
 function pick(data, keys) {
   data = data && typeof data === "object" ? data : {};
@@ -79,12 +84,12 @@ router.post("/", async (req, res) => {
   const { data, errors } = payload(req.body);
   if (errors.length) return res.status(400).json({ errors });
   res.status(201).json(
-    await Invoice.create({
+    decryptInvoice(await Invoice.create(encryptInvoice({
       ...data,
       ...calculate(data.items, data.taxPercentage),
       createdBy: req.user._id,
       updatedBy: req.user._id,
-    }),
+    }))),
   );
 });
 router.put("/:id", async (req, res) => {
@@ -93,16 +98,17 @@ router.put("/:id", async (req, res) => {
   const invoice = await Invoice.findByIdAndUpdate(
     req.params.id,
     {
-      $set: {
+      $unset: plaintextFinancialFields,
+      $set: encryptInvoice({
         ...data,
         ...calculate(data.items, data.taxPercentage),
         updatedBy: req.user._id,
-      },
+      }),
     },
     { returnDocument: "after", runValidators: true },
   );
   if (!invoice) return res.status(404).json({ message: "Invoice not found" });
-  res.json(invoice);
+  res.json(decryptInvoice(invoice));
 });
 router.delete("/:id", async (req, res) => {
   if (!(await Invoice.findByIdAndDelete(req.params.id)))
