@@ -31,12 +31,45 @@ export function offerLetterFields(values) {
   return fields;
 }
 
+const paragraphPattern = /<w:p(?:\s[^>]*)?>[\s\S]*?<\/w:p>/g;
+const textPattern = /<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g;
+const decodeXml = text => text.replace(/&(amp|lt|gt|quot|apos);/g, (_, entity) => ({ amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" }[entity]));
+
+export async function offerLetterParagraphs(templateBytes) {
+  const { default: JSZip } = await import("jszip");
+  const zip = await JSZip.loadAsync(templateBytes);
+  const xml = await zip.file("word/document.xml").async("string");
+  let editable = false, annexure = false;
+  return [...xml.matchAll(paragraphPattern)].flatMap((match, index) => {
+    const text = [...match[0].matchAll(textPattern)].map(part => decodeXml(part[1])).join("");
+    if (text.startsWith("1. Position and Reporting")) editable = true;
+    if (text === "Annexure I") annexure = true;
+    return editable && text.trim() ? [{ index, text, group: annexure ? "Annexure I" : "Terms and conditions" }] : [];
+  });
+}
+
+function editParagraphs(xml, edits = {}) {
+  let index = 0;
+  return xml.replace(paragraphPattern, paragraph => {
+    const replacement = edits[index++];
+    if (replacement === undefined) return paragraph;
+    if (typeof replacement !== "string" || replacement.length > 10000)
+      throw new Error("Each offer letter paragraph must be at most 10,000 characters.");
+    let first = true;
+    return paragraph.replace(textPattern, () => {
+      const text = first ? escapeXml(replacement).replace(/\r?\n/g, '</w:t><w:br/><w:t xml:space="preserve">') : "";
+      first = false;
+      return `<w:t xml:space="preserve">${text}</w:t>`;
+    });
+  });
+}
+
 export async function fillOfferLetter(templateBytes, values) {
   const { default: JSZip } = await import("jszip");
   const zip = await JSZip.loadAsync(templateBytes);
   const fields = offerLetterFields(values);
   const xml = await zip.file("word/document.xml").async("string");
-  const filled = xml.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+  const filled = editParagraphs(xml, values.paragraphEdits).replace(/\{\{(\w+)\}\}/g, (_, key) => {
     if (fields[key] == null) throw new Error(`Missing letter field: ${key}`);
     return escapeXml(fields[key]);
   });

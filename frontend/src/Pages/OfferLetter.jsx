@@ -1,11 +1,28 @@
-import { useState } from "react";
-import { downloadOfferLetter, remunerationWords } from "../utils/offerLetterDownload.js";
+import { useEffect, useState } from "react";
+import { downloadOfferLetter, remunerationWords, offerLetterParagraphs } from "../utils/offerLetterDownload.js";
+
+import { canUseFinance } from "../utils/financeAccess";
 
 const inputClass = "mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 dark:border-[#243244] dark:bg-[#0b1220] dark:text-gray-200";
 const defaults = intern => ({ candidateName: intern?.candidateName || "", role: intern?.role || "", startDate: intern?.startDate || "", issueDate: new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }), monthlySalary: "15000", salaryWords: "Rupees One Lakh Eighty Thousand Only", paymentRemarks: "Payable monthly", reviewCycle: "Annual Review Cycle", variableIncentive: "Discretionary", incentiveRemarks: "Subject to Company Performance" });
 
 export default function OfferLetter({ intern, onBack, backLabel = "Back to interns" }) {
   const [values, setValues] = useState(() => defaults(intern));
+  const [paragraphs, setParagraphs] = useState([]);
+  const [paragraphEdits, setParagraphEdits] = useState({});
+  const [templateLoading, setTemplateLoading] = useState(true);
+  const [templateError, setTemplateError] = useState("");
+  const canEditTerms = canUseFinance();
+  useEffect(() => {
+    let active = true;
+    fetch(`${import.meta.env.BASE_URL}templates/offer-letter.docx`)
+      .then(response => { if (!response.ok) throw new Error("The offer letter template could not be loaded."); return response.arrayBuffer(); })
+      .then(offerLetterParagraphs)
+      .then(rows => { if (active) setParagraphs(rows); })
+      .catch(err => { if (active) setTemplateError(err.message); })
+      .finally(() => { if (active) setTemplateLoading(false); });
+    return () => { active = false; };
+  }, []);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -14,7 +31,7 @@ export default function OfferLetter({ intern, onBack, backLabel = "Back to inter
     event.preventDefault(); setError(""); setMessage("");
     if (Object.values(values).some(value => !value.trim())) { setError("Complete all required offer letter fields."); return; }
     setBusy(true);
-    try { await downloadOfferLetter(Object.fromEntries(Object.entries(values).map(([key, value]) => [key, value.trim()]))); setMessage("Your offer letter PDF with Annexure I has been downloaded."); }
+    try { await downloadOfferLetter({ ...Object.fromEntries(Object.entries(values).map(([key, value]) => [key, value.trim()])), paragraphEdits: canEditTerms ? paragraphEdits : {} }); setMessage("Your offer letter PDF with Annexure I has been downloaded."); }
     catch (err) { setError(err.message || "The letter could not be generated. Please try again."); }
     finally { setBusy(false); }
   };
@@ -33,9 +50,22 @@ export default function OfferLetter({ intern, onBack, backLabel = "Back to inter
           <div className="text-sm"><span>Annual fixed remuneration (INR)</span><p className="mt-1 rounded-lg bg-gray-50 p-2.5 dark:bg-[#0b1220]">{(Math.round(Number(values.monthlySalary || 0) * 12 * 100) / 100).toLocaleString("en-IN")}</p></div>
           {field("salaryWords", "Annual remuneration in words")}{field("paymentRemarks", "Payment remarks")}{field("reviewCycle", "Performance review eligibility")}{field("variableIncentive", "Variable incentive")}{field("incentiveRemarks", "Incentive remarks")}
         </div>
+        {canEditTerms && <section className="mt-6 border-t pt-5 dark:border-[#243244]">
+          <h2 className="text-lg font-semibold">Edit terms, conditions and Annexure I</h2>
+          <p className="mt-2 mb-4 text-sm text-gray-500">Changes apply to this letter’s PDF. Expand a section to edit its headings, clauses, table text and declarations. Keep placeholders such as {"{{candidateName}}"} and {"{{annualSalary}}"} to fill them from the fields above. Clear a paragraph to omit its text.</p>
+          {templateLoading && <p role="status">Loading letter sections…</p>}
+          {templateError && <p role="alert" className="text-red-500">{templateError}</p>}
+          {["Terms and conditions", "Annexure I"].map(group => <details key={group} className="mb-3 rounded-lg border p-4 dark:border-[#243244]">
+            <summary className="cursor-pointer font-semibold">{group}</summary>
+            <div className="mt-4 space-y-4">{paragraphs.filter(paragraph => paragraph.group === group).map((paragraph, position) => <label key={paragraph.index} className="block text-sm">
+              {group} — paragraph {position + 1}
+              <textarea aria-label={`${group} paragraph ${position + 1}`} rows={paragraph.text.length > 180 ? 5 : 2} maxLength={10000} value={paragraphEdits[paragraph.index] ?? paragraph.text} onChange={event => { setParagraphEdits(current => ({ ...current, [paragraph.index]: event.target.value })); setMessage(""); }} className={inputClass} />
+            </label>)}</div>
+          </details>)}
+        </section>}
         {error && <p role="alert" className="mt-4 text-sm text-red-500">{error}</p>}
         {message && <p role="status" className="mt-4 text-sm text-green-600">{message}</p>}
-        <div className="mt-6 flex flex-col justify-end gap-3 border-t pt-5 sm:flex-row dark:border-[#243244]"><button type="button" onClick={() => { setValues(defaults(intern)); setError(""); setMessage(""); }} className="rounded-lg border px-5 py-3">Reset form</button><button type="submit" className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white disabled:opacity-50">{busy ? "Generating PDF…" : "Download Offer Letter PDF"}</button></div>
+        <div className="mt-6 flex flex-col justify-end gap-3 border-t pt-5 sm:flex-row dark:border-[#243244]"><button type="button" onClick={() => { setValues(defaults(intern)); setParagraphEdits({}); setError(""); setMessage(""); }} className="rounded-lg border px-5 py-3">Reset form</button><button type="submit" disabled={templateLoading || Boolean(templateError)} className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white disabled:opacity-50">{busy ? "Generating PDF…" : "Download Offer Letter PDF"}</button></div>
       </fieldset>
     </form>
   </div>;
