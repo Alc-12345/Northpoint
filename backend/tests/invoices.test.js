@@ -13,7 +13,7 @@ import {
   validateInvoice,
 } from "../shared/invoices.js";
 process.env.INVOICE_ENCRYPTION_KEY = "ab".repeat(32);
-let mongo, admin, employee;
+let mongo, admin, employee, grant = "";
 before(async () => {
   mongo = await MongoMemoryServer.create();
   await mongoose.connect(mongo.getUri());
@@ -47,7 +47,8 @@ const data = () => ({
 const api = (method, path, token = admin) =>
   request(app)
     [method](`/api/invoices${path}`)
-    .set("Authorization", `Bearer ${token}`);
+    .set("Authorization", `Bearer ${token}`)
+    .set("X-Invoice-Unlock", grant);
 test("invoice endpoints require admin authentication", async () => {
   await request(app).get("/api/invoices").expect(401);
   for (const [method, path] of [
@@ -62,6 +63,8 @@ test("invoice endpoints require admin authentication", async () => {
     await api(method, path, employee).expect(403);
 });
 test("CRUD recalculates totals, enforces uniqueness and preserves snapshots", async () => {
+  await api("post", "/amount-access/setup").send({ password: "invoice-test-password" }).expect(201);
+  grant = (await api("post", "/amount-access/unlock").send({ password: "invoice-test-password" }).expect(200)).body.token;
   const body = data();
   body.company.paymentQr =
     "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=";
@@ -145,4 +148,31 @@ test("invalid dates, items, clients, bank details and taxes are rejected", async
     0.35,
   );
   assert.deepEqual(validateInvoice(data()), []);
+});
+
+
+test("amount password is admin-only, immutable and required for all saved financial responses", async () => {
+  grant = "";
+  await api("get", "/amount-access", employee).expect(403);
+  await api("post", "/amount-access/setup", employee).send({ password: "another-password" }).expect(403);
+  await api("post", "/amount-access/unlock", employee).send({ password: "invoice-test-password" }).expect(403);
+  assert.equal((await api("get", "/amount-access").expect(200)).body.configured, true);
+  await api("post", "/amount-access/setup").send({ password: "replacement-password" }).expect(409);
+  await api("post", "/amount-access/unlock").send({ password: "wrong-password" }).expect(403);
+  const created = (await api("post", "").send({ ...data(), invoiceNumber: "LOCKED-1" }).expect(201)).body;
+  const id = created._id;
+  for (const row of [created, (await api("get", `/${id}`).expect(200)).body, ...(await api("get", "").expect(200)).body]) {
+    assert.equal(row.amountsLocked, true);
+    for (const field of ["total", "subtotal", "taxAmount", "taxPercentage", "financialData"]) assert.equal(row[field], undefined);
+    assert.deepEqual(row.items, []);
+  }
+  await api("put", `/${id}`).send(data()).expect(403);
+  grant = "invalid-token";
+  assert.equal((await api("get", `/${id}`).expect(200)).body.amountsLocked, true);
+  grant = (await api("post", "/amount-access/unlock").send({ password: "invoice-test-password" }).expect(200)).body.token;
+  assert.equal((await api("get", `/${id}`).expect(200)).body.total, 10695);
+  await api("put", `/${id}`).send({ ...data(), invoiceNumber: "LOCKED-1" }).expect(200);
+  const legacy = await Invoice.collection.insertOne({ invoiceNumber: "LEGACY", total: 123, items: [{ rate: 123 }] });
+  grant = "";
+  assert.equal((await api("get", `/${legacy.insertedId}`).expect(200)).body.total, undefined);
 });

@@ -155,6 +155,12 @@ function CompanyProfile({ company, onChange }) {
   );
 }
 export default function Invoices() {
+  const [access, setAccess] = useState(null);
+  const [passwordPrompt, setPasswordPrompt] = useState(false);
+  const [amountPassword, setAmountPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [accessBusy, setAccessBusy] = useState(false);
+  const [unlockedUntil, setUnlockedUntil] = useState(0);
   const [companyDraft, setCompanyDraft] = useState(null);
   const [companySaving, setCompanySaving] = useState(false);
   const [companyError, setCompanyError] = useState("");
@@ -174,9 +180,41 @@ export default function Invoices() {
     date: "",
     status: "",
   });
+  const lockAmounts = async () => {
+    await invoiceApi.lockAmounts();
+    setUnlockedUntil(0); setForm(null); setPreview(null);
+    setRows(current => current.map(row => {
+      const masked = { ...row, items: [], amountsLocked: true };
+      for (const key of ["subtotal", "taxAmount", "total", "taxPercentage"]) delete masked[key];
+      return masked;
+    }));
+  };
   useEffect(() => {
-    Promise.all([invoiceApi.getAll(), invoiceApi.getSettings()])
-      .then(([data, config]) => {
+    if (!unlockedUntil) return;
+    const timer = setTimeout(() => { void lockAmounts(); }, Math.max(0, unlockedUntil - Date.now()));
+    return () => clearTimeout(timer);
+  }, [unlockedUntil]);
+  useEffect(() => () => { void invoiceApi.lockAmounts(); }, []);
+  const submitAmountPassword = async event => {
+    event.preventDefault(); setAccessBusy(true);
+    try {
+      if (!access.configured) {
+        if (amountPassword !== confirmPassword) throw new Error("Passwords do not match");
+        await invoiceApi.setupAmountPassword(amountPassword);
+        setAccess({ configured: true });
+      }
+      const grant = await invoiceApi.unlockAmounts(amountPassword);
+      setRows(await invoiceApi.getAll());
+      setUnlockedUntil(Date.now() + grant.expiresIn * 1000);
+      setPasswordPrompt(false);
+      toast.success("Invoice amounts decrypted for 15 minutes");
+    } catch (error) { toast.error(error.message); }
+    finally { setAmountPassword(""); setConfirmPassword(""); setAccessBusy(false); }
+  };
+  useEffect(() => {
+    Promise.all([invoiceApi.getAll(), invoiceApi.getSettings(), invoiceApi.getAmountAccess()])
+      .then(([data, config, amountAccess]) => {
+        setAccess(amountAccess);
         setRows(data);
         setSettings(config);
       })
@@ -233,6 +271,7 @@ export default function Invoices() {
     });
   };
   const edit = (invoice) => {
+    if (invoice.amountsLocked) { toast.error("Decrypt amounts first"); return; }
     setPreview(null);
     setErrors([]);
     setForm(structuredClone(withCompanyDetails(invoice, settings)));
@@ -263,11 +302,13 @@ export default function Invoices() {
       invoiceApi.getSettings(),
     ]);
     setSettings(config);
+    if (savedInvoice.amountsLocked) throw new Error("Decrypt amounts first");
     const invoice = withCompanyDetails(savedInvoice, config);
     const blob = await invoicePdf(invoice);
     setPreview({ invoice, url: URL.createObjectURL(blob) });
   };
   const download = async (row) => {
+    if (row.amountsLocked) throw new Error("Decrypt amounts first");
     const config = await invoiceApi.getSettings();
     setSettings(config);
     await downloadInvoice(withCompanyDetails(row, config));
@@ -301,6 +342,9 @@ export default function Invoices() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
+          {!isPanelPreview() && <button className={buttonClass} disabled={!access || accessBusy} onClick={() => unlockedUntil ? void lockAmounts() : setPasswordPrompt(true)}>
+            {unlockedUntil ? "Lock Amounts" : access?.configured ? "Decrypt Amounts" : "Set Invoice Password"}
+          </button>}
           <button
             className={buttonClass}
             disabled={!settings}
@@ -320,6 +364,14 @@ export default function Invoices() {
           </button>
         </div>
       </div>
+      {passwordPrompt && <form onSubmit={submitAmountPassword} className="mb-6 rounded-lg border bg-white p-5 dark:bg-[#111C2D]">
+        <h2 className="mb-2 font-semibold">{access?.configured ? "Decrypt invoice amounts" : "Set invoice password once"}</h2>
+        <p className="mb-4 text-sm">{access?.configured ? "Enter the invoice password to reveal saved amounts for 15 minutes." : "Only an administrator can set this shared invoice password. It cannot be changed after saving. Use 12–128 characters."}</p>
+        <label className="block mb-3">Invoice password<input autoFocus type="password" autoComplete={access?.configured ? "current-password" : "new-password"} required minLength={access?.configured ? 1 : 12} maxLength={128} value={amountPassword} onChange={e => setAmountPassword(e.target.value)} className={inputClass} /></label>
+        {!access?.configured && <label className="block mb-3">Confirm password<input type="password" autoComplete="new-password" required minLength={12} maxLength={128} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className={inputClass} /></label>}
+        <button disabled={accessBusy} className={buttonClass}>{accessBusy ? "Please wait…" : access?.configured ? "Decrypt Amounts" : "Set Password and Decrypt"}</button>
+        <button type="button" disabled={accessBusy} className={`${buttonClass} ml-2`} onClick={() => { setPasswordPrompt(false); setAmountPassword(""); setConfirmPassword(""); }}>Cancel</button>
+      </form>}
       {isPanelPreview() && (
         <p
           role="status"
@@ -407,7 +459,7 @@ export default function Invoices() {
                   </td>
                   {[row.subtotal, row.taxAmount, row.total].map((v, i) => (
                     <td key={i} className="p-3 whitespace-nowrap">
-                      {currency(v)}
+                      {row.amountsLocked ? "Encrypted" : currency(v)}
                     </td>
                   ))}
                   <td className="p-3">
@@ -419,16 +471,16 @@ export default function Invoices() {
                     <div className="flex gap-2 whitespace-nowrap">
                       <button
                         className={buttonClass}
-                        onClick={() => run(() => view(row))}
+                        disabled={row.amountsLocked} onClick={() => run(() => view(row))}
                       >
                         View
                       </button>
-                      <button className={buttonClass} onClick={() => edit(row)}>
+                      <button className={buttonClass} disabled={row.amountsLocked} onClick={() => edit(row)}>
                         Edit
                       </button>
                       <button
                         className={buttonClass}
-                        onClick={() => run(() => download(row))}
+                        disabled={row.amountsLocked} onClick={() => run(() => download(row))}
                       >
                         PDF
                       </button>

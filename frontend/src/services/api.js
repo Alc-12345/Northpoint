@@ -129,11 +129,21 @@ export const practiceLabApi = {
 
 export default api;
 
+let invoiceUnlockToken = "";
+const invoiceHeaders = () => ({ headers: { "X-Invoice-Unlock": invoiceUnlockToken } });
 const invoiceActions = {
-  getAll: async () => isPanelPreview() ? previewInvoiceApi.getAll() : unwrap(api.get('/invoices')),
-  getById: async id => isPanelPreview() ? previewInvoiceApi.getById(id) : unwrap(api.get(`/invoices/${id}`)),
-  create: async data => isPanelPreview() ? previewInvoiceApi.create(data) : unwrap(api.post('/invoices', data)),
-  update: async (id, data) => isPanelPreview() ? previewInvoiceApi.update(id, data) : unwrap(api.put(`/invoices/${id}`, data)),
+  getAmountAccess: async () => isPanelPreview() ? { configured: false, preview: true } : unwrap(api.get('/invoices/amount-access')),
+  setupAmountPassword: async password => unwrap(api.post('/invoices/amount-access/setup', { password })),
+  unlockAmounts: async password => {
+    const grant = await unwrap(api.post('/invoices/amount-access/unlock', { password }));
+    invoiceUnlockToken = grant.token;
+    return grant;
+  },
+  lockAmounts: async () => { invoiceUnlockToken = ""; },
+  getAll: async () => isPanelPreview() ? previewInvoiceApi.getAll() : unwrap(api.get('/invoices', invoiceHeaders())),
+  getById: async id => isPanelPreview() ? previewInvoiceApi.getById(id) : unwrap(api.get(`/invoices/${id}`, invoiceHeaders())),
+  create: async data => isPanelPreview() ? previewInvoiceApi.create(data) : unwrap(api.post('/invoices', data, invoiceHeaders())),
+  update: async (id, data) => isPanelPreview() ? previewInvoiceApi.update(id, data) : unwrap(api.put(`/invoices/${id}`, data, invoiceHeaders())),
   remove: async id => isPanelPreview() ? previewInvoiceApi.remove(id) : unwrap(api.delete(`/invoices/${id}`)),
   getSettings: async () => isPanelPreview() ? previewInvoiceApi.getSettings() : unwrap(api.get('/invoices/settings')),
   saveSettings: async data => isPanelPreview() ? previewInvoiceApi.saveSettings(data) : unwrap(api.put('/invoices/settings', data)),
