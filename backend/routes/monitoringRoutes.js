@@ -62,12 +62,10 @@ router.post('/monitoring/consent',handle(async(req,res)=>{
     });
     sessionUpdated(req.user._id,{status:'stopped'}); return res.json({withdrawn:true});
   }
-  if(req.body.policyVersion!==(process.env.MONITORING_POLICY_VERSION||'1')||req.body.accepted!==true)fail('Explicit acceptance of the current policy required');
-  const scope=req.body.scope;
-  if(!Array.isArray(scope)||!scope.length||scope.some(s=>!['application','state','website'].includes(s)))fail('Invalid scope');
-  res.json(await MonitoringConsent.create({employee:employee._id,policyVersion:req.body.policyVersion,scope,acceptedAt:new Date()}));
+  return res.status(410).json({message:'Activity collection has been removed; use attendance and task updates'});
 }));
 for(const action of ['start','pause','resume','stop'])router.post(`/monitoring/sessions/${action}`,handle(async(req,res)=>{
+  if(['start','resume'].includes(action))return res.status(410).json({message:'Activity collection has been removed'});
   const {employee,work}=await ownWork(req);
   let result;
   await WorkSession.db.transaction(async session=>{
@@ -91,28 +89,8 @@ for(const action of ['start','pause','resume','stop'])router.post(`/monitoring/s
   sessionUpdated(req.user._id,result);res.json(result);
 }));
 router.post('/monitoring/events/batch',handle(async(req,res)=>{
-  const employee=await employeeFor(req.user);
-  const events=req.body.events;
-  if(!Array.isArray(events)||events.length>200)fail('Maximum 200 events');
-  let accepted=0;
-  await WorkSession.db.transaction(async session=>{
-    const m=await MonitoringSession.findOne({_id:req.body.monitoringSessionId,employee:employee._id,status:'active'}).session(session);
-    if(!m || (m.authorizationExpiresAt && m.authorizationExpiresAt<=new Date()))fail('Monitoring is not active or authorization expired',409);
-    const work=await WorkSession.findOneAndUpdate({_id:m.workSession,status:'open'},{$set:{reason:'activity upload'}},{new:true,session});
-    const consent=await MonitoringConsent.findOne({_id:m.consent,withdrawnAt:null}).session(session);
-    if(!work||!consent)fail('Session authorization ended',409);
-    const now=new Date();
-    for(const e of events){
-      const start=new Date(e.start),end=new Date(e.end);
-      const scope=['active','idle'].includes(e.type)?'state':e.type;
-      if(!consent.scope.includes(scope)||!e.key||e.key.length>128||!Number.isFinite(+start)||!Number.isFinite(+end)||end<=start||end>now||!m.intervals.some(i=>start>=i.start&&end<=(i.end||now)))fail('Event outside authorized interval or scope');
-      if(e.category && !['development','communication','business','research','uncategorized'].includes(e.category))fail('Unsupported activity category');
-      if(e.type==='application' && (typeof e.application!=='string'||!e.application.trim()))fail('Application name required');
-      const data={employee:employee._id,monitoringSession:m._id,key:e.key,type:e.type,start,end,source:e.source,application:e.type==='application'?e.application:undefined,category:e.category,expiresAt:new Date(Date.now()+Number(process.env.ACTIVITY_RETENTION_DAYS||90)*86400000)};
-      const update=await ActivityEvent.updateOne({monitoringSession:m._id,key:e.key},{$setOnInsert:data},{upsert:true,runValidators:true,session});accepted+=update.upsertedCount;
-    }
-    m.lastHeartbeat=now;m.agentStatus='connected';await m.save({session});
-  });res.json({accepted});
+  await employeeFor(req.user);
+  res.status(410).json({message:'Activity collection has been removed'});
 }));
 router.get('/monitoring/me/activity',handle(async(req,res)=>{
   const employee=await employeeFor(req.user);

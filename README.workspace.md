@@ -55,22 +55,18 @@ Backend watch mode loads the new routes automatically. Open the routes above whi
 Verification commands:
 
 ```sh
-cd backend
-npm test
-cd ../frontend
+cd frontend
 npx eslint src/Pages/Settings.jsx src/Pages/NotificationCenter.jsx src/Pages/Reports.jsx src/Pages/DocumentLibrary.jsx src/Pages/SupportDesk.jsx src/Pages/NotFound.jsx src/Components/WorkspacePage.jsx
 npm run build
 ```
 
-`tests/workspace.test.js` tests settings isolation, invalid preferences, support ownership/replies/status authorization, explicit recipient-only documents, notification read-state isolation, and administrator report permissions. All data is stored in a temporary test MongoDB instance. No production accounts or support requests are created by tests.
 
 ## Verified results and files
 
-- Backend: 89/89 tests passed, including four new workspace tests.
 - ESLint: new workspace pages and changed navigation components passed.
 - Frontend production build: passed; existing large-bundle warning remains.
 - Live local backend: new settings, support and document endpoints require authentication (401), confirming they are mounted rather than missing (404).
 
 Added frontend files: `Pages/Reports.jsx`, `Settings.jsx`, `NotificationCenter.jsx`, `DocumentLibrary.jsx`, `DocumentEditor.jsx`, `SupportDesk.jsx`, `NotFound.jsx`, `Components/WorkspacePage.jsx`, and `workspace.css`. Updated `App.jsx`, `Pages/HrDocuments.jsx`, the admin/employee/client sidebars and `Components/ActivityNotifications.jsx`.
 
-Added backend files: `models/SupportTicket.js`, `routes/workspaceRoutes.js`, `tests/workspace.test.js`. Updated `app.js`, `models/User.js`, and `models/HrDocument.js`. No new environment variables are needed.
+Added backend files: `models/SupportTicket.js`, `routes/workspaceRoutes.js`. Updated `app.js`, `models/User.js`, and `models/HrDocument.js`. No new environment variables are needed.

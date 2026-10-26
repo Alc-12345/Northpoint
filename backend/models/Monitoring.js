@@ -24,6 +24,7 @@ export const MonitoringSession = make('MonitoringSession', {
   os: { type: String, enum: ['win32', 'darwin', 'browser'] }, agentVersion: String,
   authorizationExpiresAt: Date, lastHeartbeat: Date, agentStatus: { type: String, default: 'unknown' },
 }, [[{ workSession: 1 }, { unique: true, partialFilterExpression: { status: { $in: ['active', 'paused'] } } }]]);
+// Retain legacy website/extension values for historical reports; new activity ingestion is disabled.
 export const ActivityEvent = make('ActivityEvent', {
   employee: id('Employee'), monitoringSession: id('MonitoringSession'),
   key: { type: String, required: true, maxlength: 128 },

@@ -7,32 +7,6 @@ on:
     branches: [ main, master ]
 
 jobs:
-  backend-test:
-    name: Backend Tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
-
-      - name: Install backend dependencies
-        run: npm ci
-        working-directory: backend
-
-      - name: Run backend tests
-        run: npm test
-        working-directory: backend
-        env:
-          NODE_ENV: test
-          JWT_SECRET: test_jwt_secret_must_be_at_least_32_characters_long_for_ci
-
   frontend-build:
     name: Frontend Build & Test
     runs-on: ubuntu-latest

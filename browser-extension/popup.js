@@ -1,2 +1,0 @@
-document.querySelector('#form').onsubmit=async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.target));const result=await chrome.runtime.sendMessage({action:'enable',data});document.querySelector('#status').textContent=result.message;e.target.elements.password.value='';};
-document.querySelector('#stop').onclick=async()=>{await chrome.runtime.sendMessage({action:'stop'});document.querySelector('#status').textContent='Website monitoring OFF';};

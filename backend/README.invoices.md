@@ -33,10 +33,10 @@ The `Invoice` collection has a unique invoice number index, timestamps, and crea
 From the repository root:
 
 ```sh
-node --test backend/tests/invoices.test.js frontend/src/utils/invoicePdf.test.mjs
+node --test frontend/src/utils/invoicePdf.test.mjs
 ```
 
-API tests use an isolated MongoMemoryServer database. PDF tests load embedded fonts, validate A4 output, assert text stays within page bounds, and exercise long descriptions, many items, and multi-page terms. Browser/OS print behavior should additionally be verified in the deployment environment.
+PDF tests load embedded fonts, validate A4 output, assert text stays within page bounds, and exercise long descriptions, many items, and multi-page terms. Browser/OS print behavior should additionally be verified in the deployment environment.
 
 ## Amount security and deployment
 

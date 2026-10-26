@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import JSZip from "jszip";
-import { fillOfferLetter, offerLetterFields, remunerationWords, offerLetterParagraphs } from "../src/utils/offerLetterDownload.js";
+import { fillOfferLetter, offerLetterFields, remunerationWords, offerLetterParagraphs, salaryBreakdown } from "../src/utils/offerLetterDownload.js";
 const values = { candidateName: 'Aditi & <Sharma>', role: 'Engineer & Developer', startDate: '2026-11-21', issueDate: '2026-10-13', monthlySalary: '20000', salaryWords: 'Rupees Two Lakh Forty Thousand Only', paymentRemarks: 'Payable monthly', reviewCycle: 'Annual Review Cycle', variableIncentive: 'Discretionary', incentiveRemarks: 'Subject to Company Performance' };
 test('offer letter fills all fields and preserves template formatting and assets', async () => {
   const bytes = await readFile(new URL('../public/templates/offer-letter.docx', import.meta.url));
@@ -53,4 +53,38 @@ test('admin paragraph edits reach terms and annexure while retaining document as
   assert.ok(xml.includes('Annexure I — Updated'));
   assert.ok(!xml.includes('Either party may terminate'));
   assert.ok(!xml.includes('{{'));
+});
+
+
+test('optional ESI, PF and bonus rows update the PDF salary table with correct annual totals', async () => {
+  const salaryComponents = [
+    { label: 'ESI', type: 'deduction', frequency: 'monthly', amount: '150' },
+    { label: 'PF', type: 'deduction', frequency: 'monthly', amount: '1800' },
+    { label: 'Additional bonus', type: 'earning', frequency: 'annual', amount: '10000' },
+    { label: 'Allowance & <benefit>', type: 'earning', frequency: 'monthly', amount: '500' },
+  ];
+  const result = salaryBreakdown({ ...values, salaryComponents });
+  assert.equal(result.annualEarnings, 256000);
+  assert.equal(result.annualDeductions, 23400);
+  assert.equal(result.annualNet, 232600);
+  assert.equal(result.components[2].monthly, null);
+  const bytes = await readFile(new URL('../public/templates/offer-letter.docx', import.meta.url));
+  const filled = await JSZip.loadAsync(await fillOfferLetter(bytes, { ...values, salaryComponents }));
+  const xml = await filled.file('word/document.xml').async('string');
+  for (const text of ['ESI', 'PF', 'Additional bonus', 'Allowance &amp; &lt;benefit&gt;', '₹2,56,000', '₹23,400', '₹2,32,600', 'Deduction (monthly)', 'Additional earning (annual)']) assert.ok(xml.includes(text), text);
+  assert.ok(!xml.includes('{{'));
+  assert.ok(!xml.includes('Annualized Compensation'));
+  assert.equal(salaryBreakdown(values).annualNet, 240000);
+  const plain = await JSZip.loadAsync(await fillOfferLetter(bytes, { ...values, salaryComponents: [] }));
+  assert.ok(!(await plain.file('word/document.xml').async('string')).includes('Employee deductions'));
+});
+
+test('invalid salary component amounts and excessive deductions are rejected', () => {
+  const row = { label: 'PF', type: 'deduction', frequency: 'monthly', amount: '1800' };
+  for (const update of [{ amount: '' }, { amount: '-1' }, { amount: 'NaN' }, { amount: '30000' }, { label: '' }, { frequency: 'weekly' }, { type: 'unknown' }]) {
+    assert.throws(() => salaryBreakdown({ ...values, salaryComponents: [{ ...row, ...update }] }));
+  }
+  assert.throws(() => salaryBreakdown({ ...values, salaryComponents: Array(31).fill(row) }));
+  const result = salaryBreakdown({ ...values, salaryComponents: [{ ...row, amount: '0' }] });
+  assert.equal(result.annualDeductions, 0);
 });

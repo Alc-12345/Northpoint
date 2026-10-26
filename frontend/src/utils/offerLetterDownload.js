@@ -16,7 +16,51 @@ export function remunerationWords(amount) {
   return `Rupees ${words(Math.floor(paise / 100))}${paise % 100 ? ` and ${words(paise % 100)} Paise` : ""} Only`;
 }
 
+export function salaryBreakdown(values) {
+  const fixed = Number(values.monthlySalary);
+  if (values.monthlySalary === "" || !Number.isFinite(fixed) || fixed < 0 || fixed > 1e9) throw new Error("Enter valid fixed remuneration.");
+  const rows = values.salaryComponents ?? [];
+  if (!Array.isArray(rows) || rows.length > 30) throw new Error("Add at most 30 salary components.");
+  const round = value => Math.round((value + Number.EPSILON) * 100) / 100;
+  let annualEarnings = round(fixed * 12), annualDeductions = 0;
+  const components = rows.map(row => {
+    if (!row || typeof row.label !== "string" || !row.label.trim() || row.label.length > 120 || !["earning", "deduction"].includes(row.type) || !["monthly", "annual"].includes(row.frequency) || row.amount === "" || row.amount == null || !Number.isFinite(Number(row.amount)) || Number(row.amount) < 0 || Number(row.amount) > 1e9)
+      throw new Error("Each salary component needs a name, non-negative amount, type and payment frequency.");
+    const annual = round(Number(row.amount) * (row.frequency === "monthly" ? 12 : 1));
+    if (row.type === "earning") annualEarnings = round(annualEarnings + annual);
+    else annualDeductions = round(annualDeductions + annual);
+    return { ...row, annual, monthly: row.frequency === "monthly" ? round(Number(row.amount)) : null };
+  });
+  if (annualDeductions > annualEarnings) throw new Error("Deductions cannot exceed gross remuneration.");
+  return { components, annualEarnings, annualDeductions, annualNet: round(annualEarnings - annualDeductions) };
+}
+
+function salaryTable(xml, values) {
+  const totals = salaryBreakdown(values);
+  if (!totals.components.length) return xml;
+  const cell = text => `<w:tc><w:tcPr><w:tcW w:w="2600" w:type="dxa"/></w:tcPr><w:p><w:r><w:t xml:space="preserve">${escapeXml(text)}</w:t></w:r></w:p></w:tc>`;
+  const row = cells => `<w:tr>${cells.map(cell).join("")}</w:tr>`;
+  let inserted = false;
+  const result = xml.replace(/<w:tbl[ >][\s\S]*?<\/w:tbl>/g, table => {
+    if (!table.includes("{{monthlySalary}}")) return table;
+    const additions = totals.components.map(component => row([
+      component.label,
+      component.monthly == null ? "—" : `₹${money(component.monthly)}`,
+      `₹${money(component.annual)}`,
+      `${component.type === "deduction" ? "Deduction" : "Additional earning"} (${component.frequency})`,
+    ])).join("");
+    return table.replace(/<w:tr[ >][\s\S]*?<\/w:tr>/g, original => {
+      if (!original.includes("Annualized Compensation")) return original;
+      inserted = true;
+      return additions + row(["Gross annual remuneration", "—", `₹${money(totals.annualEarnings)}`, "Fixed plus additional earnings"]) + row(["Annual deductions", "—", `₹${money(totals.annualDeductions)}`, "Employee deductions"]) + row(["Net annual remuneration", "—", `₹${money(totals.annualNet)}`, "After deductions"]);
+    });
+  });
+  if (!inserted) throw new Error("Restore the standard remuneration table text before adding salary components.");
+  return result;
+}
+
 export function offerLetterFields(values) {
+  salaryBreakdown(values);
   const fields = { ...values, monthlySalary: money(values.monthlySalary), annualSalary: money(Math.round(Number(values.monthlySalary) * 12 * 100) / 100) };
   for (const [prefix, key] of [["issue", "issueDate"], ["start", "startDate"]]) {
     const date = new Date(`${values[key]}T00:00:00Z`);
@@ -69,7 +113,7 @@ export async function fillOfferLetter(templateBytes, values) {
   const zip = await JSZip.loadAsync(templateBytes);
   const fields = offerLetterFields(values);
   const xml = await zip.file("word/document.xml").async("string");
-  const filled = editParagraphs(xml, values.paragraphEdits).replace(/\{\{(\w+)\}\}/g, (_, key) => {
+  const filled = salaryTable(editParagraphs(xml, values.paragraphEdits), values).replace(/\{\{(\w+)\}\}/g, (_, key) => {
     if (fields[key] == null) throw new Error(`Missing letter field: ${key}`);
     return escapeXml(fields[key]);
   });
