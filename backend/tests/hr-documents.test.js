@@ -33,7 +33,7 @@ test("HR documents require an administrator or HR login", async () => {
   await request(app).get("/api/hr/documents/internship").expect(401);
   await request(app).get("/api/hr/documents/internship").set("Authorization", `Bearer ${employeeToken}`).expect(403);
 });
-test("all three document types persist field values and custom formats and support editing", async () => {
+test("all document types persist field values and custom formats and support editing", async () => {
   for (const type of Object.keys(documentTypes)) {
     const data = { values: fields(type), template: "Dear {{recipientName}}, welcome to {{companyName}}", items: type === "quotation" ? [{ description: "Design", quantity: 2, rate: 125.5 }] : [] };
     const created = await request(app).post(`/api/hr/documents/${type}`).set("Authorization", `Bearer ${adminToken}`).send(data).expect(201);
@@ -64,7 +64,7 @@ test("downloaded layouts fill saved values, escape markup and include quotation 
   const html = documentHtml({ type: "quotation", values, template: "Dear {{recipientName}}", items: [{ description: "<Design>", quantity: 3, rate: 100.01 }] });
   assert.ok(html.includes("Dear &lt;script&gt;alert(1)&lt;/script&gt;"));
   assert.ok(!html.includes("<script>"));
-  assert.ok(html.includes("Total: INR 354.04"));
+  assert.ok(html.includes('<div class="total"><span>Total</span><span>INR 354.04</span></div>'));
   assert.ok(html.includes("&lt;Design&gt;"));
   assert.ok(validateDocument("toString", {}).includes("Unknown document type"));
 });
@@ -101,4 +101,22 @@ test("offer employees persist independently of interns and only admins can add t
   assert.ok(!interns.body.some(intern => intern._id === created.body._id));
   await request(app).post("/api/hr/documents/offer-employees").set("Authorization", `Bearer ${adminToken}`).send({ ...data, startDate: "2026-02-30" }).expect(400);
   await request(app).post("/api/hr/documents/offer-employees").set("Authorization", `Bearer ${adminToken}`).send({ ...data, employmentType: "Intern" }).expect(400);
+});
+
+
+test("blank letterhead and notepad save, reopen and print without recipient requirements", async () => {
+  for (const type of ["letterhead", "notepad"]) {
+    const values = Object.fromEntries(documentTypes[type].fields.map(field => [field.key, ""]));
+    Object.assign(values, { documentNumber: `BLANK-${type}`, companyName: "Northpoint", companyAddress: "Company address" });
+    assert.deepEqual(validateDocument(type, values, [], ""), []);
+    const created = await request(app).post(`/api/hr/documents/${type}`).set("Authorization", `Bearer ${adminToken}`).send({ values, template: "" }).expect(201);
+    assert.equal(created.body.template, "");
+    await request(app).put(`/api/hr/documents/${type}/${created.body._id}`).set("Authorization", `Bearer ${adminToken}`).send({ values, template: "" }).expect(200);
+    const html = documentHtml(created.body);
+    assert.ok(html.includes('<div class="writing-space"></div>'));
+    assert.ok(!html.includes("Document Details"));
+    assert.equal(html.includes("<header>"), type === "letterhead");
+    assert.ok(!html.includes("To:"));
+  }
+  assert.ok(validateDocument("experience-letter", fields("experience-letter"), [], "").length);
 });

@@ -98,7 +98,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
           {[
             { key: "employees", label: "Employees", icon: <FiUsers />, links: [["Attendance", "/employees/attendance"], ["Add Employee", "/employees/add"], ["Salary", "/payroll"]] },
             { key: "projects", label: "Projects", icon: <FiFolder />, links: [["Add Project", "/projects"], ["Assign Project", "/assign-project"], ["Progress", "/projects/progress"]] },
-            { key: "hr", label: "HR", icon: <FiFileText />, links: [["Internship", "/hr/internship"], ["Offer Letter", "/hr/offer-letter"], ["Quotation", "/hr/quotation"]] },
+            { key: "hr", label: "HR", icon: <FiFileText />, links: [["Internship", "/hr/internship"], ["Offer Letter", "/hr/offer-letter"], ["Quotation", "/hr/quotation"], ["Commercials", "/hr/commercials"], ["Experience Letter", "/hr/experience-letter"], ["Appointment Letter", "/hr/appointment-letter"], ["Letterhead", "/hr/letterhead"], ["Notepad", "/hr/notepad"]] },
           ].map(({ key, label, icon, links }) => (
             <div key={key}>
               <button type="button" onClick={() => toggleMenu(key)} aria-expanded={activeMenu === key}

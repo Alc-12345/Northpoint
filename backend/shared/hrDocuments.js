@@ -36,6 +36,58 @@ export const documentTypes = {
     ],
     template: "Dear {{recipientName}},\n\nWe are pleased to offer you the position of {{position}} in the {{department}} department at {{companyName}}.\n\nYour joining date is {{startDate}}. This is a {{employmentType}} position based at {{location}}, with an annual salary of INR {{salary}} and a probation period of {{probation}}.\n\n{{terms}}\n\nPlease sign below to confirm your acceptance.\n\nSincerely,\n{{signatory}}\n{{companyName}}\n\nAccepted by: ____________________\nDate: ____________________",
   },
+  commercials: {
+    title: "Commercials Document",
+    fields: [...common,
+      { key: "projectName", label: "Project / service name", required: true },
+      { key: "scope", label: "Scope and deliverables", type: "textarea", required: true },
+      { key: "commercialValue", label: "Commercial value (INR)", type: "number", required: true },
+      { key: "taxTerms", label: "Taxes and applicable charges", type: "textarea", required: true },
+      { key: "paymentTerms", label: "Payment schedule and terms", type: "textarea", required: true },
+      { key: "deliveryTimeline", label: "Delivery timeline", required: true },
+      { key: "terms", label: "Additional commercial terms", type: "textarea" },
+    ],
+    template: "Prepared for {{recipientName}}\n\nProject / service: {{projectName}}\n\nScope and deliverables\n{{scope}}\n\nCommercial value: INR {{commercialValue}}\nTaxes and charges: {{taxTerms}}\n\nPayment terms\n{{paymentTerms}}\n\nDelivery timeline: {{deliveryTimeline}}\n\n{{terms}}\n\nAuthorized by {{signatory}}\n{{companyName}}",
+  },
+  "experience-letter": {
+    title: "Experience Letter",
+    fields: [...common,
+      { key: "position", label: "Job title", required: true },
+      { key: "department", label: "Department", required: true },
+      { key: "startDate", label: "Employment start date", type: "date", required: true },
+      { key: "endDate", label: "Last working date", type: "date", required: true },
+      { key: "responsibilities", label: "Responsibilities and contributions", type: "textarea", required: true },
+      { key: "remarks", label: "Performance remarks", type: "textarea" },
+    ],
+    template: "To whom it may concern,\n\nThis is to certify that {{recipientName}} was employed with {{companyName}} as {{position}} in the {{department}} department from {{startDate}} to {{endDate}}.\n\nTheir responsibilities and contributions included:\n{{responsibilities}}\n\n{{remarks}}\n\nWe wish them success in their future endeavors.\n\nSincerely,\n{{signatory}}\n{{companyName}}",
+  },
+  "appointment-letter": {
+    title: "Appointment Letter",
+    fields: [...common,
+      { key: "position", label: "Job title", required: true },
+      { key: "department", label: "Department", required: true },
+      { key: "startDate", label: "Appointment effective date", type: "date", required: true },
+      { key: "salary", label: "Annual salary (INR)", type: "number", required: true },
+      { key: "employmentType", label: "Employment type", required: true },
+      { key: "probation", label: "Probation period", required: true },
+      { key: "location", label: "Work location / mode", required: true },
+      { key: "reportingTo", label: "Reporting manager", required: true },
+      { key: "terms", label: "Employment terms and notice period", type: "textarea", required: true },
+    ],
+    template: "Dear {{recipientName}},\n\nWe are pleased to appoint you as {{position}} in the {{department}} department at {{companyName}}, effective {{startDate}}.\n\nThis is a {{employmentType}} appointment based at {{location}}, reporting to {{reportingTo}}. Your annual salary is INR {{salary}} and your probation period is {{probation}}.\n\nEmployment terms\n{{terms}}\n\nPlease sign below to acknowledge and accept this appointment.\n\nSincerely,\n{{signatory}}\n{{companyName}}\n\nAccepted by: ____________________\nDate: ____________________",
+  },
+  letterhead: {
+    title: "Letterhead",
+    allowBlank: true,
+    fields: common.map(field => ({ ...field, required: ["documentNumber", "companyName", "companyAddress"].includes(field.key) })),
+    template: "",
+  },
+  notepad: {
+    title: "Notepad",
+    allowBlank: true,
+    fields: common.map(field => ({ ...field, required: field.key === "documentNumber" })),
+    template: "",
+  },
   quotation: {
     title: "Quotation",
     fields: [...common,
@@ -78,7 +130,7 @@ export function validateDocument(type, values = {}, items = [], template = "") {
   }
   if (values.endDate && values.startDate && values.endDate < values.startDate) errors.push("End date must be on or after start date");
   if (values.validUntil && values.issueDate && values.validUntil < values.issueDate) errors.push("Validity date must be on or after issue date");
-  if (typeof template !== "string" || !template.trim() || template.length > 30000) errors.push("Enter a template up to 30,000 characters");
+  if (typeof template !== "string" || (!config.allowBlank && !template.trim()) || template.length > 30000) errors.push("Enter a template up to 30,000 characters");
   if (typeof template === "string") {
     const keys = new Set(config.fields.map(field => field.key));
     for (const match of template.matchAll(/\{\{(\w+)\}\}/g)) if (!keys.has(match[1])) errors.push(`Unknown template field: ${match[1]}`);

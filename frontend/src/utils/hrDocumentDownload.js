@@ -20,6 +20,11 @@ function quotationHtml({ values: v, items = [], template }) {
 export function documentHtml(document) {
   if (document.type === "quotation") return quotationHtml(document);
   const { values, type, template, items } = document;
+  if (documentTypes[type].allowBlank) {
+    const header = type === "letterhead" ? `<header><h1>${escape(values.companyName)}</h1><div>${escape(values.companyAddress)}</div></header>` : "";
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escape(values.documentNumber)} - ${escape(documentTypes[type].title)}</title><style>
+    *{box-sizing:border-box}body{font:14px/1.8 Arial,sans-serif;color:#172033;background:#eee;margin:0}main{width:210mm;min-height:297mm;padding:20mm;margin:24px auto;background:white}header{border-bottom:3px solid #18a8e6;padding-bottom:16px;margin-bottom:24px;white-space:pre-wrap;overflow-wrap:anywhere}h1{margin:0;font-size:26px}.writing-space{min-height:220mm;white-space:pre-wrap;overflow-wrap:anywhere}@page{size:A4;margin:20mm}@media print{body{background:white}main{width:auto;min-height:257mm;padding:0;margin:0}header{break-inside:avoid}.writing-space{min-height:210mm}}@media screen and (max-width:800px){main{width:100%;padding:24px}}</style></head><body><main>${header}<div class="writing-space">${escape(fillTemplate(template, values))}</div></main></body></html>`;
+  }
   const totals = quotationTotals(items, values.taxRate);
   const details = documentTypes[type].fields.filter(field => values[field.key] !== "" && values[field.key] != null).map(field => `<tr><th>${escape(field.label)}</th><td>${escape(values[field.key])}</td></tr>`).join("");
   const quotation = type === "quotation" ? `<h2>Pricing (INR)</h2><table><thead><tr><th>Description</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${items.map(item => `<tr><td>${escape(item.description)}</td><td>${escape(item.quantity)}</td><td>${money(item.rate)}</td><td>${money(item.quantity * item.rate)}</td></tr>`).join("")}</tbody></table><div class="totals">Subtotal: INR ${money(totals.subtotal)}<br>Tax (${escape(values.taxRate)}%): INR ${money(totals.tax)}<br><strong>Total: INR ${money(totals.total)}</strong></div>` : "";

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { hrDocumentApi } from "../services/api";
-import { documentTypes, fillTemplate, quotationTotals, validateDocument } from "../../../backend/shared/hrDocuments";
+import { documentTypes, quotationTotals, validateDocument } from "../../../backend/shared/hrDocuments";
 import { documentHtml, downloadDocument, printDocument } from "../utils/hrDocumentDownload";
 import Interns from "./Interns.jsx";
 import OfferEmployees from "./OfferEmployees.jsx";
@@ -82,12 +82,12 @@ export function DocumentManager({ type }) {
           <button type="button" disabled={items.length >= 100} onClick={() => setItems([...items, { description: "", quantity: 1, rate: "" }])} className="text-cyan-500">+ Add Item</button>
           <p className="mt-4">Subtotal: INR {totals.subtotal.toFixed(2)} · Tax: INR {totals.tax.toFixed(2)} · <strong>Total: INR {totals.total.toFixed(2)}</strong></p>
         </div>}
-        <details className="mt-6 rounded-lg border p-4 dark:border-[#243244]"><summary className="cursor-pointer font-semibold">Document Format</summary><p className="my-3 text-sm text-gray-500">Set the letter text using placeholders. Field values replace these when you download. Company header, document details and quotation pricing are included automatically.</p>
+        <details open={config.allowBlank || undefined} className="mt-6 rounded-lg border p-4 dark:border-[#243244]"><summary className="cursor-pointer font-semibold">{config.allowBlank ? "Writing space (optional)" : "Document Format"}</summary><p className="my-3 text-sm text-gray-500">{config.allowBlank ? "Write freely below or leave empty for a blank printable page. Letterhead includes your company header; Notepad provides a plain writing page." : "Set the letter text using placeholders. Field values replace these when you download. Company header, document details and quotation pricing are included automatically."}</p>
           <div className="mb-3 flex flex-wrap gap-2">{config.fields.map(field => <button key={field.key} type="button" onClick={() => setTemplate(current => `${current} {{${field.key}}}`)} className="rounded bg-gray-100 px-2 py-1 text-xs dark:bg-[#243244]">{`{{${field.key}}}`}</button>)}</div>
-          <label htmlFor="template" className="mb-1 block text-sm">Template text</label><textarea id="template" required maxLength={30000} rows={12} value={template} onChange={event => setTemplate(event.target.value)} className={inputClass} />
+          <label htmlFor="template" className="mb-1 block text-sm">Template text</label><textarea id="template" required={!config.allowBlank} maxLength={30000} placeholder={config.allowBlank ? "Leave empty for a blank page, or write your notes here…" : undefined} rows={config.allowBlank ? 20 : 12} value={template} onChange={event => setTemplate(event.target.value)} className={inputClass} />
           <button type="button" onClick={() => setTemplate(config.template)} className="mt-2 text-sm text-cyan-500">Reset to standard format</button>
         </details>
-        <details className="mt-4"><summary className="cursor-pointer font-semibold">{type === "quotation" ? "Preview Quotation" : "Preview Letter Text"}</summary>{type === "quotation" ? <iframe title="Quotation preview" sandbox="" srcDoc={documentHtml({ type, values, items, template })} className="mt-3 h-[850px] w-full rounded-lg border bg-white" /> : <div className="mt-3 whitespace-pre-wrap break-words rounded-lg bg-gray-50 p-5 dark:bg-[#0b1220]">{fillTemplate(template, values)}</div>}</details>
+        <details className="mt-4"><summary className="cursor-pointer font-semibold">Preview Document</summary><iframe title="Document preview" sandbox="" srcDoc={documentHtml({ type, values, items, template })} className="mt-3 h-[850px] w-full rounded-lg border bg-white" /></details>
         <button type="submit" className={`${buttonClass} mt-6`}>{saving ? "Saving..." : editingId ? "Save Changes" : "Save Document"}</button>
       </fieldset>
     </form>
