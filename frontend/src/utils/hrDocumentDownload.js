@@ -7,7 +7,7 @@ import { documentTypes, fillTemplate, quotationTotals } from "../../../backend/s
 const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 const money = value => Number(value).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-function quotationHtml({ values: v, items = [], template, company }) {
+function quotationHtml({ values: v, items = [], company }) {
   const totals = quotationTotals(items, v.taxRate);
   const field = (label, value) => `<p><b>${label}</b><span>${escape(value)}</span></p>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(v.documentNumber)} - Quotation</title><style>
@@ -17,7 +17,7 @@ function quotationHtml({ values: v, items = [], template, company }) {
   <div class="project">${field("Project / service", v.projectName)}${field("Scope of work", v.scope)}</div>
   <table aria-label="Quotation items"><thead><tr><th>Description</th><th>Qty</th><th>Rate (INR)</th><th>Amount (INR)</th></tr></thead><tbody>${items.map(item => `<tr><td>${escape(item.description)}</td><td>${escape(item.quantity)}</td><td>${money(item.rate)}</td><td>${money(Number(item.quantity) * Number(item.rate))}</td></tr>`).join("")}</tbody></table>
   <div class="summary"><section><h2>Amount in words</h2>${escape(amountInWords(totals.total))}</section><section class="totals"><div><span>Subtotal</span><span>INR ${money(totals.subtotal)}</span></div><div><span>Tax (${escape(v.taxRate)}%)</span><span>INR ${money(totals.tax)}</span></div><div class="total"><span>Total</span><span>INR ${money(totals.total)}</span></div></section></div>
-  <div class="terms"><section><h2>Payment & delivery</h2>${field("Payment terms", v.paymentTerms)}${field("Delivery timeline", v.deliveryTimeline)}</section><section><h2>Document notes</h2><div class="letter">${escape(fillTemplate(template, v))}</div></section></div>${v.invoiceTerms ? `<section><h2>Terms &amp; conditions</h2><div class="letter">${escape(v.invoiceTerms)}</div></section>` : ""}<div class="signature">${field("Authorized signatory", v.signatory)}For ${escape(v.companyName)}</div></main></body></html>`;
+  <div class="terms"><section><h2>Payment & delivery</h2>${field("Payment terms", v.paymentTerms)}${field("Delivery timeline", v.deliveryTimeline)}</section>${v.invoiceTerms ? `<section><h2>Terms &amp; conditions</h2><div class="letter">${escape(v.invoiceTerms)}</div></section>` : ""}</div><div class="signature">${field("Authorized signatory", v.signatory)}For ${escape(v.companyName)}</div></main></body></html>`;
 }
 
 export function documentHtml(document) {
