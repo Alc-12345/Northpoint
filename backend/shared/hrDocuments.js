@@ -104,16 +104,14 @@ export const documentTypes = {
   },
   quotation: {
     title: "Quotation",
-    fields: [...common, ...companyContactFields,
+    fields: [...common, ...companyContactFields.filter(field => field.key !== "companyTagline"),
       { key: "validUntil", label: "Valid until", type: "date", required: true },
-      { key: "projectName", label: "Project / service name", required: true },
-      { key: "scope", label: "Scope of work", type: "textarea", required: true },
       { key: "paymentTerms", label: "Payment terms", type: "textarea", required: true },
       { key: "deliveryTimeline", label: "Delivery timeline", required: true },
       { key: "taxRate", label: "Tax (%)", type: "number", required: true, max: 100 },
       { key: "notes", label: "Additional notes", type: "textarea" },
     ],
-    template: "Prepared for {{recipientName}}\n\nProject / service: {{projectName}}\nValid until: {{validUntil}}\n\nScope of work\n{{scope}}\n\nDelivery timeline: {{deliveryTimeline}}\n\nPayment terms\n{{paymentTerms}}\n\n{{notes}}\n\nAuthorized by {{signatory}}\n{{companyName}}",
+    template: "Prepared for {{recipientName}}\n\nValid until: {{validUntil}}\n\nDelivery timeline: {{deliveryTimeline}}\n\nPayment terms\n{{paymentTerms}}\n\n{{notes}}\n\nAuthorized by {{signatory}}\n{{companyName}}",
   },
 };
 

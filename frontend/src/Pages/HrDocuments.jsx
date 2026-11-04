@@ -1,7 +1,8 @@
+import commercialLogo from "../assets/austin-legacy-corp.png?inline";
 import { documentCompanyFields, usesInvoiceCompany, withDocumentCompany } from "../../../backend/shared/documentCompany.js";
 import { phaseTotal } from "../utils/commercialDocument.js";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { hrDocumentApi } from "../services/api";
 import { documentTypes, quotationTotals, validateDocument } from "../../../backend/shared/hrDocuments";
 import { documentHtml, downloadDocument, printDocument } from "../utils/hrDocumentDownload";
@@ -22,14 +23,23 @@ export default function HrDocuments() {
 
 export function DocumentManager({ type }) {
   const config = documentTypes[type];
+  const location = useLocation();
+  const navigate = useNavigate();
+  const linkedQuotation = type === "commercials" ? location.state?.quotation : null;
+  const [downloadingBundle, setDownloadingBundle] = useState(false);
   const initialValues = () => Object.fromEntries(config.fields.map(field => [field.key, field.key === "issueDate" ? today() : field.key === "companyName" ? "Northpoint" : field.type === "timeline" ? [] : field.type === "number" ? "0" : ""]));
-  const [draftValues, setValues] = useState(initialValues);
+  const [draftValues, setValues] = useState(() => {
+    const initial = location.state?.quotationDraft || initialValues();
+    if (!linkedQuotation) return initial;
+    const q = linkedQuotation.values;
+    return { ...initial, ...Object.fromEntries(["recipientName", "recipientEmail", "recipientAddress", "signatory", "paymentTerms", "deliveryTimeline"].map(key => [key, q[key] || ""])), documentNumber: `${q.documentNumber}-COM`, commercialValue: quotationTotals(linkedQuotation.items, q.taxRate).total };
+  });
   const [company, setCompany] = useState(null);
   const [companyError, setCompanyError] = useState("");
   const sharedCompany = usesInvoiceCompany(type);
   const values = withDocumentCompany({ type, values: draftValues }, company).values;
   const companyReady = !sharedCompany || Boolean(company);
-  const forOutput = record => withDocumentCompany(record, company);
+  const forOutput = record => withDocumentCompany(record, company ? { ...company, logo: company.logo || commercialLogo } : null);
   useEffect(() => {
     if (!sharedCompany) return;
     let active = true;
@@ -41,7 +51,7 @@ export function DocumentManager({ type }) {
     return () => { active = false; window.removeEventListener("focus", refresh); };
   }, [sharedCompany]);
   const [template, setTemplate] = useState(config.template);
-  const [items, setItems] = useState([{ description: "", quantity: 1, rate: "" }]);
+  const [items, setItems] = useState(location.state?.quotationItems || [{ description: "", quantity: 1, rate: "" }]);
   const [records, setRecords] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -72,14 +82,34 @@ export function DocumentManager({ type }) {
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
   };
-  const edit = record => { setValues(record.values); setTemplate(record.template); setItems(record.items); setEditingId(record._id); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const edit = record => { setValues(record.values); setTemplate(type === "quotation" ? config.template : record.template); setItems(record.items); setEditingId(record._id); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const continueToCommercials = () => {
+    setError("");
+    const errors = validateDocument(type, values, items, config.template);
+    if (!companyReady) errors.push("Load Invoice company settings before continuing.");
+    if (errors.length) { setError(errors.join(". ")); return; }
+    navigate("/hr/commercials", { state: { quotation: { type: "quotation", values: draftValues, items, template: config.template } } });
+  };
+  const downloadBundle = async () => {
+    setError("");
+    const errors = validateDocument("commercials", values, [], template);
+    if (!companyReady) errors.push("Load Invoice company settings before downloading.");
+    if (errors.length) { setError(errors.join(". ")); return; }
+    setDownloadingBundle(true);
+    try {
+      const { downloadQuotationBundle } = await import("../utils/quotationBundlePdf.js");
+      await downloadQuotationBundle(forOutput(linkedQuotation), forOutput({ type, values, items: [], template }));
+      setMessage("Combined PDF downloaded: quotation on page 1, Commercials from page 2.");
+    } catch (err) { setError(err.message); }
+    finally { setDownloadingBundle(false); }
+  };
   const print = record => { try { printDocument(forOutput(record)); } catch (err) { setError(err.message); } };
   const totals = quotationTotals(items, values.taxRate);
   const fieldGroups = type === "quotation" ? [
-    { title: "Company / Bill From", keys: ["companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "companyTagline", "signatory"] },
+    { title: "Company / Bill From", keys: ["companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "signatory"] },
     { title: "Client / Bill To", keys: ["recipientName", "recipientEmail", "recipientAddress"] },
-    { title: "Quotation Details", keys: ["documentNumber", "issueDate", "validUntil", "projectName"] },
-    { title: "Scope, Payment & Terms", keys: ["scope", "paymentTerms", "deliveryTimeline", "taxRate", "notes", "invoiceTerms"] },
+    { title: "Quotation Details", keys: ["documentNumber", "issueDate", "validUntil"] },
+    { title: "Payment & Terms", keys: [ "paymentTerms", "deliveryTimeline", "taxRate", "notes", "invoiceTerms"] },
   ] : type === "commercials" ? [
     { title: "Issuer & Client", keys: ["documentNumber", "issueDate", "companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "companyTagline", "recipientName", "recipientEmail", "recipientAddress", "signatory"] },
     { title: "Project & Commercial Justification", keys: ["projectName", "projectPeriod", "scope", "overview", "commercialValue", "taxTerms", "paymentTerms", "deliveryTimeline"] },
@@ -91,10 +121,11 @@ export function DocumentManager({ type }) {
     <div className="mb-6 flex items-center justify-between gap-4"><div><h1 className="text-2xl font-bold">{config.title}</h1><p className="mt-2 text-sm text-gray-500">Fill the fields, set the document format, and save. Saved documents can be edited or downloaded anytime.</p></div><button type="button" disabled={saving} onClick={reset} className={buttonClass}>New Document</button></div>
     {error && <p role="alert" className="mb-4 text-red-500">{error}</p>}
     {sharedCompany && <div className="mb-4 rounded-lg border p-4"><p className="text-sm">Company details, logo, and terms and conditions come from <a href="/finance/invoices" className="text-cyan-600 underline">Invoice → Company Settings</a>. Changes apply to previews and exports of all quotations and commercials.</p>{companyError ? <p role="alert" className="mt-2 text-red-500">Company settings could not load: {companyError}. Reload to retry.</p> : !company ? <p>Loading company settings...</p> : company.logo ? <img src={company.logo} alt="Company logo" className="mt-3 max-h-24 max-w-72 object-contain" /> : null}</div>}
+    {linkedQuotation && <div className="mb-4 rounded-lg border border-blue-300 bg-blue-50 p-4 text-gray-800"><p>Step 2 of 2: Commercials for quotation <strong>{linkedQuotation.values.documentNumber}</strong>. Complete this form to download both documents in one PDF.</p><button type="button" onClick={() => navigate("/hr/quotation", { state: { quotationDraft: linkedQuotation.values, quotationItems: linkedQuotation.items } })} className="mt-2 text-blue-600 underline">Back to quotation</button></div>}
     {message && <p role="status" className="mb-4 text-green-600">{message}</p>}
     <form onSubmit={save} className="mb-8 rounded-xl border bg-white p-6 dark:border-[#243244] dark:bg-[#111C2D]">
       <h2 className="mb-5 text-lg font-semibold">{editingId ? "Edit saved document" : "Create document"}</h2>
-      <fieldset disabled={saving || !companyReady}>
+      <fieldset disabled={saving || downloadingBundle || !companyReady}>
         <div className="grid gap-6 md:grid-cols-2">{fieldGroups.map(group => <section key={group.title}><h3 className="mb-3 font-semibold">{group.title}</h3><div className="grid gap-4">{group.keys.map(key => config.fields.find(field => field.key === key)).map(field => <div key={field.key}>
           <label htmlFor={field.key} className="mb-1 block text-sm">{field.label}{field.required ? " *" : ""}</label>
           {field.type === "timeline" ? <CommercialTimeline field={field} rows={Array.isArray(values[field.key]) ? values[field.key] : []} onChange={rows => setValues({ ...values, [field.key]: rows })} /> : field.type === "textarea" ? <textarea readOnly={sharedCompany && Object.hasOwn(documentCompanyFields, field.key)} id={field.key} required={field.required} maxLength={field.maxLength ?? 10000} rows={field.key === "invoiceTerms" ? 9 : 3} value={values[field.key] || ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} /> : <input readOnly={sharedCompany && Object.hasOwn(documentCompanyFields, field.key)} id={field.key} type={field.type || "text"} required={field.required} min={field.type === "number" ? 0 : undefined} max={field.max} step={field.type === "number" ? "0.01" : undefined} value={values[field.key] ?? ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />}
@@ -113,6 +144,8 @@ export function DocumentManager({ type }) {
           <button type="button" onClick={() => setTemplate(config.template)} className="mt-2 text-sm text-cyan-500">Reset to standard format</button>
         </details>}
         <details className="mt-4"><summary className="cursor-pointer font-semibold">Preview Document</summary><iframe title="Document preview" sandbox="" srcDoc={documentHtml(forOutput({ type, values, items, template }))} className="mt-3 h-[850px] w-full rounded-lg border bg-white" /></details>
+        {type === "quotation" && <button type="button" onClick={continueToCommercials} className={`${buttonClass} mt-6 mr-3`}>Continue to Commercials →</button>}
+        {linkedQuotation && <button type="button" onClick={downloadBundle} className={`${buttonClass} mt-6 mr-3`}>{downloadingBundle ? "Creating PDF..." : "Download Quotation + Commercials PDF"}</button>}
         <button type="submit" className={`${buttonClass} mt-6`}>{saving ? "Saving..." : editingId ? "Save Changes" : "Save Document"}</button>
       </fieldset>
     </form>
