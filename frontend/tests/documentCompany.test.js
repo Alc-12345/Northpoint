@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { withDocumentCompany } from "../../backend/shared/documentCompany.js";
-import { documentTypes } from "../../backend/shared/hrDocuments.js";
+import { documentTypes, validateDocument } from "../../backend/shared/hrDocuments.js";
 const company = { name: "Current Company", address: "Current billing address", email: "office@example.com", phone: "1234567890", taxId: "GST123", tagline: "Company tagline", termsAndConditions: "1. Deposit payable.\n\n2. Balance on delivery.", logo: "data:image/png;base64,logo" };
 for (const type of ["quotation", "commercials"]) {
   test(`${type} uses current Invoice company settings over saved document values`, () => {
@@ -26,4 +26,9 @@ test("other HR letters retain their own company values and commercials have no r
   const letter = { type: "experience-letter", values: { companyName: "Employer" } };
   assert.equal(withDocumentCompany(letter, company), letter);
   assert.ok(!documentTypes.commercials.fields.some(field => ["revisedPhase", "revisedTimeline"].includes(field.key)));
+});
+
+test("legacy quotation placeholders no longer block validation and hidden payment fields are optional", () => {
+  const values = { documentNumber: "Q-1", issueDate: "2026-11-04", validUntil: "2026-12-04", companyName: "Company", companyAddress: "Address", recipientName: "Client", recipientEmail: "client@example.com", signatory: "Signer", taxRate: 0 };
+  assert.deepEqual(validateDocument("quotation", values, [{ description: "Service", quantity: 1, rate: 100 }], "{{projectName}} {{scope}}"), []);
 });

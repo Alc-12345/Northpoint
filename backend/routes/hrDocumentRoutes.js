@@ -55,7 +55,8 @@ router.get("/:type", async (req, res) => {
 });
 const payload = async (req, res) => {
   const { type } = req.params;
-  const { items = [], template } = req.body;
+  const { items = [] } = req.body;
+  const template = type === "quotation" ? documentTypes.quotation.template : req.body.template;
   const values = usesInvoiceCompany(type) ? withDocumentCompany({ type, values: req.body.values }, await invoiceCompany()).values : req.body.values;
   const errors = validateDocument(type, values, items, template);
   if (errors.length) { res.status(400).json({ errors }); return null; }

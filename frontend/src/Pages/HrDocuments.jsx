@@ -75,7 +75,7 @@ export function DocumentManager({ type }) {
     if (errors.length) { setError(errors.join(". ")); return; }
     setSaving(true);
     try {
-      const data = { values, items: type === "quotation" ? items : [], template };
+      const data = { values, items: type === "quotation" ? items : [], template: type === "quotation" ? config.template : template };
       const record = editingId ? await hrDocumentApi.update(type, editingId, data) : await hrDocumentApi.create(type, data);
       setRecords(current => [record, ...current.filter(item => item._id !== record._id)]);
       setEditingId(record._id); setMessage("Document saved. Download it from the saved list below.");
@@ -108,8 +108,7 @@ export function DocumentManager({ type }) {
   const fieldGroups = type === "quotation" ? [
     { title: "Company / Bill From", keys: ["companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "signatory"] },
     { title: "Client / Bill To", keys: ["recipientName", "recipientEmail", "recipientAddress"] },
-    { title: "Quotation Details", keys: ["documentNumber", "issueDate", "validUntil"] },
-    { title: "Payment & Terms", keys: [ "paymentTerms", "deliveryTimeline", "taxRate", "notes", "invoiceTerms"] },
+    { title: "Quotation Details", keys: ["documentNumber", "issueDate", "validUntil", "taxRate"] },
   ] : type === "commercials" ? [
     { title: "Issuer & Client", keys: ["documentNumber", "issueDate", "companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "companyTagline", "recipientName", "recipientEmail", "recipientAddress", "signatory"] },
     { title: "Project & Commercial Justification", keys: ["projectName", "projectPeriod", "scope", "overview", "commercialValue", "taxTerms", "paymentTerms", "deliveryTimeline"] },

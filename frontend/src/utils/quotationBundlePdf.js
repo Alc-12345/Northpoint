@@ -111,7 +111,7 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
   const totals = quotationTotals(quotation.items, q.taxRate);
   section("AMOUNT IN WORDS", amountInWords(totals.total));
   paragraph(`Subtotal: ${money(totals.subtotal)}     Tax (${q.taxRate}%): ${money(totals.tax)}     Total: ${money(totals.total)}`, 10, true);
-  section("PAYMENT & DELIVERY", `Payment terms: ${q.paymentTerms}\nDelivery timeline: ${q.deliveryTimeline}`);
+  section("PAYMENT & DELIVERY", [q.paymentTerms && `Payment terms: ${q.paymentTerms}`, q.deliveryTimeline && `Delivery timeline: ${q.deliveryTimeline}`].filter(Boolean).join("\n"));
   section("TERMS & CONDITIONS", q.invoiceTerms);
   paragraph(`Authorized signatory: ${q.signatory}\nFor ${q.companyName}`, 9, true);
   const quotePage = page;

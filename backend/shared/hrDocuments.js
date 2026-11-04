@@ -106,8 +106,8 @@ export const documentTypes = {
     title: "Quotation",
     fields: [...common, ...companyContactFields.filter(field => field.key !== "companyTagline"),
       { key: "validUntil", label: "Valid until", type: "date", required: true },
-      { key: "paymentTerms", label: "Payment terms", type: "textarea", required: true },
-      { key: "deliveryTimeline", label: "Delivery timeline", required: true },
+      { key: "paymentTerms", label: "Payment terms", type: "textarea" },
+      { key: "deliveryTimeline", label: "Delivery timeline" },
       { key: "taxRate", label: "Tax (%)", type: "number", required: true, max: 100 },
       { key: "notes", label: "Additional notes", type: "textarea" },
     ],
@@ -129,6 +129,7 @@ export function validateDocument(type, values = {}, items = [], template = "") {
   const config = Object.hasOwn(documentTypes, type) ? documentTypes[type] : null;
   if (!config) return ["Unknown document type"];
   if (!values || typeof values !== "object" || Array.isArray(values)) return ["Document fields are required"];
+  if (type === "quotation") template = config.template;
   const errors = [];
   for (const field of config.fields) {
     const value = values[field.key];
