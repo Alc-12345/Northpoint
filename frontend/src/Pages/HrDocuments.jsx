@@ -1,3 +1,4 @@
+import { phaseTotal } from "../utils/commercialDocument.js";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { hrDocumentApi } from "../services/api";
@@ -20,7 +21,7 @@ export default function HrDocuments() {
 
 export function DocumentManager({ type }) {
   const config = documentTypes[type];
-  const initialValues = () => Object.fromEntries(config.fields.map(field => [field.key, field.key === "issueDate" ? today() : field.key === "companyName" ? "Northpoint" : field.type === "number" ? "0" : ""]));
+  const initialValues = () => Object.fromEntries(config.fields.map(field => [field.key, field.key === "issueDate" ? today() : field.key === "companyName" ? "Northpoint" : field.type === "timeline" ? [] : field.type === "number" ? "0" : ""]));
   const [values, setValues] = useState(initialValues);
   const [template, setTemplate] = useState(config.template);
   const [items, setItems] = useState([{ description: "", quantity: 1, rate: "" }]);
@@ -61,6 +62,12 @@ export function DocumentManager({ type }) {
     { title: "Client / Bill To", keys: ["recipientName", "recipientEmail", "recipientAddress"] },
     { title: "Quotation Details", keys: ["documentNumber", "issueDate", "validUntil", "projectName"] },
     { title: "Scope, Payment & Terms", keys: ["scope", "paymentTerms", "deliveryTimeline", "taxRate", "notes"] },
+  ] : type === "commercials" ? [
+    { title: "Issuer & Client", keys: ["documentNumber", "issueDate", "companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "companyWebsite", "recipientName", "recipientEmail", "recipientAddress", "signatory"] },
+    { title: "Project & Commercial Justification", keys: ["projectName", "projectPeriod", "scope", "overview", "commercialValue", "taxTerms", "paymentTerms", "deliveryTimeline"] },
+    { title: "Original Development Phase", keys: ["originalPhase", "originalTimeline"] },
+    { title: "Revised Project Scope", keys: ["revisedPhase", "revisedTimeline"] },
+    { title: "Implementation, Hosting & Terms", keys: ["implementationStatus", "hostingNote", "terms"] },
   ] : [{ title: "Document details", keys: config.fields.map(field => field.key) }];
   const filtered = records.filter(record => `${record.values.recipientName} ${record.values.documentNumber}`.toLowerCase().includes(search.toLowerCase()));
   return <div className="text-gray-800 dark:text-gray-200">
@@ -72,7 +79,7 @@ export function DocumentManager({ type }) {
       <fieldset disabled={saving}>
         <div className="grid gap-6 md:grid-cols-2">{fieldGroups.map(group => <section key={group.title}><h3 className="mb-3 font-semibold">{group.title}</h3><div className="grid gap-4">{group.keys.map(key => config.fields.find(field => field.key === key)).map(field => <div key={field.key}>
           <label htmlFor={field.key} className="mb-1 block text-sm">{field.label}{field.required ? " *" : ""}</label>
-          {field.type === "textarea" ? <textarea id={field.key} required={field.required} maxLength={10000} rows={3} value={values[field.key] || ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} /> : <input id={field.key} type={field.type || "text"} required={field.required} min={field.type === "number" ? 0 : undefined} max={field.max} step={field.type === "number" ? "0.01" : undefined} value={values[field.key] ?? ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />}
+          {field.type === "timeline" ? <CommercialTimeline field={field} rows={Array.isArray(values[field.key]) ? values[field.key] : []} onChange={rows => setValues({ ...values, [field.key]: rows })} /> : field.type === "textarea" ? <textarea id={field.key} required={field.required} maxLength={10000} rows={3} value={values[field.key] || ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} /> : <input id={field.key} type={field.type || "text"} required={field.required} min={field.type === "number" ? 0 : undefined} max={field.max} step={field.type === "number" ? "0.01" : undefined} value={values[field.key] ?? ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />}
         </div>)}</div></section>)}</div>
         {type === "quotation" && <div className="mt-6"><h2 className="mb-3 font-semibold">Quotation Items (INR)</h2>
           {items.map((item, index) => <div key={index} className="mb-3 grid gap-2 md:grid-cols-[2fr_1fr_1fr_auto]">
@@ -82,8 +89,8 @@ export function DocumentManager({ type }) {
           <button type="button" disabled={items.length >= 100} onClick={() => setItems([...items, { description: "", quantity: 1, rate: "" }])} className="text-cyan-500">+ Add Item</button>
           <p className="mt-4">Subtotal: INR {totals.subtotal.toFixed(2)} · Tax: INR {totals.tax.toFixed(2)} · <strong>Total: INR {totals.total.toFixed(2)}</strong></p>
         </div>}
-        <details open={config.allowBlank || undefined} className="mt-6 rounded-lg border p-4 dark:border-[#243244]"><summary className="cursor-pointer font-semibold">{config.allowBlank ? "Writing space (optional)" : "Document Format"}</summary><p className="my-3 text-sm text-gray-500">{config.allowBlank ? "Write freely below or leave empty for a blank printable page. Letterhead includes your company header; Notepad provides a plain writing page." : "Set the letter text using placeholders. Field values replace these when you download. Company header, document details and quotation pricing are included automatically."}</p>
-          <div className="mb-3 flex flex-wrap gap-2">{config.fields.map(field => <button key={field.key} type="button" onClick={() => setTemplate(current => `${current} {{${field.key}}}`)} className="rounded bg-gray-100 px-2 py-1 text-xs dark:bg-[#243244]">{`{{${field.key}}}`}</button>)}</div>
+        <details open={config.allowBlank || undefined} className="mt-6 rounded-lg border p-4 dark:border-[#243244]"><summary className="cursor-pointer font-semibold">{config.allowBlank ? "Writing space (optional)" : type === "commercials" ? "Closing Note" : "Document Format"}</summary><p className="my-3 text-sm text-gray-500">{config.allowBlank ? "Write freely below or leave empty for a blank printable page. Letterhead includes your company header; Notepad provides a plain writing page." : type === "commercials" ? "The report follows the commercial justification reference: cover, project overview, original and revised scope tables, implementation status, hosting and closing note. Edit the closing note below; the other sections use your form values. Phase totals are calculated from timeline rows; enter the negotiated final value separately." : "Set the letter text using placeholders. Field values replace these when you download. Company header, document details and quotation pricing are included automatically."}</p>
+          <div className="mb-3 flex flex-wrap gap-2">{config.fields.filter(field => field.type !== "timeline").map(field => <button key={field.key} type="button" onClick={() => setTemplate(current => `${current} {{${field.key}}}`)} className="rounded bg-gray-100 px-2 py-1 text-xs dark:bg-[#243244]">{`{{${field.key}}}`}</button>)}</div>
           <label htmlFor="template" className="mb-1 block text-sm">Template text</label><textarea id="template" required={!config.allowBlank} maxLength={30000} placeholder={config.allowBlank ? "Leave empty for a blank page, or write your notes here…" : undefined} rows={config.allowBlank ? 20 : 12} value={template} onChange={event => setTemplate(event.target.value)} className={inputClass} />
           <button type="button" onClick={() => setTemplate(config.template)} className="mt-2 text-sm text-cyan-500">Reset to standard format</button>
         </details>
@@ -96,5 +103,18 @@ export function DocumentManager({ type }) {
       <p className="mb-4 text-sm text-gray-500">Download saves a formatted HTML document. PDF / Print opens the same layout; choose “Save as PDF” in the print dialog.</p>
       {loading ? <p>Loading saved documents...</p> : !filtered.length ? <p>{search ? "No matching documents." : "No saved documents yet."}</p> : <div className="space-y-3">{filtered.map(record => <div key={record._id} className="flex flex-col justify-between gap-4 rounded-xl border bg-white p-5 md:flex-row md:items-center dark:border-[#243244] dark:bg-[#111C2D]"><div><h3 className="font-semibold">{record.values.documentNumber} · {record.values.recipientName}</h3><p className="text-sm text-gray-500">Issued {record.values.issueDate} · Saved {new Date(record.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</p></div><div className="flex flex-wrap gap-2"><button disabled={saving} onClick={() => edit(record)} className="rounded border px-3 py-2">Edit</button><button onClick={() => downloadDocument(record)} className={buttonClass}>Download</button><button onClick={() => print(record)} className="rounded border px-3 py-2">PDF / Print</button></div></div>)}</div>}
     </section>
+  </div>;
+}
+
+function CommercialTimeline({ field, rows, onChange }) {
+  return <div id={field.key} className="space-y-3">
+    {rows.map((row, index) => <div key={index} className="space-y-2 rounded-lg border p-3">
+      <label className="block text-sm">Timeline<input required maxLength={200} placeholder="April – June 2026" value={row.timeline} onChange={event => onChange(rows.map((item, i) => i === index ? { ...item, timeline: event.target.value } : item))} className={inputClass} /></label>
+      <label className="block text-sm">Scope expansion / work description<textarea required maxLength={10000} rows={4} value={row.description} onChange={event => onChange(rows.map((item, i) => i === index ? { ...item, description: event.target.value } : item))} className={inputClass} /></label>
+      <label className="block text-sm">Estimated commercial value (INR)<input required type="number" min="0" max="1000000000000" step="0.01" value={row.amount} onChange={event => onChange(rows.map((item, i) => i === index ? { ...item, amount: event.target.value } : item))} className={inputClass} /></label>
+      <button type="button" onClick={() => onChange(rows.filter((_, i) => i !== index))} className="text-sm text-red-500">Remove row {index + 1}</button>
+    </div>)}
+    <button type="button" disabled={rows.length >= 100} onClick={() => onChange([...rows, { timeline: "", description: "", amount: "" }])} className="text-cyan-600 disabled:opacity-50">+ Add timeline row</button>
+    <p className="text-sm font-semibold">Phase total: INR {phaseTotal(rows).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
   </div>;
 }

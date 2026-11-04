@@ -1,3 +1,4 @@
+import { commercialHtml } from "./commercialDocument.js";
 import companyLogo from "../assets/Logo.png?inline";
 import { amountInWords } from "./amountInWords.js";
 import { documentTypes, fillTemplate, quotationTotals } from "../../../backend/shared/hrDocuments.js";
@@ -19,6 +20,7 @@ function quotationHtml({ values: v, items = [], template }) {
 }
 
 export function documentHtml(document) {
+  if (document.type === "commercials") return commercialHtml(document, companyLogo);
   if (document.type === "quotation") return quotationHtml(document);
   const { values, type, template, items } = document;
   if (documentTypes[type].allowBlank) {

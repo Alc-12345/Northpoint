@@ -37,8 +37,20 @@ export const documentTypes = {
     template: "Dear {{recipientName}},\n\nWe are pleased to offer you the position of {{position}} in the {{department}} department at {{companyName}}.\n\nYour joining date is {{startDate}}. This is a {{employmentType}} position based at {{location}}, with an annual salary of INR {{salary}} and a probation period of {{probation}}.\n\n{{terms}}\n\nPlease sign below to confirm your acceptance.\n\nSincerely,\n{{signatory}}\n{{companyName}}\n\nAccepted by: ____________________\nDate: ____________________",
   },
   commercials: {
-    title: "Commercials Document",
+    title: "Commercial Justification Report",
     fields: [...common,
+      { key: "companyGstin", label: "GSTIN" },
+      { key: "companyEmail", label: "Company email", type: "email" },
+      { key: "companyPhone", label: "Company phone" },
+      { key: "companyWebsite", label: "Company website" },
+      { key: "projectPeriod", label: "Project period" },
+      { key: "overview", label: "Project background and commercial justification", type: "textarea" },
+      { key: "originalPhase", label: "Original development phase / period" },
+      { key: "originalTimeline", label: "Original development timeline", type: "timeline" },
+      { key: "revisedPhase", label: "Revised scope phase / period" },
+      { key: "revisedTimeline", label: "Revised scope timeline", type: "timeline" },
+      { key: "implementationStatus", label: "Implementation status and pending approvals", type: "textarea" },
+      { key: "hostingNote", label: "Hosting, server infrastructure and AMC", type: "textarea" },
       { key: "projectName", label: "Project / service name", required: true },
       { key: "scope", label: "Scope and deliverables", type: "textarea", required: true },
       { key: "commercialValue", label: "Commercial value (INR)", type: "number", required: true },
@@ -47,7 +59,7 @@ export const documentTypes = {
       { key: "deliveryTimeline", label: "Delivery timeline", required: true },
       { key: "terms", label: "Additional commercial terms", type: "textarea" },
     ],
-    template: "Prepared for {{recipientName}}\n\nProject / service: {{projectName}}\n\nScope and deliverables\n{{scope}}\n\nCommercial value: INR {{commercialValue}}\nTaxes and charges: {{taxTerms}}\n\nPayment terms\n{{paymentTerms}}\n\nDelivery timeline: {{deliveryTimeline}}\n\n{{terms}}\n\nAuthorized by {{signatory}}\n{{companyName}}",
+    template: "This report presents the project journey, scope expansion, development effort, and commercial justification for {{projectName}}, prepared for {{recipientName}}.\n\nThe final commercial value is INR {{commercialValue}}. Please review the scope, implementation status, and commercial terms above for approval and payment processing.\n\nThank you for your trust and collaboration.",
   },
   "experience-letter": {
     title: "Experience Letter",
@@ -120,6 +132,10 @@ export function validateDocument(type, values = {}, items = [], template = "") {
   const errors = [];
   for (const field of config.fields) {
     const value = values[field.key];
+    if (field.type === "timeline") {
+      if (value != null && value !== "" && (!Array.isArray(value) || value.length > 100 || value.some(row => !row || typeof row.timeline !== "string" || !row.timeline.trim() || row.timeline.length > 200 || typeof row.description !== "string" || !row.description.trim() || row.description.length > 10000 || !["string", "number"].includes(typeof row.amount) || String(row.amount).trim() === "" || !Number.isFinite(Number(row.amount)) || Number(row.amount) < 0 || Number(row.amount) > 1e12))) errors.push(`${field.label} requires up to 100 rows with a timeline, description and non-negative amount`);
+      continue;
+    }
     if (field.required && (value === undefined || value === null || String(value).trim() === "")) errors.push(`${field.label} is required`);
     if (value !== undefined && value !== "") {
       if (!["string", "number"].includes(typeof value) || String(value).length > 10000) errors.push(`${field.label} is invalid or too long`);
