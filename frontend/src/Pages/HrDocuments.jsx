@@ -1,3 +1,4 @@
+import { documentCompanyFields, usesInvoiceCompany, withDocumentCompany } from "../../../backend/shared/documentCompany.js";
 import { phaseTotal } from "../utils/commercialDocument.js";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -22,7 +23,23 @@ export default function HrDocuments() {
 export function DocumentManager({ type }) {
   const config = documentTypes[type];
   const initialValues = () => Object.fromEntries(config.fields.map(field => [field.key, field.key === "issueDate" ? today() : field.key === "companyName" ? "Northpoint" : field.type === "timeline" ? [] : field.type === "number" ? "0" : ""]));
-  const [values, setValues] = useState(initialValues);
+  const [draftValues, setValues] = useState(initialValues);
+  const [company, setCompany] = useState(null);
+  const [companyError, setCompanyError] = useState("");
+  const sharedCompany = usesInvoiceCompany(type);
+  const values = withDocumentCompany({ type, values: draftValues }, company).values;
+  const companyReady = !sharedCompany || Boolean(company);
+  const forOutput = record => withDocumentCompany(record, company);
+  useEffect(() => {
+    if (!sharedCompany) return;
+    let active = true;
+    const refresh = () => hrDocumentApi.getCompanySettings()
+      .then(data => { if (active) { setCompany(data); setCompanyError(""); } })
+      .catch(err => { if (active) { setCompany(null); setCompanyError(err.message); } });
+    refresh();
+    window.addEventListener("focus", refresh);
+    return () => { active = false; window.removeEventListener("focus", refresh); };
+  }, [sharedCompany]);
   const [template, setTemplate] = useState(config.template);
   const [items, setItems] = useState([{ description: "", quantity: 1, rate: "" }]);
   const [records, setRecords] = useState([]);
@@ -43,6 +60,7 @@ export function DocumentManager({ type }) {
   const reset = () => { setValues(initialValues()); setItems([{ description: "", quantity: 1, rate: "" }]); setTemplate(config.template); setEditingId(null); setError(""); };
   const save = async event => {
     event.preventDefault(); setError(""); setMessage("");
+    if (!companyReady) { setError("Load the Invoice company settings before saving."); return; }
     const errors = validateDocument(type, values, items, template);
     if (errors.length) { setError(errors.join(". ")); return; }
     setSaving(true);
@@ -55,31 +73,31 @@ export function DocumentManager({ type }) {
     finally { setSaving(false); }
   };
   const edit = record => { setValues(record.values); setTemplate(record.template); setItems(record.items); setEditingId(record._id); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); };
-  const print = record => { try { printDocument(record); } catch (err) { setError(err.message); } };
+  const print = record => { try { printDocument(forOutput(record)); } catch (err) { setError(err.message); } };
   const totals = quotationTotals(items, values.taxRate);
   const fieldGroups = type === "quotation" ? [
-    { title: "Company / Bill From", keys: ["companyName", "companyAddress", "signatory"] },
+    { title: "Company / Bill From", keys: ["companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "companyTagline", "signatory"] },
     { title: "Client / Bill To", keys: ["recipientName", "recipientEmail", "recipientAddress"] },
     { title: "Quotation Details", keys: ["documentNumber", "issueDate", "validUntil", "projectName"] },
-    { title: "Scope, Payment & Terms", keys: ["scope", "paymentTerms", "deliveryTimeline", "taxRate", "notes"] },
+    { title: "Scope, Payment & Terms", keys: ["scope", "paymentTerms", "deliveryTimeline", "taxRate", "notes", "invoiceTerms"] },
   ] : type === "commercials" ? [
-    { title: "Issuer & Client", keys: ["documentNumber", "issueDate", "companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "companyWebsite", "recipientName", "recipientEmail", "recipientAddress", "signatory"] },
+    { title: "Issuer & Client", keys: ["documentNumber", "issueDate", "companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "companyTagline", "recipientName", "recipientEmail", "recipientAddress", "signatory"] },
     { title: "Project & Commercial Justification", keys: ["projectName", "projectPeriod", "scope", "overview", "commercialValue", "taxTerms", "paymentTerms", "deliveryTimeline"] },
     { title: "Original Development Phase", keys: ["originalPhase", "originalTimeline"] },
-    { title: "Revised Project Scope", keys: ["revisedPhase", "revisedTimeline"] },
-    { title: "Implementation, Hosting & Terms", keys: ["implementationStatus", "hostingNote", "terms"] },
+    { title: "Implementation, Hosting & Terms", keys: ["implementationStatus", "hostingNote", "terms", "invoiceTerms"] },
   ] : [{ title: "Document details", keys: config.fields.map(field => field.key) }];
   const filtered = records.filter(record => `${record.values.recipientName} ${record.values.documentNumber}`.toLowerCase().includes(search.toLowerCase()));
   return <div className="text-gray-800 dark:text-gray-200">
     <div className="mb-6 flex items-center justify-between gap-4"><div><h1 className="text-2xl font-bold">{config.title}</h1><p className="mt-2 text-sm text-gray-500">Fill the fields, set the document format, and save. Saved documents can be edited or downloaded anytime.</p></div><button type="button" disabled={saving} onClick={reset} className={buttonClass}>New Document</button></div>
     {error && <p role="alert" className="mb-4 text-red-500">{error}</p>}
+    {sharedCompany && <div className="mb-4 rounded-lg border p-4"><p className="text-sm">Company details, logo, and terms and conditions come from <a href="/finance/invoices" className="text-cyan-600 underline">Invoice → Company Settings</a>. Changes apply to previews and exports of all quotations and commercials.</p>{companyError ? <p role="alert" className="mt-2 text-red-500">Company settings could not load: {companyError}. Reload to retry.</p> : !company ? <p>Loading company settings...</p> : company.logo ? <img src={company.logo} alt="Company logo" className="mt-3 max-h-24 max-w-72 object-contain" /> : null}</div>}
     {message && <p role="status" className="mb-4 text-green-600">{message}</p>}
     <form onSubmit={save} className="mb-8 rounded-xl border bg-white p-6 dark:border-[#243244] dark:bg-[#111C2D]">
       <h2 className="mb-5 text-lg font-semibold">{editingId ? "Edit saved document" : "Create document"}</h2>
-      <fieldset disabled={saving}>
+      <fieldset disabled={saving || !companyReady}>
         <div className="grid gap-6 md:grid-cols-2">{fieldGroups.map(group => <section key={group.title}><h3 className="mb-3 font-semibold">{group.title}</h3><div className="grid gap-4">{group.keys.map(key => config.fields.find(field => field.key === key)).map(field => <div key={field.key}>
           <label htmlFor={field.key} className="mb-1 block text-sm">{field.label}{field.required ? " *" : ""}</label>
-          {field.type === "timeline" ? <CommercialTimeline field={field} rows={Array.isArray(values[field.key]) ? values[field.key] : []} onChange={rows => setValues({ ...values, [field.key]: rows })} /> : field.type === "textarea" ? <textarea id={field.key} required={field.required} maxLength={10000} rows={3} value={values[field.key] || ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} /> : <input id={field.key} type={field.type || "text"} required={field.required} min={field.type === "number" ? 0 : undefined} max={field.max} step={field.type === "number" ? "0.01" : undefined} value={values[field.key] ?? ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />}
+          {field.type === "timeline" ? <CommercialTimeline field={field} rows={Array.isArray(values[field.key]) ? values[field.key] : []} onChange={rows => setValues({ ...values, [field.key]: rows })} /> : field.type === "textarea" ? <textarea readOnly={sharedCompany && Object.hasOwn(documentCompanyFields, field.key)} id={field.key} required={field.required} maxLength={field.maxLength ?? 10000} rows={field.key === "invoiceTerms" ? 9 : 3} value={values[field.key] || ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} /> : <input readOnly={sharedCompany && Object.hasOwn(documentCompanyFields, field.key)} id={field.key} type={field.type || "text"} required={field.required} min={field.type === "number" ? 0 : undefined} max={field.max} step={field.type === "number" ? "0.01" : undefined} value={values[field.key] ?? ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />}
         </div>)}</div></section>)}</div>
         {type === "quotation" && <div className="mt-6"><h2 className="mb-3 font-semibold">Quotation Items (INR)</h2>
           {items.map((item, index) => <div key={index} className="mb-3 grid gap-2 md:grid-cols-[2fr_1fr_1fr_auto]">
@@ -89,19 +107,19 @@ export function DocumentManager({ type }) {
           <button type="button" disabled={items.length >= 100} onClick={() => setItems([...items, { description: "", quantity: 1, rate: "" }])} className="text-cyan-500">+ Add Item</button>
           <p className="mt-4">Subtotal: INR {totals.subtotal.toFixed(2)} · Tax: INR {totals.tax.toFixed(2)} · <strong>Total: INR {totals.total.toFixed(2)}</strong></p>
         </div>}
-        <details open={config.allowBlank || undefined} className="mt-6 rounded-lg border p-4 dark:border-[#243244]"><summary className="cursor-pointer font-semibold">{config.allowBlank ? "Writing space (optional)" : type === "commercials" ? "Closing Note" : "Document Format"}</summary><p className="my-3 text-sm text-gray-500">{config.allowBlank ? "Write freely below or leave empty for a blank printable page. Letterhead includes your company header; Notepad provides a plain writing page." : type === "commercials" ? "The report follows the commercial justification reference: cover, project overview, original and revised scope tables, implementation status, hosting and closing note. Edit the closing note below; the other sections use your form values. Phase totals are calculated from timeline rows; enter the negotiated final value separately." : "Set the letter text using placeholders. Field values replace these when you download. Company header, document details and quotation pricing are included automatically."}</p>
+        <details open={config.allowBlank || undefined} className="mt-6 rounded-lg border p-4 dark:border-[#243244]"><summary className="cursor-pointer font-semibold">{config.allowBlank ? "Writing space (optional)" : type === "commercials" ? "Closing Note" : "Document Format"}</summary><p className="my-3 text-sm text-gray-500">{config.allowBlank ? "Write freely below or leave empty for a blank printable page. Letterhead includes your company header; Notepad provides a plain writing page." : type === "commercials" ? "The report follows the commercial justification reference: cover, project overview, development scope table, implementation status, hosting and closing note. Edit the closing note below; the other sections use your form values. The phase total is calculated from timeline rows; enter the negotiated final value separately." : "Set the letter text using placeholders. Field values replace these when you download. Company header, document details and quotation pricing are included automatically."}</p>
           <div className="mb-3 flex flex-wrap gap-2">{config.fields.filter(field => field.type !== "timeline").map(field => <button key={field.key} type="button" onClick={() => setTemplate(current => `${current} {{${field.key}}}`)} className="rounded bg-gray-100 px-2 py-1 text-xs dark:bg-[#243244]">{`{{${field.key}}}`}</button>)}</div>
           <label htmlFor="template" className="mb-1 block text-sm">Template text</label><textarea id="template" required={!config.allowBlank} maxLength={30000} placeholder={config.allowBlank ? "Leave empty for a blank page, or write your notes here…" : undefined} rows={config.allowBlank ? 20 : 12} value={template} onChange={event => setTemplate(event.target.value)} className={inputClass} />
           <button type="button" onClick={() => setTemplate(config.template)} className="mt-2 text-sm text-cyan-500">Reset to standard format</button>
         </details>
-        <details className="mt-4"><summary className="cursor-pointer font-semibold">Preview Document</summary><iframe title="Document preview" sandbox="" srcDoc={documentHtml({ type, values, items, template })} className="mt-3 h-[850px] w-full rounded-lg border bg-white" /></details>
+        <details className="mt-4"><summary className="cursor-pointer font-semibold">Preview Document</summary><iframe title="Document preview" sandbox="" srcDoc={documentHtml(forOutput({ type, values, items, template }))} className="mt-3 h-[850px] w-full rounded-lg border bg-white" /></details>
         <button type="submit" className={`${buttonClass} mt-6`}>{saving ? "Saving..." : editingId ? "Save Changes" : "Save Document"}</button>
       </fieldset>
     </form>
     <section><h2 className="mb-4 text-xl font-semibold">Saved {config.title}s</h2><input aria-label="Search saved documents" placeholder="Search by recipient or document number" value={search} onChange={event => setSearch(event.target.value)} className={`${inputClass} mb-4`} />
       {loadError && <p role="alert" className="mb-4 text-red-500">Saved list could not load: {loadError}. Reload this page to retry.</p>}
       <p className="mb-4 text-sm text-gray-500">Download saves a formatted HTML document. PDF / Print opens the same layout; choose “Save as PDF” in the print dialog.</p>
-      {loading ? <p>Loading saved documents...</p> : !filtered.length ? <p>{search ? "No matching documents." : "No saved documents yet."}</p> : <div className="space-y-3">{filtered.map(record => <div key={record._id} className="flex flex-col justify-between gap-4 rounded-xl border bg-white p-5 md:flex-row md:items-center dark:border-[#243244] dark:bg-[#111C2D]"><div><h3 className="font-semibold">{record.values.documentNumber} · {record.values.recipientName}</h3><p className="text-sm text-gray-500">Issued {record.values.issueDate} · Saved {new Date(record.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</p></div><div className="flex flex-wrap gap-2"><button disabled={saving} onClick={() => edit(record)} className="rounded border px-3 py-2">Edit</button><button onClick={() => downloadDocument(record)} className={buttonClass}>Download</button><button onClick={() => print(record)} className="rounded border px-3 py-2">PDF / Print</button></div></div>)}</div>}
+      {loading ? <p>Loading saved documents...</p> : !filtered.length ? <p>{search ? "No matching documents." : "No saved documents yet."}</p> : <div className="space-y-3">{filtered.map(record => <div key={record._id} className="flex flex-col justify-between gap-4 rounded-xl border bg-white p-5 md:flex-row md:items-center dark:border-[#243244] dark:bg-[#111C2D]"><div><h3 className="font-semibold">{record.values.documentNumber} · {record.values.recipientName}</h3><p className="text-sm text-gray-500">Issued {record.values.issueDate} · Saved {new Date(record.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</p></div><div className="flex flex-wrap gap-2"><button disabled={saving} onClick={() => edit(record)} className="rounded border px-3 py-2">Edit</button><button disabled={!companyReady} onClick={() => downloadDocument(forOutput(record))} className={buttonClass}>Download</button><button disabled={!companyReady} onClick={() => print(record)} className="rounded border px-3 py-2">PDF / Print</button></div></div>)}</div>}
     </section>
   </div>;
 }

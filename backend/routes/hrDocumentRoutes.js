@@ -1,3 +1,6 @@
+import InvoiceSettings from "../models/InvoiceSettings.js";
+import { defaultSettings } from "../shared/invoices.js";
+import { usesInvoiceCompany, withDocumentCompany } from "../shared/documentCompany.js";
 import express from "express";
 import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 import HrDocument from "../models/HrDocument.js";
@@ -9,6 +12,14 @@ const router = express.Router();
 router.use(protect, (req, res, next) => {
   if (!["admin", "superadmin", "hr"].includes(req.user.role)) return res.status(403).json({ message: "HR documents are available to administrators and HR staff" });
   next();
+});
+const invoiceCompany = async () => {
+  const settings = (await InvoiceSettings.findOne({ key: "company" }))?.values || defaultSettings;
+  return { ...settings.company, termsAndConditions: settings.termsAndConditions ?? defaultSettings.termsAndConditions };
+};
+router.get("/company-settings", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json(await invoiceCompany());
 });
 router.get("/interns", async (req, res) => {
   res.json(await Intern.find().sort({ createdAt: -1 }));
@@ -42,19 +53,20 @@ router.get("/:type", async (req, res) => {
   if (!Object.hasOwn(documentTypes, req.params.type)) return res.status(400).json({ message: "Unknown document type" });
   res.json(await HrDocument.find({ type: req.params.type }).sort({ createdAt: -1 }));
 });
-const payload = (req, res) => {
+const payload = async (req, res) => {
   const { type } = req.params;
-  const { values, items = [], template } = req.body;
+  const { items = [], template } = req.body;
+  const values = usesInvoiceCompany(type) ? withDocumentCompany({ type, values: req.body.values }, await invoiceCompany()).values : req.body.values;
   const errors = validateDocument(type, values, items, template);
   if (errors.length) { res.status(400).json({ errors }); return null; }
   return { type, values: Object.fromEntries(documentTypes[type].fields.map(field => [field.key, values[field.key] ?? ""])), template, items: type === "quotation" ? items.map(({ description, quantity, rate }) => ({ description, quantity: Number(quantity), rate: Number(rate) })) : [] };
 };
 router.post("/:type", async (req, res) => {
-  const data = payload(req, res);
+  const data = await payload(req, res);
   if (data) res.status(201).json(await HrDocument.create({ ...data, createdBy: req.user._id }));
 });
 router.put("/:type/:id", async (req, res) => {
-  const data = payload(req, res);
+  const data = await payload(req, res);
   if (!data) return;
   const document = await HrDocument.findOneAndUpdate({ _id: req.params.id, type: req.params.type }, { $set: data }, { returnDocument: "after", runValidators: true });
   if (!document) return res.status(404).json({ message: "Document not found" });

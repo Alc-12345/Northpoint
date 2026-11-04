@@ -8,6 +8,13 @@ const common = [
   { key: "recipientAddress", label: "Recipient address", type: "textarea" },
   { key: "signatory", label: "Authorized signatory", required: true },
 ];
+const companyContactFields = [
+  { key: "invoiceTerms", label: "Terms and conditions (from Invoice settings)", type: "textarea", maxLength: 60000 },
+  { key: "companyGstin", label: "GSTIN" },
+  { key: "companyEmail", label: "Company email", type: "email" },
+  { key: "companyPhone", label: "Company phone" },
+  { key: "companyTagline", label: "Company tagline" },
+];
 export const documentTypes = {
   internship: {
     title: "Internship Letter",
@@ -39,16 +46,11 @@ export const documentTypes = {
   commercials: {
     title: "Commercial Justification Report",
     fields: [...common,
-      { key: "companyGstin", label: "GSTIN" },
-      { key: "companyEmail", label: "Company email", type: "email" },
-      { key: "companyPhone", label: "Company phone" },
-      { key: "companyWebsite", label: "Company website" },
+      ...companyContactFields,
       { key: "projectPeriod", label: "Project period" },
       { key: "overview", label: "Project background and commercial justification", type: "textarea" },
       { key: "originalPhase", label: "Original development phase / period" },
       { key: "originalTimeline", label: "Original development timeline", type: "timeline" },
-      { key: "revisedPhase", label: "Revised scope phase / period" },
-      { key: "revisedTimeline", label: "Revised scope timeline", type: "timeline" },
       { key: "implementationStatus", label: "Implementation status and pending approvals", type: "textarea" },
       { key: "hostingNote", label: "Hosting, server infrastructure and AMC", type: "textarea" },
       { key: "projectName", label: "Project / service name", required: true },
@@ -102,7 +104,7 @@ export const documentTypes = {
   },
   quotation: {
     title: "Quotation",
-    fields: [...common,
+    fields: [...common, ...companyContactFields,
       { key: "validUntil", label: "Valid until", type: "date", required: true },
       { key: "projectName", label: "Project / service name", required: true },
       { key: "scope", label: "Scope of work", type: "textarea", required: true },
@@ -138,7 +140,7 @@ export function validateDocument(type, values = {}, items = [], template = "") {
     }
     if (field.required && (value === undefined || value === null || String(value).trim() === "")) errors.push(`${field.label} is required`);
     if (value !== undefined && value !== "") {
-      if (!["string", "number"].includes(typeof value) || String(value).length > 10000) errors.push(`${field.label} is invalid or too long`);
+      if (!["string", "number"].includes(typeof value) || String(value).length > (field.maxLength ?? 10000)) errors.push(`${field.label} is invalid or too long`);
       if (field.type === "number" && (!Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > (field.max ?? 1e12))) errors.push(`${field.label} is outside the allowed range`);
       if (field.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) errors.push("Enter a valid recipient email");
       if (field.type === "date" && (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0, 10) !== value)) errors.push(`${field.label} is invalid`);
