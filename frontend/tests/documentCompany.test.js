@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { withDocumentCompany } from "../../backend/shared/documentCompany.js";
 import { documentTypes, validateDocument } from "../../backend/shared/hrDocuments.js";
-const company = { name: "Current Company", address: "Current billing address", email: "office@example.com", phone: "1234567890", taxId: "GST123", tagline: "Company tagline", termsAndConditions: "1. Deposit payable.\n\n2. Balance on delivery.", logo: "data:image/png;base64,logo" };
+const company = { name: "Current Company", address: "Current billing address", email: "office@example.com", phone: "1234567890", taxId: "GST123", tagline: "Company tagline", paymentDetails: { method: "Bank Transfer", bankName: "Saved Bank", accountNumber: "001234" }, termsAndConditions: "1. Deposit payable.\n\n2. Balance on delivery.", logo: "data:image/png;base64,logo" };
 for (const type of ["quotation", "commercials"]) {
   test(`${type} uses current Invoice company settings over saved document values`, () => {
     const saved = { type, values: { companyName: "Old Company", companyAddress: "Old address", companyEmail: "old@example.com", companyWebsite: "old-site", recipientName: "Client", projectName: "Project", signatory: "Signer" }, items: [{ description: "Work" }], template: "{{companyName}}" };
@@ -14,6 +14,7 @@ for (const type of ["quotation", "commercials"]) {
     assert.equal(output.values.companyGstin, company.taxId);
     assert.equal(output.values.companyTagline, company.tagline);
     assert.equal(output.company.logo, company.logo);
+    assert.deepEqual(output.paymentDetails, company.paymentDetails);
     assert.equal(output.values.invoiceTerms, company.termsAndConditions);
     assert.equal(output.values.recipientName, "Client");
     assert.equal(output.values.signatory, "Signer");

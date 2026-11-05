@@ -98,7 +98,7 @@ export const taskApi = {
 };
 
 export const hrDocumentApi = {
-  getCompanySettings: async () => isPanelPreview() ? await previewInvoiceApi.getSettings().then(settings => ({ ...settings.company, termsAndConditions: settings.termsAndConditions })) : unwrap(api.get("/hr/documents/company-settings")),
+  getCompanySettings: async () => isPanelPreview() ? await previewInvoiceApi.getSettings().then(settings => ({ ...settings.company, paymentDetails: settings.paymentDetails, termsAndConditions: settings.termsAndConditions })) : unwrap(api.get("/hr/documents/company-settings")),
   getOfferEmployees: async () => isPanelPreview() ? getPreviewOfferEmployees() : unwrap(api.get("/hr/documents/offer-employees")),
   addOfferEmployee: async (data) => isPanelPreview() ? addPreviewOfferEmployee(data) : unwrap(api.post("/hr/documents/offer-employees", data)),
   getInterns: async () => isPanelPreview() ? getPreviewInterns() : unwrap(api.get("/hr/documents/interns")),

@@ -15,6 +15,7 @@ export function withDocumentCompany(document, company) {
   return {
     ...document,
     company,
+    paymentDetails: company.paymentDetails || {},
     values: {
       ...document.values,
       ...Object.fromEntries(Object.entries(documentCompanyFields).map(([field, key]) => [field, company[key] || ""])),

@@ -15,7 +15,7 @@ router.use(protect, (req, res, next) => {
 });
 const invoiceCompany = async () => {
   const settings = (await InvoiceSettings.findOne({ key: "company" }))?.values || defaultSettings;
-  return { ...settings.company, termsAndConditions: settings.termsAndConditions ?? defaultSettings.termsAndConditions };
+  return { ...settings.company, paymentDetails: settings.paymentDetails || defaultSettings.paymentDetails, termsAndConditions: settings.termsAndConditions ?? defaultSettings.termsAndConditions };
 };
 router.get("/company-settings", async (req, res) => {
   res.set("Cache-Control", "no-store");

@@ -111,8 +111,25 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
   const totals = quotationTotals(quotation.items, q.taxRate);
   section("AMOUNT IN WORDS", amountInWords(totals.total));
   paragraph(`Subtotal: ${money(totals.subtotal)}     Tax (${q.taxRate}%): ${money(totals.tax)}     Total: ${money(totals.total)}`, 10, true);
-  section("PAYMENT & DELIVERY", [q.paymentTerms && `Payment terms: ${q.paymentTerms}`, q.deliveryTimeline && `Delivery timeline: ${q.deliveryTimeline}`].filter(Boolean).join("\n"));
-  section("TERMS & CONDITIONS", q.invoiceTerms);
+  const termsTop = y;
+  const gap = 16, paymentWidth = WIDTH * .36, termsWidth = WIDTH - paymentWidth - gap;
+  const columnHeading = (title, x, width) => {
+    page.drawRectangle({ x, y: y - 18, width, height: 18, color: rgb(.93, .94, .96) });
+    text(title, x + 5, y - 3, 9, true); y -= 28;
+  };
+  columnHeading("PAYMENT DETAILS", M, paymentWidth);
+  const payment = quotation.paymentDetails || quotation.company?.paymentDetails || {};
+  for (const [label, value] of [["PAYMENT METHOD", payment.method], ["BANK NAME", payment.bankName], ["ACCOUNT NAME", payment.accountName], ["ACCOUNT NUMBER", payment.accountNumber], ["IFSC CODE", payment.ifscCode]]) {
+    if (!value) continue;
+    paragraph(label, 8, true, paymentWidth - 10, M + 5);
+    paragraph(value, 9, false, paymentWidth - 10, M + 5);
+  }
+  const paymentBottom = y;
+  y = termsTop;
+  const termsX = M + paymentWidth + gap;
+  columnHeading("TERMS & CONDITIONS", termsX, termsWidth);
+  paragraph(String(q.invoiceTerms || "").replace(/\n\s*\n/g, "\n").trim(), 8, false, termsWidth - 10, termsX + 5);
+  y = Math.min(paymentBottom, y) - 12;
   paragraph(`Authorized signatory: ${q.signatory}\nFor ${q.companyName}`, 9, true);
   const quotePage = page;
   const used = quotePage.getHeight() - M - y;
