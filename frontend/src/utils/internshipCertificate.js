@@ -28,14 +28,14 @@ export function renderCertificate(values) {
     do { ctx.font = `${weight} ${actual}px ${font}`; if (ctx.measureText(value).width <= maxWidth) break; actual -= 1; } while (actual > 12);
     ctx.fillText(value, x, y, maxWidth);
   };
-  text(values.companyName || "Northpoint", 842, 165, 76, 1180, "Arial", "bold", "center", "#17648b");
+  text(values.companyName || "ALC", 842, 165, 76, 1180, "Arial", "bold", "center", "#17648b");
   text("INTERNSHIP COMPLETION", 842, 214, 22, 1100, "Arial", "normal", "center", "#8d6b3e");
   text("CERTIFICATE", 458, 480, 93, 720, "Arial", "bold");
   text("O F   I N T E R N S H I P", 458, 530, 32, 700);
   ctx.strokeStyle = "#a3a3a3"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(854, 365); ctx.lineTo(854, 575); ctx.stroke();
   text("This certificate is awarded to", 1230, 419, 32, 655);
   text(values.candidateName || "Candidate name", 1230, 530, 68, 650, "'Brush Script MT', 'Segoe Script', cursive", "italic");
-  text(`From ${values.companyName || "Northpoint"}`, 842, 680, 30, 1430, "Arial", "italic");
+  text(`From ${values.companyName || "ALC"}`, 842, 680, 30, 1430, "Arial", "italic");
   text(`In recognition of their efforts and achievements in completing a ${values.duration === "6" ? "six" : "three"}-month internship program as`, 842, 733, 26, 1470);
   text(values.role || "Internship role", 842, 842, 40, 1400, "Arial", "bold");
   text(`Conducted from ${certificateDate(values.startDate)} – ${certificateDate(completionDate(values.startDate, values.duration))}`, 842, 901, 30, 1430);

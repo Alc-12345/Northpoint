@@ -9,7 +9,7 @@ import OfferLetter from "./OfferLetter.jsx";
 import { isPanelPreview } from "../utils/auth";
 
 const inputClass = "w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 dark:border-[#243244] dark:bg-[#0b1220] dark:text-gray-200";
-const emptyIntern = () => ({ candidateName: "", role: "", companyName: "Northpoint", startDate: "", duration: "3" });
+const emptyIntern = () => ({ candidateName: "", role: "", companyName: "ALC", startDate: "", duration: "3" });
 
 export default function Interns({ offerLetters = false }) {
   let canAdd = false;

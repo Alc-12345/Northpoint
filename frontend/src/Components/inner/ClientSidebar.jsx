@@ -83,9 +83,9 @@ export default function ClientSidebar() {
     <aside className="nav-rail fixed left-0 top-0 h-screen w-64 bg-[#0B1220] border-r border-[#243244] flex flex-col">
 
       {/* Logo */}
-      <NavLink to="/client/dashboard" className="nav-brand" aria-label="Northpoint client dashboard">
+      <NavLink to="/client/dashboard" className="nav-brand" aria-label="ALC client dashboard">
         <img src={logo} alt="" className="nav-brand-logo" />
-        <div className="nav-brand-copy"><strong>Northpoint</strong><span>Client workspace</span></div>
+        <div className="nav-brand-copy"><strong>ALC</strong><span>Client workspace</span></div>
       </NavLink>
 
       {/* Scrollable Menu */}

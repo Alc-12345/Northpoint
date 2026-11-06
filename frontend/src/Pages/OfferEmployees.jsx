@@ -7,7 +7,7 @@ import OfferLetter from "./OfferLetter.jsx";
 import { isPanelPreview } from "../utils/auth";
 
 const inputClass = "w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 dark:border-[#243244] dark:bg-[#0b1220] dark:text-gray-200";
-const emptyEmployee = () => ({ candidateName: "", role: "", companyName: "Northpoint", startDate: "", employmentType: "Full-time" });
+const emptyEmployee = () => ({ candidateName: "", role: "", companyName: "ALC", startDate: "", employmentType: "Full-time" });
 
 export default function OfferEmployees() {
   let canAdd = false;

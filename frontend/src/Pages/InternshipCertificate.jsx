@@ -3,7 +3,7 @@ import { useState } from "react";
 import { completionDate, certificateDate, downloadCertificate } from "../utils/internshipCertificate";
 
 const inputClass = "w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 dark:border-[#243244] dark:bg-[#0b1220] dark:text-gray-200";
-const defaults = () => ({ candidateName: "", issueDate: new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }), startDate: "", duration: "3", role: "", companyName: "Northpoint", signatory: "", designation: "Director" });
+const defaults = () => ({ candidateName: "", issueDate: new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }), startDate: "", duration: "3", role: "", companyName: "ALC", signatory: "", designation: "Director" });
 
 export default function InternshipCertificate({ intern, onBack }) {
   const initialValues = () => ({ ...defaults(), ...(intern ? { candidateName: intern.candidateName, startDate: intern.startDate, duration: intern.duration, role: intern.role, companyName: intern.companyName } : {}) });

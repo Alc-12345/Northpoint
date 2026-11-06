@@ -64,9 +64,9 @@ const EmployeeSidebar = ({ children }) => {
 
         {/* Logo */}
 
-        <NavLink to="/employee-dashboard" className="nav-brand" aria-label="Northpoint employee dashboard">
+        <NavLink to="/employee-dashboard" className="nav-brand" aria-label="ALC employee dashboard">
           <img src={logo} alt="" className="nav-brand-logo" />
-          <div className="nav-brand-copy"><strong>Northpoint</strong><span>Employee workspace</span></div>
+          <div className="nav-brand-copy"><strong>ALC</strong><span>Employee workspace</span></div>
         </NavLink>
 
         {/* Menu */}

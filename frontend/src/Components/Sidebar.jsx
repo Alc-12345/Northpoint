@@ -68,9 +68,9 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
       {/* ================= LEFT SIDEBAR ================= */}
       <div className="nav-rail w-64 h-screen fixed left-0 top-0 bg-white dark:bg-[#0b1220] text-gray-700 dark:text-slate-300 border-r dark:border-[#18a8e6]/50 flex flex-col transition-colors duration-300">
         {/* Logo */}
-        <NavLink to="/" className="nav-brand" aria-label="Northpoint dashboard">
+        <NavLink to="/" className="nav-brand" aria-label="ALC dashboard">
           <img src={logo} alt="" className="nav-brand-logo" />
-          <div className="nav-brand-copy"><strong>Northpoint</strong><span>Admin workspace</span></div>
+          <div className="nav-brand-copy"><strong>ALC</strong><span>Admin workspace</span></div>
         </NavLink>
         {/* <div className="px-5 pt-3 h-16 border-b dark:border-[#243244]">
         

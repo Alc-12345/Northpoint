@@ -56,7 +56,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  res.json({ message: "Northpoint API is running" });
+  res.json({ message: "ALC API is running" });
 });
 
 app.get("/api/health", (req, res) => {

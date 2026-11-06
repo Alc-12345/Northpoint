@@ -31,7 +31,7 @@ MongoDB **must run as a replica set** (MongoDB 7+ recommended). Work-session upd
    Frontend defaults to `http://localhost:5173`; the API defaults to port 5001. Optional `frontend/.env` uses `VITE_API_URL` from `.env.example`.
 4. Use your existing admin and employee accounts. The employee must have an Employee record whose `user` references their User ID. Existing usernames are employee codes; the database ID is the fallback. Resigned employees cannot start sessions. Log in as an admin in one browser and an employee in another. Employee: open `/employee-activity`, check in, update a task, then check out. Admin: observe the finalized popup and open the exact employee/session report.
 
-Desktop and browser-extension tracking have been removed. Employees use Northpoint for check-in/check-out, unpaid breaks, and task updates. No new application, website, or active/idle events are collected. Historical monitoring records and summaries remain readable under the existing access rules and retention policies.
+Desktop and browser-extension tracking have been removed. Employees use ALC for check-in/check-out, unpaid breaks, and task updates. No new application, website, or active/idle events are collected. Historical monitoring records and summaries remain readable under the existing access rules and retention policies.
 
 ## Supported workflows
 

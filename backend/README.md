@@ -1,4 +1,4 @@
-# Northpoint Backend
+# ALC Backend
 
 From the repository root:
 

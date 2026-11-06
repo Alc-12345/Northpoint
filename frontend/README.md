@@ -1,4 +1,4 @@
-# Northpoint Frontend
+# ALC Frontend
 
 This folder contains the React frontend, public assets, build configuration, and uses the common utilities in `../backend/shared/`.
 

@@ -27,7 +27,7 @@ export function DocumentManager({ type }) {
   const navigate = useNavigate();
   const linkedQuotation = type === "commercials" ? location.state?.quotation : null;
   const [downloadingBundle, setDownloadingBundle] = useState(false);
-  const initialValues = () => Object.fromEntries(config.fields.map(field => [field.key, field.key === "issueDate" ? today() : field.key === "companyName" ? "Northpoint" : field.type === "timeline" ? [] : field.type === "number" ? "0" : ""]));
+  const initialValues = () => Object.fromEntries(config.fields.map(field => [field.key, field.key === "issueDate" ? today() : field.key === "companyName" ? "ALC" : field.type === "timeline" ? [] : field.type === "number" ? "0" : ""]));
   const [draftValues, setValues] = useState(() => {
     const initial = location.state?.quotationDraft || initialValues();
     if (!linkedQuotation) return initial;
