@@ -45,3 +45,13 @@ test("read-back failures and absent invoices do not report a successful save", a
   await assert.rejects(savedInvoiceResponse(null, invoice, async () => []), /invalid invoice/);
   await assert.rejects(savedInvoiceResponse(null, invoice, async () => { throw new Error('Offline'); }), /Offline/);
 });
+
+test("invalid responses identify the broken fields without exposing client data", () => {
+  assert.throws(() => invoiceResponse({ ...invoice, _id: undefined }), /missing or invalid _id/);
+  assert.throws(() => invoiceResponse({ ...invoice, items: undefined }), /missing items array/);
+  assert.throws(() => invoiceResponse('<html>private content</html>'), error => {
+    assert.match(error.message, /expected a JSON object, received string/);
+    assert.doesNotMatch(error.message, /private content/);
+    return true;
+  });
+});

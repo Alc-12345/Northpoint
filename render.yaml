@@ -16,6 +16,9 @@ services:
         sync: false
       - key: CLIENT_URL
         sync: false
+      # Must be 64 hex characters; supply a persistent server-only key.
+      - key: INVOICE_ENCRYPTION_KEY
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRES_IN

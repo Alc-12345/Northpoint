@@ -1,5 +1,5 @@
 const errorHandler = (err, req, res, next) => {
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  const statusCode = res.statusCode >= 400 && res.statusCode < 600 ? res.statusCode : 500;
 
   if (err.name === "ValidationError") {
     return res.status(400).json({

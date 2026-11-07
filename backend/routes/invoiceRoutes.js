@@ -131,14 +131,14 @@ function payload(body) {
 router.post("/", async (req, res) => {
   const { data, errors } = payload(req.body);
   if (errors.length) return res.status(400).json({ errors });
-  res.status(201).json(
-    visibleInvoice(await Invoice.create(encryptInvoice({
-      ...data,
-      ...calculate(data.items, data.taxPercentage),
-      createdBy: req.user._id,
-      updatedBy: req.user._id,
-    })), req),
-  );
+  const invoice = await Invoice.create(encryptInvoice({
+    ...data,
+    ...calculate(data.items, data.taxPercentage),
+    createdBy: req.user._id,
+    updatedBy: req.user._id,
+  }));
+  const response = visibleInvoice(invoice, req);
+  res.status(201).json(response);
 });
 router.put("/:id", async (req, res) => {
   if (!req.amountsUnlocked) return res.status(403).json({ message: "Decrypt invoice amounts before editing" });

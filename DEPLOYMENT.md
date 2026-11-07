@@ -125,3 +125,24 @@ With the `.github/workflows/ci.yml` file in place:
    git commit -m "chore: remove sensitive env files from git tracking"
    ```
 3. Keep real secrets strictly inside **Render Environment Variables** and **Netlify Environment Variables**.
+
+## Invoice encryption setup
+
+The backend requires `INVOICE_ENCRYPTION_KEY` before invoices can be saved.
+For an existing Render service, open **Environment**, add the variable, and save/redeploy.
+For a new Blueprint service, supply it when Render prompts for the variable.
+
+If encrypted invoices already exist, restore the original key from your secret store or backup.
+For a new installation, generate a key locally:
+
+```sh
+node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+```
+
+Copy the resulting 64 hexadecimal characters into the backend environment variable
+(without quotes or spaces). Keep a secure backup and preserve it across deployments.
+Do not put it in Vercel frontend variables or source control. For local development,
+set it in `backend/.env`.
+
+An invalid or missing key makes invoice saves fail before a database write.
+The API must report this as an error (HTTP 500), rather than a successful creation (HTTP 201).
