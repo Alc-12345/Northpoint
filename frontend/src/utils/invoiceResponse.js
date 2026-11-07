@@ -17,3 +17,18 @@ export function invoiceListResponse(data) {
   if (!Array.isArray(data)) throw new Error("The server returned an invalid invoice list. Please reload the page.");
   return data.map(invoiceResponse);
 }
+
+// Some deployments acknowledge a write without returning the saved document.
+// Read it back rather than repeating the write (which can create duplicates).
+export async function savedInvoiceResponse(data, submitted, loadInvoices) {
+  try {
+    return invoiceResponse(data);
+  } catch (responseError) {
+    const rows = invoiceListResponse(await loadInvoices());
+    const saved = rows.find(row => submitted._id
+      ? row._id === submitted._id
+      : row.invoiceNumber === submitted.invoiceNumber.trim());
+    if (!saved) throw responseError;
+    return saved;
+  }
+}

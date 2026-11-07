@@ -1,4 +1,4 @@
-import { invoiceResponse, invoiceListResponse } from "../utils/invoiceResponse.js";
+import { invoiceResponse, invoiceListResponse, savedInvoiceResponse } from "../utils/invoiceResponse.js";
 import { previewInvoiceApi } from "../utils/previewInvoices";
 import axios from "axios";
 import { canUseFinance } from "../utils/financeAccess";
@@ -162,7 +162,10 @@ export const invoiceApi = Object.fromEntries(
     }
     const result = await action(...args);
     if (name === "getAll") return invoiceListResponse(result);
-    if (["getById", "create", "update"].includes(name)) return invoiceResponse(result);
+    if (name === "getById") return invoiceResponse(result);
+    if (name === "create" || name === "update") {
+      return savedInvoiceResponse(result, name === "update" ? { ...args[1], _id: args[0] } : args[0], invoiceActions.getAll);
+    }
     return result;
   }]),
 );
