@@ -319,7 +319,7 @@ export default function Invoices() {
         row.invoiceNumber,
         row.client.name,
         row.client.company,
-        ...row.items.map((i) => i.description),
+        ...(row.items || []).map((i) => i.description),
       ]
         .join(" ")
         .toLowerCase()
@@ -453,9 +453,9 @@ export default function Invoices() {
                   </td>
                   <td
                     className="p-3 max-w-52 truncate"
-                    title={row.items.map((i) => i.description).join("; ")}
+                    title={(row.items || []).map((i) => i.description).join("; ")}
                   >
-                    {row.items.map((i) => i.description).join("; ")}
+                    {(row.items || []).map((i) => i.description).join("; ")}
                   </td>
                   {[row.subtotal, row.taxAmount, row.total].map((v, i) => (
                     <td key={i} className="p-3 whitespace-nowrap">

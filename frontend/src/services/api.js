@@ -1,3 +1,4 @@
+import { invoiceResponse, invoiceListResponse } from "../utils/invoiceResponse.js";
 import { previewInvoiceApi } from "../utils/previewInvoices";
 import axios from "axios";
 import { canUseFinance } from "../utils/financeAccess";
@@ -159,6 +160,9 @@ export const invoiceApi = Object.fromEntries(
       if (window.location.protocol !== "https:" || endpoint.protocol !== "https:")
         throw new Error("Invoices require a secure HTTPS connection.");
     }
-    return action(...args);
+    const result = await action(...args);
+    if (name === "getAll") return invoiceListResponse(result);
+    if (["getById", "create", "update"].includes(name)) return invoiceResponse(result);
+    return result;
   }]),
 );
