@@ -1,3 +1,4 @@
+export const GST_RATE = 18;
 export const defaultTerms = [
   "This invoice only covers the services provided by Austin Legacy Corp and does not include any print and production costs.",
   "The Client agrees to pay a 50% (fifty percent) deposit upfront before work commences. Work will not commence until the deposit has been paid via bank transfer.",
@@ -32,7 +33,7 @@ export const defaultSettings = {
   termsAndConditions: defaultTerms,
   paymentTerms: "Balance payable within 7 days",
   dueDays: 7,
-  taxPercentage: 0,
+  taxPercentage: GST_RATE,
 };
 export const statuses = ["Draft", "Sent", "Paid", "Overdue", "Cancelled"];
 export const roundMoney = (value) =>

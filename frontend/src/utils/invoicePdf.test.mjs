@@ -226,3 +226,15 @@ test("invalid discount percentages are rejected", async () => {
     assert.ok(validateInvoice(data).some((error) => error.includes("discount")));
   }
 });
+
+test("invoice currency and amount in words display whole rupees", async () => {
+  const start = drawnText.length;
+  const data = invoice([{ description: "Services", quantity: 1, rate: 100.45 }]);
+  data.taxPercentage = 18;
+  Object.assign(data, calculate(data.items, 18));
+  await invoicePdf(data, fonts);
+  const text = drawnText.slice(start).map(entry => entry.text).join(" ");
+  assert.match(text, /GST \(18%\)/);
+  assert.doesNotMatch(text, /100\.45|118\.53|Paise|Paisa/);
+  assert.match(text, /One Hundred Nineteen/);
+});

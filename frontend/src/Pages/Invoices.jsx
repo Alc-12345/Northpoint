@@ -4,6 +4,7 @@ import { isPanelPreview } from "../utils/auth";
 import { invoiceApi } from "../services/api";
 import {
   calculate,
+  GST_RATE,
   defaultSettings,
   statuses,
   validateInvoice,
@@ -26,7 +27,7 @@ const inputClass =
 const buttonClass =
   "px-4 py-2 rounded-lg border border-gray-200 dark:border-[#243244] hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50";
 const currency = (value) =>
-  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(
     value,
   );
 const dateToday = () => {
@@ -261,6 +262,7 @@ export default function Invoices() {
     setErrors([]);
     setForm({
       ...config,
+      taxPercentage: GST_RATE,
       invoiceNumber: `ALC-${date.slice(0, 7)}-${Date.now().toString().slice(-7)}`,
       invoiceDate: date,
       dueDate: dueDate(date, config.dueDays),
@@ -274,7 +276,7 @@ export default function Invoices() {
     if (invoice.amountsLocked) { toast.error("Decrypt amounts first"); return; }
     setPreview(null);
     setErrors([]);
-    setForm(structuredClone(withCompanyDetails(invoice, settings)));
+    setForm({ ...structuredClone(withCompanyDetails(invoice, settings)), taxPercentage: GST_RATE });
   };
   const totals = form ? calculate(form.items, form.taxPercentage) : null;
   const save = async (e) => {
@@ -792,20 +794,21 @@ export default function Invoices() {
               </button>
               <div className="sm:ml-auto sm:w-80 mt-4 space-y-3">
                 <Field
-                  label="Tax percentage"
+                  label="GST (%)"
                   type="number"
                   min="0"
                   step="any"
                   required
-                  value={form.taxPercentage}
-                  onChange={(v) => change("taxPercentage", v)}
+                  value={GST_RATE}
+                  readOnly
+                  onChange={() => {}}
                 />
                 <p className="flex justify-between">
                   <span>Subtotal</span>
                   {currency(totals.subtotal)}
                 </p>
                 <p className="flex justify-between">
-                  <span>Tax ({form.taxPercentage}%)</span>
+                  <span>GST ({GST_RATE}%)</span>
                   {currency(totals.taxAmount)}
                 </p>
                 <p className="flex justify-between font-bold border-t pt-3">

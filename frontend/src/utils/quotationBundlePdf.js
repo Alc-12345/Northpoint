@@ -4,7 +4,7 @@ import { amountInWords } from "./amountInWords.js";
 import { documentTypes, fillTemplate, quotationTotals } from "../../../backend/shared/hrDocuments.js";
 import { phaseTotal } from "./commercialDocument.js";
 
-const money = value => `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+const money = value => `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 const W = 595.28, H = 841.89, M = 28, WIDTH = W - M * 2;
 
 export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
@@ -109,8 +109,8 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
   quotation.items.forEach(item => row([item.description, item.quantity, money(item.rate), money(Number(item.quantity) * Number(item.rate))], widths));
   y -= 12;
   const totals = quotationTotals(quotation.items, q.taxRate);
-  section("AMOUNT IN WORDS", amountInWords(totals.total));
-  paragraph(`Subtotal: ${money(totals.subtotal)}     Tax (${q.taxRate}%): ${money(totals.tax)}     Total: ${money(totals.total)}`, 10, true);
+  section("AMOUNT IN WORDS", amountInWords(Math.round(totals.total)));
+  paragraph(`Subtotal: ${money(totals.subtotal)}     GST (${q.taxRate}%): ${money(totals.tax)}     Total: ${money(totals.total)}`, 10, true);
   const termsTop = y;
   const gap = 16, paymentWidth = WIDTH * .36, termsWidth = WIDTH - paymentWidth - gap;
   const columnHeading = (title, x, width) => {

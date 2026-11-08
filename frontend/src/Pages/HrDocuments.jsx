@@ -1,3 +1,4 @@
+import { GST_RATE } from "../../../backend/shared/invoices.js";
 import commercialLogo from "../assets/austin-legacy-corp.png?inline";
 import { documentCompanyFields, usesInvoiceCompany, withDocumentCompany } from "../../../backend/shared/documentCompany.js";
 import { phaseTotal } from "../utils/commercialDocument.js";
@@ -37,7 +38,8 @@ export function DocumentManager({ type }) {
   const [company, setCompany] = useState(null);
   const [companyError, setCompanyError] = useState("");
   const sharedCompany = usesInvoiceCompany(type);
-  const values = withDocumentCompany({ type, values: draftValues }, company).values;
+  const companyValues = withDocumentCompany({ type, values: draftValues }, company).values;
+  const values = type === "quotation" ? { ...companyValues, taxRate: GST_RATE } : companyValues;
   const companyReady = !sharedCompany || Boolean(company);
   const forOutput = record => withDocumentCompany(record, company ? { ...company, logo: company.logo || commercialLogo } : null);
   useEffect(() => {
@@ -127,7 +129,7 @@ export function DocumentManager({ type }) {
       <fieldset disabled={saving || downloadingBundle || !companyReady}>
         <div className="grid gap-6 md:grid-cols-2">{fieldGroups.map(group => <section key={group.title}><h3 className="mb-3 font-semibold">{group.title}</h3><div className="grid gap-4">{group.keys.map(key => config.fields.find(field => field.key === key)).map(field => <div key={field.key}>
           <label htmlFor={field.key} className="mb-1 block text-sm">{field.label}{field.required ? " *" : ""}</label>
-          {field.type === "timeline" ? <CommercialTimeline field={field} rows={Array.isArray(values[field.key]) ? values[field.key] : []} onChange={rows => setValues({ ...values, [field.key]: rows })} /> : field.type === "textarea" ? <textarea readOnly={sharedCompany && Object.hasOwn(documentCompanyFields, field.key)} id={field.key} required={field.required} maxLength={field.maxLength ?? 10000} rows={field.key === "invoiceTerms" ? 9 : 3} value={values[field.key] || ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} /> : <input readOnly={sharedCompany && Object.hasOwn(documentCompanyFields, field.key)} id={field.key} type={field.type || "text"} required={field.required} min={field.type === "number" ? 0 : undefined} max={field.max} step={field.type === "number" ? "0.01" : undefined} value={values[field.key] ?? ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />}
+          {field.type === "timeline" ? <CommercialTimeline field={field} rows={Array.isArray(values[field.key]) ? values[field.key] : []} onChange={rows => setValues({ ...values, [field.key]: rows })} /> : field.type === "textarea" ? <textarea readOnly={field.readOnly || (sharedCompany && Object.hasOwn(documentCompanyFields, field.key))} id={field.key} required={field.required} maxLength={field.maxLength ?? 10000} rows={field.key === "invoiceTerms" ? 9 : 3} value={values[field.key] || ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} /> : <input readOnly={field.readOnly || (sharedCompany && Object.hasOwn(documentCompanyFields, field.key))} id={field.key} type={field.type || "text"} required={field.required} min={field.type === "number" ? 0 : undefined} max={field.max} step={field.type === "number" ? "0.01" : undefined} value={values[field.key] ?? ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />}
         </div>)}</div></section>)}</div>
         {type === "quotation" && <div className="mt-6"><h2 className="mb-3 font-semibold">Quotation Items (INR)</h2>
           {items.map((item, index) => <div key={index} className="mb-3 grid gap-2 md:grid-cols-[2fr_1fr_1fr_auto]">
@@ -135,7 +137,7 @@ export function DocumentManager({ type }) {
             <button type="button" disabled={items.length === 1} onClick={() => setItems(items.filter((_, rowIndex) => rowIndex !== index))} className="self-end rounded border px-3 py-2 disabled:opacity-40">Remove</button>
           </div>)}
           <button type="button" disabled={items.length >= 100} onClick={() => setItems([...items, { description: "", quantity: 1, rate: "" }])} className="text-cyan-500">+ Add Item</button>
-          <p className="mt-4">Subtotal: INR {totals.subtotal.toFixed(2)} · Tax: INR {totals.tax.toFixed(2)} · <strong>Total: INR {totals.total.toFixed(2)}</strong></p>
+          <p className="mt-4">Subtotal: INR {totals.subtotal.toLocaleString("en-IN", { maximumFractionDigits: 0 })} · GST (18%): INR {totals.tax.toLocaleString("en-IN", { maximumFractionDigits: 0 })} · <strong>Total: INR {totals.total.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</strong></p>
         </div>}
         {type !== "quotation" && <details open={config.allowBlank || undefined} className="mt-6 rounded-lg border p-4 dark:border-[#243244]"><summary className="cursor-pointer font-semibold">{config.allowBlank ? "Writing space (optional)" : type === "commercials" ? "Closing Note" : "Document Format"}</summary><p className="my-3 text-sm text-gray-500">{config.allowBlank ? "Write freely below or leave empty for a blank printable page. Letterhead includes your company header; Notepad provides a plain writing page." : type === "commercials" ? "The report follows the commercial justification reference: cover, project overview, development scope table, implementation status, hosting and closing note. Edit the closing note below; the other sections use your form values. The phase total is calculated from timeline rows; enter the negotiated final value separately." : "Set the letter text using placeholders. Field values replace these when you download. Company header, document details and quotation pricing are included automatically."}</p>
           <div className="mb-3 flex flex-wrap gap-2">{config.fields.filter(field => field.type !== "timeline").map(field => <button key={field.key} type="button" onClick={() => setTemplate(current => `${current} {{${field.key}}}`)} className="rounded bg-gray-100 px-2 py-1 text-xs dark:bg-[#243244]">{`{{${field.key}}}`}</button>)}</div>

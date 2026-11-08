@@ -19,7 +19,7 @@ test('invoice save returns a table-compatible invoice when locked and unlocked',
     await save({
       amountsUnlocked: unlocked,
       user: { _id: '507f1f77bcf86cd799439011' },
-      body: { ...structuredClone(defaultSettings), invoiceNumber: 'INV-001', invoiceDate: '2026-11-07', dueDate: '2026-11-14', client: { name: 'Client' }, status: 'Draft', items: [{ description: 'Services', quantity: 1, rate: 100 }] },
+      body: { ...structuredClone(defaultSettings), invoiceNumber: 'INV-001', invoiceDate: '2026-11-07', dueDate: '2026-11-14', client: { name: 'Client' }, status: 'Draft', taxPercentage: 5, items: [{ description: 'Services', quantity: 1, rate: 100 }] },
     }, {
       status(value) { status = value; return this; },
       json(value) { body = JSON.parse(JSON.stringify(value)); },
@@ -28,7 +28,10 @@ test('invoice save returns a table-compatible invoice when locked and unlocked',
     assert.doesNotThrow(() => invoiceResponse(body));
     assert.equal(body.amountsLocked, !unlocked);
     assert.equal(body.financialData, undefined);
-    if (unlocked) assert.equal(body.total, 100);
+    if (unlocked) {
+      assert.equal(body.taxPercentage, 18);
+      assert.equal(body.total, 118);
+    }
     else assert.equal(body.total, undefined);
   }
 });
@@ -45,7 +48,7 @@ test('invalid encryption configuration fails before writing or setting success s
   let status = 200;
   await assert.rejects(save({
     user: { _id: '507f1f77bcf86cd799439011' },
-    body: { ...structuredClone(defaultSettings), invoiceNumber: 'INV-FAIL', invoiceDate: '2026-11-07', dueDate: '2026-11-14', client: { name: 'Client' }, status: 'Draft', items: [{ description: 'Services', quantity: 1, rate: 100 }] },
+    body: { ...structuredClone(defaultSettings), invoiceNumber: 'INV-FAIL', invoiceDate: '2026-11-07', dueDate: '2026-11-14', client: { name: 'Client' }, status: 'Draft', taxPercentage: 5, items: [{ description: 'Services', quantity: 1, rate: 100 }] },
   }, { status(value) { status = value; return this; } }), /INVOICE_ENCRYPTION_KEY/);
   assert.equal(status, 200);
   assert.equal(create.mock.callCount(), 0);

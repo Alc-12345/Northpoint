@@ -2,6 +2,7 @@ import { isPanelPreview } from "./auth.js";
 import { canUseFinance } from "./financeAccess.js";
 import {
   calculate,
+  GST_RATE,
   defaultSettings,
   validateInvoice,
 } from "../../../backend/shared/invoices.js";
@@ -23,6 +24,7 @@ function write(key, value) {
   return structuredClone(value);
 }
 function validated(data) {
+  data = { ...data, taxPercentage: GST_RATE };
   const errors = validateInvoice(data);
   if (errors.length) throw new Error(errors.join(", "));
   return {
@@ -79,6 +81,7 @@ export const previewInvoiceApi = {
   },
   getSettings: () => read(settingsKey, defaultSettings),
   saveSettings: (values) => {
+    values = { ...values, taxPercentage: GST_RATE };
     authorize();
     validated({
       ...values,

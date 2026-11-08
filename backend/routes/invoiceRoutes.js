@@ -11,6 +11,7 @@ import InvoiceSettings from "../models/InvoiceSettings.js";
 import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 import {
   calculate,
+  GST_RATE,
   defaultSettings,
   validateInvoice,
 } from "../shared/invoices.js";
@@ -77,6 +78,7 @@ router.put("/settings", async (req, res) => {
     "dueDays",
     "taxPercentage",
   ]);
+  values.taxPercentage = GST_RATE;
   const errors = validateInvoice({
     ...values,
     invoiceNumber: "SETTINGS",
@@ -126,6 +128,7 @@ function payload(body) {
     "termsAndConditions",
     "status",
   ]);
+  data.taxPercentage = GST_RATE;
   return { data, errors: validateInvoice(data) };
 }
 router.post("/", async (req, res) => {

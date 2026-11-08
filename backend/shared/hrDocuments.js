@@ -1,3 +1,4 @@
+import { GST_RATE } from "./invoices.js";
 const common = [
   { key: "documentNumber", label: "Document number", required: true },
   { key: "issueDate", label: "Issue date", type: "date", required: true },
@@ -108,14 +109,14 @@ export const documentTypes = {
       { key: "validUntil", label: "Valid until", type: "date", required: true },
       { key: "paymentTerms", label: "Payment terms", type: "textarea" },
       { key: "deliveryTimeline", label: "Delivery timeline" },
-      { key: "taxRate", label: "Tax (%)", type: "number", required: true, max: 100 },
+      { key: "taxRate", label: "GST (%)", type: "number", required: true, min: GST_RATE, max: GST_RATE, readOnly: true },
       { key: "notes", label: "Additional notes", type: "textarea" },
     ],
     template: "Prepared for {{recipientName}}\n\nValid until: {{validUntil}}\n\nDelivery timeline: {{deliveryTimeline}}\n\nPayment terms\n{{paymentTerms}}\n\n{{notes}}\n\nAuthorized by {{signatory}}\n{{companyName}}",
   },
 };
 
-export function quotationTotals(items = [], taxRate = 0) {
+export function quotationTotals(items = [], taxRate = GST_RATE) {
   const subtotal = Math.round(items.reduce((sum, item) => sum + Number(item.quantity) * Number(item.rate), 0) * 100) / 100;
   const tax = Math.round(subtotal * Number(taxRate) ) / 100;
   return { subtotal, tax, total: Math.round((subtotal + tax) * 100) / 100 };

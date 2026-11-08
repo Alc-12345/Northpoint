@@ -29,7 +29,8 @@ test("tokenless admin preview supports isolated invoice CRUD, defaults, validati
   assert.deepEqual(api.getAll(), []);
   assert.deepEqual(api.getSettings(), defaultSettings);
   const created = api.create({ ...data(), total: 1 });
-  assert.equal(created.total, 10695);
+  assert.equal(created.taxPercentage, 18);
+  assert.equal(created.total, 10974);
   assert.equal(api.getById(created._id).invoiceNumber, "PREVIEW-001");
   assert.throws(() => api.create(data()), /already exists/);
   assert.throws(() => api.create({ ...data(), items: [] }), /invoice items/);

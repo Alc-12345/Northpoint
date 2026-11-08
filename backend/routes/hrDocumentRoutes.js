@@ -1,3 +1,4 @@
+import { GST_RATE } from "../shared/invoices.js";
 import InvoiceSettings from "../models/InvoiceSettings.js";
 import { defaultSettings } from "../shared/invoices.js";
 import { usesInvoiceCompany, withDocumentCompany } from "../shared/documentCompany.js";
@@ -58,6 +59,7 @@ const payload = async (req, res) => {
   const { items = [] } = req.body;
   const template = type === "quotation" ? documentTypes.quotation.template : req.body.template;
   const values = usesInvoiceCompany(type) ? withDocumentCompany({ type, values: req.body.values }, await invoiceCompany()).values : req.body.values;
+  if (type === "quotation") values.taxRate = GST_RATE;
   const errors = validateDocument(type, values, items, template);
   if (errors.length) { res.status(400).json({ errors }); return null; }
   return { type, values: Object.fromEntries(documentTypes[type].fields.map(field => [field.key, values[field.key] ?? ""])), template, items: type === "quotation" ? items.map(({ description, quantity, rate }) => ({ description, quantity: Number(quantity), rate: Number(rate) })) : [] };

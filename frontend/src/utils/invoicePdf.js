@@ -2,7 +2,7 @@ import { PDFDocument, rgb } from "pdf-lib";
 import { amountInWords } from "./amountInWords.js";
 import fontkit from "@pdf-lib/fontkit";
 const money = (value) =>
-  `₹${Number(value).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `₹${Number(value).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 export async function invoicePdf(invoice, suppliedFonts) {
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
@@ -294,14 +294,14 @@ export async function invoicePdf(invoice, suppliedFonts) {
     }
     line(y + 4);
   }
-  const wordLines = wrap(amountInWords(invoice.total), 285, 9);
+  const wordLines = wrap(amountInWords(Math.round(invoice.total)), 285, 9);
   ensure(Math.max(94, wordLines.length * 12 + 32));
   y -= 12;
   heading("AMOUNT IN WORDS", left, y, 285);
   wordLines.forEach((value, i) => text(value, left + 4, y - 26 - i * 12, 9));
   for (const [label, value] of [
     ["SUBTOTAL", invoice.subtotal],
-    [`TAX (${invoice.taxPercentage}%)`, invoice.taxAmount],
+    [`GST (${invoice.taxPercentage}%)`, invoice.taxAmount],
     ["TOTAL", invoice.total],
   ]) {
     if (label === "TOTAL")
