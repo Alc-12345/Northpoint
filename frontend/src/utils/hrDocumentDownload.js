@@ -1,3 +1,4 @@
+import { formatDocumentValues } from "./documentDate.js";
 import { withDocumentCompany } from "../../../backend/shared/documentCompany.js";
 import { commercialHtml } from "./commercialDocument.js";
 import commercialLogo from "../assets/austin-legacy-corp.png?inline";
@@ -22,6 +23,7 @@ function quotationHtml({ values: v, items = [], company, paymentDetails = {} }) 
 
 export function documentHtml(document) {
   document = withDocumentCompany(document, document.company);
+  document = { ...document, values: formatDocumentValues(document.values) };
   if (document.type === "commercials") return commercialHtml(document, document.company?.logo || commercialLogo);
   if (document.type === "quotation") return quotationHtml(document);
   const { values, type, template, items } = document;

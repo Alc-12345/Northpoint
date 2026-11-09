@@ -1,3 +1,4 @@
+import { formatDocumentDate, formatDocumentValues, commercialIssuer } from "./documentDate.js";
 import { PDFDocument, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { amountInWords } from "./amountInWords.js";
@@ -87,7 +88,7 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
     }
   };
   nextPage();
-  const q = quotation.values;
+  const q = formatDocumentValues(quotation.values);
   await logo(quotation.company?.logo);
   paragraph("QUOTATION", 21, true);
   const top = y;
@@ -140,7 +141,7 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
   page = pdf.addPage([W, H]);
   page.drawPage(embedded, { x: M, y: H - M - used * scale, width: WIDTH * scale, height: used * scale });
   quoteMode = false; nextPage();
-  const c = commercial.values;
+  const c = formatDocumentValues(commercial.values);
   await logo(commercial.company?.logo);
   paragraph("COMMERCIAL JUSTIFICATION REPORT", 18, true);
   paragraph(`${c.companyName}\n${c.companyAddress}\n${[c.companyGstin && `GSTIN: ${c.companyGstin}`, c.companyEmail, c.companyPhone].filter(Boolean).join(" | ")}`);
@@ -151,15 +152,32 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
     heading(`Original Development Phase${c.originalPhase ? `: ${c.originalPhase}` : ""}`);
     const widths = [WIDTH / 3, WIDTH / 3, WIDTH / 3];
     row(["Timeline", "Scope Expansion / Work Description", "Estimated Commercial Value (₹)"], widths, true);
-    c.originalTimeline.forEach(item => row([item.timeline, item.description, money(item.amount)], widths));
+    c.originalTimeline.forEach(item => row([formatDocumentDate(item.timeline), item.description, money(item.amount)], widths));
     const total = phaseTotal(c.originalTimeline);
     row(["Net Total Initial Commercial Value (₹)", `${money(total)} (${amountInWords(total)})`], [WIDTH * 2 / 3, WIDTH / 3], true);
     y -= 15;
   }
   section("Final Commercial Value", `${money(c.commercialValue)} (${amountInWords(Number(c.commercialValue))})`);
-  for (const [label, key] of [["Implementation Status Note", "implementationStatus"], ["Hosting, Server Infrastructure & Data Management Note", "hostingNote"], ["Taxes & Applicable Charges", "taxTerms"], ["Payment Schedule & Terms", "paymentTerms"], ["Delivery Timeline", "deliveryTimeline"], ["Additional Commercial Terms", "terms"], ["Terms & Conditions", "invoiceTerms"]]) section(label, c[key]);
+  for (const [label, key] of [["Hosting, Server Infrastructure & Data Management Note", "hostingNote"], ["Taxes & Applicable Charges", "taxTerms"], ["Payment Schedule & Terms", "paymentTerms"], ["Delivery Timeline", "deliveryTimeline"]]) section(label, c[key]);
   section("Closing Note", fillTemplate(commercial.template || documentTypes.commercials.template, c));
-  paragraph(`${c.signatory}\nFor ${c.companyName}\nSubmitted for Review and Payment Processing`, 9, true);
+  const signatureWidth = WIDTH * .34;
+  const signatures = [[c.recipientName, c.clientSignatory, c.clientSignatoryTitle], [commercialIssuer.name, commercialIssuer.signatory, commercialIssuer.title]];
+  const signatureHeight = Math.max(...signatures.map(([name, person, title]) => wrap(`For ${name}`, signatureWidth, 10, true).length * 14.5 + wrap(person || "", signatureWidth, 10, true).length * 14.5 + wrap(title || "", signatureWidth, 10).length * 14.5)) + 150;
+  ensure(signatureHeight);
+  y -= 20;
+  paragraph("ACCEPTANCE & SIGNATURE", 12, true);
+  y -= 85;
+  const signatureTop = y;
+  signatures.forEach(([name, person, title], index) => {
+    const x = index ? W - M - signatureWidth : M;
+    y = signatureTop;
+    page.drawLine({ start: { x, y }, end: { x: x + signatureWidth, y }, thickness: 1 });
+    y -= 18;
+    paragraph(`For ${name}`, 10, true, signatureWidth, x);
+    y -= 8;
+    if (person) paragraph(person, 10, true, signatureWidth, x);
+    if (title) paragraph(title, 10, false, signatureWidth, x);
+  });
   pdf.getPages().forEach((page, index) => page.drawText(`${q.documentNumber} | ${index + 1} / ${pdf.getPageCount()}`, { x: M, y: 12, size: 7, font: fonts[0].font }));
   pdf.setTitle(`Quotation ${q.documentNumber} and Commercials`);
   return new Blob([await pdf.save()], { type: "application/pdf" });
