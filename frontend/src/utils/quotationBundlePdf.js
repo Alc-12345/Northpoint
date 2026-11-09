@@ -2,13 +2,14 @@ import { formatDocumentDate, formatDocumentValues, commercialIssuer } from "./do
 import { PDFDocument, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { amountInWords } from "./amountInWords.js";
-import { documentTypes, fillTemplate, quotationTotals } from "../../../backend/shared/hrDocuments.js";
+import { documentTypes, fillTemplate, normalizeCommercialDraft, quotationTotals } from "../../../backend/shared/hrDocuments.js";
 import { phaseTotal } from "./commercialDocument.js";
 
 const money = value => `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 const W = 595.28, H = 841.89, M = 28, WIDTH = W - M * 2;
 
 export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
+  commercial = normalizeCommercialDraft(commercial);
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
   const fonts = await Promise.all(["latin-400", "latin-ext-400", "latin-700", "latin-ext-700"].map(async (name, i) => {

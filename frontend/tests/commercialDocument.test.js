@@ -30,3 +30,19 @@ test("acceptance uses escaped client details and fixed issuer", () => {
   for (const text of ["For Client &lt;Ltd&gt;", "Jane &amp; John", "Director", "For Austin Legacy Corp LLP", "Ashish Patrick Austin"]) assert.ok(acceptance.includes(text));
   assert.ok(!acceptance.includes("Different issuer"));
 });
+
+test("older commercial drafts adopt current fields and closing note without losing client details", async () => {
+  const { normalizeCommercialDraft } = await import("../../backend/shared/hrDocuments.js");
+  const draft = { type: "commercials", values: { ...values, implementationStatus: "Pending", terms: "Old terms", invoiceTerms: "Invoice terms" }, template: "Review scope, implementation status, and commercial terms above. {{implementationStatus}}{{terms}}{{invoiceTerms}} {{recipientName}}" };
+  const updated = normalizeCommercialDraft(draft);
+  assert.equal(updated.values.recipientName, values.recipientName);
+  for (const key of ["implementationStatus", "terms", "invoiceTerms"]) assert.ok(!(key in updated.values));
+  assert.equal(updated.template, "Review scope and commercial details above.  {{recipientName}}");
+  assert.deepEqual(validateDocument("commercials", updated.values, [], updated.template), []);
+  assert.equal(draft.values.implementationStatus, "Pending");
+  const html = commercialHtml(draft, "logo");
+  assert.ok(html.includes("ACCEPTANCE &amp; SIGNATURE"));
+  assert.ok(!html.includes("Old terms"));
+  assert.ok(!html.includes("implementation status"));
+  assert.equal(normalizeCommercialDraft({ type: "quotation", values }).values, values);
+});

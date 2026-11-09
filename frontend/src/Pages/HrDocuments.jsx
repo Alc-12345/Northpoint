@@ -6,7 +6,7 @@ import { phaseTotal } from "../utils/commercialDocument.js";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { hrDocumentApi } from "../services/api";
-import { documentTypes, quotationTotals, validateDocument } from "../../../backend/shared/hrDocuments";
+import { documentTypes, normalizeCommercialDraft, quotationTotals, validateDocument } from "../../../backend/shared/hrDocuments";
 import { documentHtml, downloadDocument, printDocument } from "../utils/hrDocumentDownload";
 import Interns from "./Interns.jsx";
 import OfferEmployees from "./OfferEmployees.jsx";
@@ -65,7 +65,7 @@ export function DocumentManager({ type }) {
   const [search, setSearch] = useState("");
   useEffect(() => {
     let active = true;
-    hrDocumentApi.getAll(type).then(data => { if (active) setRecords(data); })
+    hrDocumentApi.getAll(type).then(data => { if (active) setRecords(data.map(normalizeCommercialDraft)); })
       .catch(err => { if (active) setLoadError(err.message); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -85,7 +85,7 @@ export function DocumentManager({ type }) {
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
   };
-  const edit = record => { setValues(record.values); setTemplate(type === "quotation" ? config.template : record.template); setItems(record.items); setEditingId(record._id); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const edit = record => { record = normalizeCommercialDraft(record); setValues({ ...initialValues(), ...record.values }); setTemplate(type === "quotation" ? config.template : record.template); setItems(record.items); setEditingId(record._id); setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const continueToCommercials = () => {
     setError("");
     const errors = validateDocument(type, values, items, config.template);

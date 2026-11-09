@@ -1,5 +1,5 @@
 import { formatDocumentDate, formatDocumentValues, commercialIssuer } from "./documentDate.js";
-import { fillTemplate } from "../../../backend/shared/hrDocuments.js";
+import { fillTemplate, normalizeCommercialDraft } from "../../../backend/shared/hrDocuments.js";
 import { amountInWords } from "./amountInWords.js";
 
 const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
@@ -7,6 +7,7 @@ const money = value => `₹${Number(value || 0).toLocaleString("en-IN", { minimu
 export const phaseTotal = rows => (Array.isArray(rows) ? rows : []).reduce((total, row) => total + Math.round(Number(row.amount || 0) * 100), 0) / 100;
 
 export function commercialHtml({ values: v, template }, logo) {
+  ({ values: v, template } = normalizeCommercialDraft({ type: "commercials", values: v, template }));
   v = formatDocumentValues(v);
   const section = (title, text) => text ? `<section><h2>${title}</h2><div class="prose">${escape(text)}</div></section>` : "";
   const phase = (title, period, rows) => {

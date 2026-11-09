@@ -156,3 +156,14 @@ export function validateDocument(type, values = {}, items = [], template = "") {
   if (type === "quotation" && (!Array.isArray(items) || !items.length || items.length > 100 || items.some(item => !item || typeof item.description !== "string" || !item.description.trim() || item.description.length > 1000 || !Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0 || Number(item.quantity) > 1e6 || item.rate === "" || item.rate == null || !Number.isFinite(Number(item.rate)) || Number(item.rate) < 0 || Number(item.rate) > 1e9))) errors.push("Add 1–100 quotation items with a description, positive quantity and non-negative rate");
   return [...new Set(errors)];
 }
+
+// Apply current commercial fields to older saved drafts without changing their project details.
+export function normalizeCommercialDraft(document) {
+  if (document.type !== "commercials") return document;
+  const values = { ...document.values };
+  for (const key of ["implementationStatus", "terms", "invoiceTerms"]) delete values[key];
+  const template = String(document.template ?? documentTypes.commercials.template)
+    .replace(/\{\{(?:implementationStatus|terms|invoiceTerms)\}\}/g, "")
+    .replace("scope, implementation status, and commercial terms above", "scope and commercial details above");
+  return { ...document, values, template };
+}
