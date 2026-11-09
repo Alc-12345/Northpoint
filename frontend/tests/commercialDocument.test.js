@@ -46,3 +46,10 @@ test("older commercial drafts adopt current fields and closing note without losi
   assert.ok(!html.includes("implementation status"));
   assert.equal(normalizeCommercialDraft({ type: "quotation", values }).values, values);
 });
+
+test("commercial cover labels the client address and omits legacy taglines", () => {
+  const html = commercialHtml({ values: { ...values, recipientAddress: "Plot 1 & 2", companyTagline: "Legacy tagline" }, template: "{{companyTagline}}" }, "logo");
+  assert.ok(html.includes('<b>Client Address:</b><br><span class="address">Plot 1 &amp; 2</span>'));
+  assert.ok(!html.includes("Legacy tagline"));
+  assert.ok(!documentTypes.commercials.fields.some(field => field.key === "companyTagline"));
+});

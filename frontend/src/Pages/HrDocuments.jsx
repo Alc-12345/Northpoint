@@ -113,7 +113,7 @@ export function DocumentManager({ type }) {
     { title: "Client / Bill To", keys: ["recipientName", "recipientEmail", "recipientAddress"] },
     { title: "Quotation Details", keys: ["documentNumber", "issueDate", "validUntil", "taxRate"] },
   ] : type === "commercials" ? [
-    { title: "Issuer & Client", keys: ["documentNumber", "issueDate", "companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "companyTagline", "recipientName", "recipientEmail", "recipientAddress", "signatory"] },
+    { title: "Issuer & Client", keys: ["documentNumber", "issueDate", "companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "recipientName", "recipientEmail", "recipientAddress", "signatory"] },
     { title: "Project & Commercial Justification", keys: ["projectName", "projectPeriod", "scope", "overview", "commercialValue", "taxTerms", "paymentTerms", "deliveryTimeline"] },
     { title: "Original Development Phase", keys: ["originalPhase", "originalTimeline"] },
     { title: "Hosting & Infrastructure", keys: ["hostingNote"] },

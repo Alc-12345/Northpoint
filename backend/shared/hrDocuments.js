@@ -47,7 +47,7 @@ export const documentTypes = {
   commercials: {
     title: "Commercial Justification Report",
     fields: [...common,
-      ...companyContactFields.filter(field => field.key !== "invoiceTerms"),
+      ...companyContactFields.filter(field => !["invoiceTerms", "companyTagline"].includes(field.key)),
       { key: "projectPeriod", label: "Project period" },
       { key: "overview", label: "Project background and commercial justification", type: "textarea" },
       { key: "originalPhase", label: "Original development phase / period" },
@@ -161,9 +161,9 @@ export function validateDocument(type, values = {}, items = [], template = "") {
 export function normalizeCommercialDraft(document) {
   if (document.type !== "commercials") return document;
   const values = { ...document.values };
-  for (const key of ["implementationStatus", "terms", "invoiceTerms"]) delete values[key];
+  for (const key of ["implementationStatus", "terms", "invoiceTerms", "companyTagline"]) delete values[key];
   const template = String(document.template ?? documentTypes.commercials.template)
-    .replace(/\{\{(?:implementationStatus|terms|invoiceTerms)\}\}/g, "")
+    .replace(/\{\{(?:implementationStatus|terms|invoiceTerms|companyTagline)\}\}/g, "")
     .replace("scope, implementation status, and commercial terms above", "scope and commercial details above");
   return { ...document, values, template };
 }

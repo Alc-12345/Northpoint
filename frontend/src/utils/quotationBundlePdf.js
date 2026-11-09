@@ -147,6 +147,10 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
   paragraph("COMMERCIAL JUSTIFICATION REPORT", 18, true);
   paragraph(`${c.companyName}\n${c.companyAddress}\n${[c.companyGstin && `GSTIN: ${c.companyGstin}`, c.companyEmail, c.companyPhone].filter(Boolean).join(" | ")}`);
   paragraph(`Prepared for ${c.recipientName}\n${c.documentNumber} | ${c.issueDate}\n${c.projectName}${c.projectPeriod ? ` | ${c.projectPeriod}` : ""}`, 10, true);
+  if (c.recipientAddress) {
+    paragraph("Client Address:", 10, true);
+    paragraph(c.recipientAddress);
+  }
   section("Scope & Deliverables", c.scope);
   section("Project Overview & Commercial Justification", c.overview);
   if (c.originalTimeline?.length) {
