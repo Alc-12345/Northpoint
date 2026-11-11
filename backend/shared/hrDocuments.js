@@ -131,7 +131,7 @@ export function validateDocument(type, values = {}, items = [], template = "") {
   for (const field of config.fields) {
     const value = values[field.key];
     if (field.type === "hostingTable") {
-      if (value != null && value !== "" && (!Array.isArray(value) || value.length > 100 || value.some(row => !row || typeof row.service !== "string" || !row.service.trim() || row.service.length > 200 || typeof row.description !== "string" || !row.description.trim() || row.description.length > 10000 || typeof row.charges !== "string" || row.charges.length > 200))) errors.push(`${field.label} requires up to 100 rows with a service, description and optional charges`);
+      if (value != null && value !== "" && (!Array.isArray(value) || value.length > 100 || value.some(row => !row || typeof row.service !== "string" || !row.service.trim() || row.service.length > 200 || typeof row.description !== "string" || row.description.length > 10000 || (row.cost == null ? typeof row.charges !== "string" || row.charges.length > 200 : !["Monthly", "Quarterly"].includes(row.billingFrequency) || !["string", "number"].includes(typeof row.cost) || String(row.cost).trim() === "" || !Number.isFinite(Number(row.cost)) || Number(row.cost) < 0 || Number(row.cost) > 1e12)))) errors.push(`${field.label} requires up to 100 rows with a service, valid billing frequency and non-negative AMC cost`);
       continue;
     }
     if (field.type === "timeline") {

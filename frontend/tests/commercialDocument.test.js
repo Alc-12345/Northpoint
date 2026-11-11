@@ -1,3 +1,5 @@
+import { commercialIssuer } from "../src/utils/documentDate.js";
+import { amcHeaders, amcTotals } from "../../backend/shared/amc.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { commercialHtml, phaseTotal } from "../src/utils/commercialDocument.js";
@@ -6,7 +8,7 @@ const values = Object.fromEntries(documentTypes.commercials.fields.filter(field 
 const rows = [{ timeline: "April 2026", description: "Scope <review> & delivery", amount: "240000" }];
 test("commercial report includes reference sections, escaped content, phase totals", () => {
   const html = commercialHtml({ values: { ...values, originalTimeline: rows, revisedTimeline: [{ ...rows[0], amount: "160000" }], implementationStatus: "Awaiting approval", hostingNote: "AMC separately agreed", overview: "Project journey", invoiceTerms: "1. Invoice terms & conditions" }, template: documentTypes.commercials.template }, "data:image/png;base64,example");
-  for (const text of ["COMMERCIAL JUSTIFICATION REPORT", "Original Development Phase", "Hosting, Server Infrastructure", "Closing Note", "ACCEPTANCE &amp; SIGNATURE", "Austin Legacy Corp LLP", "Ashish Patrick Austin", "Founder & Chief Executive Officer", "For Example", "4th Nov 2026", "₹2,40,000", "Scope &lt;review&gt; &amp; delivery", 'src="data:image/png;base64,example"']) assert.ok(html.includes(text), text);
+  for (const text of ["COMMERCIAL JUSTIFICATION REPORT", "Original Development Phase", "Hosting, Server Infrastructure", "Closing Note", "ACCEPTANCE &amp; SIGNATURE", commercialIssuer.name, "Ashish Patrick Austin", "Founder & Chief Executive Officer", "For Example", "4th Nov 2026", "₹2,40,000", "Scope &lt;review&gt; &amp; delivery", 'src="data:image/png;base64,example"']) assert.ok(html.includes(text), text);
   for (const removed of ["Implementation Status Note", "Awaiting approval", "Terms & Conditions", "Invoice terms &amp; conditions", "Additional Commercial Terms"]) assert.ok(!html.includes(removed), removed);
   assert.ok(!html.includes("{{"));
   assert.ok(!html.includes("Revised Project Scope"));
@@ -27,7 +29,7 @@ test("dates use ordinal days and preserve periods and invalid dates", async () =
 test("acceptance uses escaped client details and fixed issuer", () => {
   const html = commercialHtml({ values: { ...values, recipientName: "Client <Ltd>", clientSignatory: "Jane & John", clientSignatoryTitle: "Director", companyName: "Different issuer", signatory: "Someone else" }, template: "" }, "logo");
   const acceptance = html.slice(html.indexOf('<section class="acceptance">'));
-  for (const text of ["For Client &lt;Ltd&gt;", "Jane &amp; John", "Director", "For Austin Legacy Corp LLP", "Ashish Patrick Austin"]) assert.ok(acceptance.includes(text));
+  for (const text of ["For Client &lt;Ltd&gt;", "Jane &amp; John", "Director", `For ${commercialIssuer.name}`, "Ashish Patrick Austin"]) assert.ok(acceptance.includes(text));
   assert.ok(!acceptance.includes("Different issuer"));
 });
 
@@ -59,9 +61,22 @@ test("hosting table validates rows and escapes exported cells", () => {
   const hostingItems = [{ service: "Hosting & AMC", description: "Server <coverage>", charges: "INR 1,000 / month" }];
   const draft = { ...values, hostingItems, paymentTerms: "Removed payment terms" };
   assert.deepEqual(validateDocument("commercials", draft, [], documentTypes.commercials.template), []);
-  for (const bad of [{}, [{ ...hostingItems[0], service: "" }], [{ ...hostingItems[0], description: "" }], Array(101).fill(hostingItems[0])]) assert.ok(validateDocument("commercials", { ...values, hostingItems: bad }, [], documentTypes.commercials.template).length);
+  for (const bad of [{}, [{ ...hostingItems[0], service: "" }], Array(101).fill(hostingItems[0])]) assert.ok(validateDocument("commercials", { ...values, hostingItems: bad }, [], documentTypes.commercials.template).length);
   const html = commercialHtml({ values: draft, template: documentTypes.commercials.template }, "logo");
-  for (const text of ["Hosting &amp; AMC", "Server &lt;coverage&gt;", "INR 1,000 / month", "Charges / Billing Period"]) assert.ok(html.includes(text), text);
+  for (const text of ["Hosting &amp; AMC", "Server &lt;coverage&gt;", "INR 1,000 / month", "AMC Cost (excl. GST)"]) assert.ok(html.includes(text), text);
   assert.ok(!html.includes("Removed payment terms"));
   assert.ok(!documentTypes.commercials.fields.some(field => field.key === "paymentTerms"));
+});
+
+
+test("AMC predefined services and billing calculate additional GST", () => {
+  assert.equal(amcHeaders.length, 40);
+  assert.equal(new Set(amcHeaders).size, 40);
+  assert.deepEqual(amcTotals("1000"), { subtotal: 1000, gst: 180, total: 1180 });
+  assert.deepEqual(amcTotals("123.45"), { subtotal: 123.45, gst: 22.22, total: 145.67 });
+  const item = { service: amcHeaders[0], description: "", billingFrequency: "Quarterly", cost: "1000" };
+  assert.deepEqual(validateDocument("commercials", { ...values, hostingItems: [item] }, [], documentTypes.commercials.template), []);
+  for (const change of [{ cost: -1 }, { cost: "" }, { cost: "NaN" }, { billingFrequency: "Yearly" }]) assert.ok(validateDocument("commercials", { ...values, hostingItems: [{ ...item, ...change }] }, [], documentTypes.commercials.template).length);
+  const html = commercialHtml({ values: { ...values, hostingItems: [item] }, template: "" }, "logo");
+  for (const text of [amcHeaders[0], "Quarterly", "₹1,000.00", "₹180.00", "₹1,180.00", "GST (18%)", "AMC charges are payable"]) assert.ok(html.includes(text), text);
 });

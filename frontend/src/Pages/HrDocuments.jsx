@@ -1,3 +1,4 @@
+import { amcHeaders, amcTotals, amcMoney, amcColumns } from "../../../backend/shared/amc.js";
 import { formatDocumentDate } from "../utils/documentDate.js";
 import { GST_RATE } from "../../../backend/shared/invoices.js";
 import commercialLogo from "../assets/austin-legacy-corp.png?inline";
@@ -174,8 +175,19 @@ function CommercialTimeline({ field, rows, onChange }) {
 }
 
 function HostingTable({ rows, onChange }) {
-  const columns = [["service", "Service", 200], ["description", "Description / coverage", 10000], ["charges", "Charges / billing period", 200]];
-  return <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr>{columns.map(([key, label]) => <th key={key} className="border p-2 text-left">{label}</th>)}<th className="border p-2">Action</th></tr></thead><tbody>
-    {rows.map((row, index) => <tr key={index}>{columns.map(([key, label, maxLength]) => <td key={key} className="border p-2"><textarea aria-label={`${label} for hosting row ${index + 1}`} required={key !== "charges"} maxLength={maxLength} rows={3} value={row[key] || ""} onChange={event => onChange(rows.map((item, i) => i === index ? { ...item, [key]: event.target.value } : item))} className={inputClass} /></td>)}<td className="border p-2"><button type="button" onClick={() => onChange(rows.filter((_, i) => i !== index))} className="text-red-500">Remove row {index + 1}</button></td></tr>)}
-  </tbody></table><button type="button" disabled={rows.length >= 100} onClick={() => onChange([...rows, { service: "", description: "", charges: "" }])} className="mt-3 text-cyan-600 disabled:opacity-50">+ Add hosting row</button></div>;
+  const add = () => onChange([...rows, { service: amcHeaders[0], description: "", billingFrequency: "Monthly", cost: "" }]);
+  const update = (index, key, value) => onChange(rows.map((item, i) => i === index ? { ...item, [key]: value } : item));
+  if (!rows.length) return <button type="button" onClick={add} className={buttonClass}>Create Table</button>;
+  return <div className="overflow-x-auto"><table className="w-full min-w-[800px] text-sm"><thead><tr>{[...amcColumns, "Action"].map(label => <th key={label} className="border p-2 text-left">{label}</th>)}</tr></thead><tbody>
+    {rows.map((row, index) => {
+      const totals = amcTotals(row.cost);
+      return <tr key={index}>
+        <td className="border p-2"><select aria-label={`AMC header for row ${index + 1}`} value={row.service} onChange={event => update(index, "service", event.target.value)} className={inputClass}>{!amcHeaders.includes(row.service) && <option>{row.service}</option>}{amcHeaders.map(header => <option key={header}>{header}</option>)}</select><textarea aria-label={`Coverage for AMC row ${index + 1}`} placeholder="Description / coverage (optional)" maxLength={10000} value={row.description || ""} onChange={event => update(index, "description", event.target.value)} className={`${inputClass} mt-2`} />{row.charges && <p className="mt-2">Previous charges: {row.charges}</p>}</td>
+        <td className="border p-2"><select required aria-label={`Billing frequency for AMC row ${index + 1}`} value={row.billingFrequency || ""} onChange={event => update(index, "billingFrequency", event.target.value)} className={inputClass}><option value="" disabled>Select frequency</option><option>Monthly</option><option>Quarterly</option></select></td>
+        <td className="border p-2"><input required aria-label={`AMC cost for row ${index + 1}`} type="number" min="0" max="1000000000000" step="0.01" value={row.cost ?? ""} onChange={event => update(index, "cost", event.target.value)} className={inputClass} /></td>
+        <td className="border p-2">{amcMoney(totals.gst)}</td><td className="border p-2">{amcMoney(totals.total)}</td>
+        <td className="border p-2"><button type="button" onClick={() => onChange(rows.filter((_, i) => i !== index))} className="text-red-500">Remove row {index + 1}</button></td>
+      </tr>;
+    })}
+  </tbody></table><button type="button" disabled={rows.length >= 100} onClick={add} className="mt-3 text-cyan-600 disabled:opacity-50">+ Add AMC row</button></div>;
 }

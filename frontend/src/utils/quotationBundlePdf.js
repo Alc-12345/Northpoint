@@ -1,3 +1,4 @@
+import { amcCells, amcColumns } from "../../../backend/shared/amc.js";
 import { formatDocumentDate, formatDocumentValues, commercialIssuer } from "./documentDate.js";
 import { PDFDocument, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
@@ -164,10 +165,11 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
   }
   if (c.hostingItems?.length) {
     heading("Hosting, Server Infrastructure and AMC");
-    const widths = [WIDTH / 3, WIDTH / 3, WIDTH / 3];
-    row(["Service", "Description / Coverage", "Charges / Billing Period"], widths, true);
-    c.hostingItems.forEach(item => row([item.service, item.description, item.charges || ""], widths));
+    const widths = [WIDTH * .34, WIDTH * .15, WIDTH * .17, WIDTH * .16, WIDTH * .18];
+    row(amcColumns, widths, true, 8);
+    c.hostingItems.forEach(item => row(amcCells(item), widths, false, 8));
     y -= 15;
+    paragraph("AMC charges are payable on a monthly/quarterly basis, as selected in the agreement. All AMC charges are exclusive of GST, which will be charged additionally at the applicable rate of 18%.");
   }
   section("Closing Note", fillTemplate(commercial.template || documentTypes.commercials.template, c));
   const signatureWidth = WIDTH * .34;

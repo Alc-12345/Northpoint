@@ -10,4 +10,4 @@ export function formatDocumentDate(value) {
 }
 
 export const formatDocumentValues = values => Object.fromEntries(Object.entries(values).map(([key, value]) => [key, typeof value === "string" ? formatDocumentDate(value) : value]));
-export const commercialIssuer = { name: "Austin Legacy Corp LLP", signatory: "Ashish Patrick Austin", title: "Founder & Chief Executive Officer" };
+export const commercialIssuer = { name: "Austin Legacy Corp ", signatory: "Ashish Patrick Austin", title: "Founder & Chief Executive Officer" };
