@@ -54,3 +54,14 @@ test("commercial cover labels the client address and omits legacy taglines", () 
   assert.ok(!html.includes("Legacy tagline"));
   assert.ok(!documentTypes.commercials.fields.some(field => field.key === "companyTagline"));
 });
+
+test("hosting table validates rows and escapes exported cells", () => {
+  const hostingItems = [{ service: "Hosting & AMC", description: "Server <coverage>", charges: "INR 1,000 / month" }];
+  const draft = { ...values, hostingItems, paymentTerms: "Removed payment terms" };
+  assert.deepEqual(validateDocument("commercials", draft, [], documentTypes.commercials.template), []);
+  for (const bad of [{}, [{ ...hostingItems[0], service: "" }], [{ ...hostingItems[0], description: "" }], Array(101).fill(hostingItems[0])]) assert.ok(validateDocument("commercials", { ...values, hostingItems: bad }, [], documentTypes.commercials.template).length);
+  const html = commercialHtml({ values: draft, template: documentTypes.commercials.template }, "logo");
+  for (const text of ["Hosting &amp; AMC", "Server &lt;coverage&gt;", "INR 1,000 / month", "Charges / Billing Period"]) assert.ok(html.includes(text), text);
+  assert.ok(!html.includes("Removed payment terms"));
+  assert.ok(!documentTypes.commercials.fields.some(field => field.key === "paymentTerms"));
+});

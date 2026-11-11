@@ -52,10 +52,9 @@ export const documentTypes = {
       { key: "overview", label: "Project background and commercial justification", type: "textarea" },
       { key: "originalPhase", label: "Original development phase / period" },
       { key: "originalTimeline", label: "Original development timeline", type: "timeline" },
-      { key: "hostingNote", label: "Hosting, server infrastructure and AMC", type: "textarea" },
+      { key: "hostingItems", label: "Hosting, server infrastructure and AMC", type: "hostingTable" },
       { key: "projectName", label: "Project / service name", required: true },
       { key: "scope", label: "Scope and deliverables", type: "textarea", required: true },
-      { key: "paymentTerms", label: "Payment schedule and terms", type: "textarea", required: true },
       { key: "clientSignatory", label: "Client authorized signatory" },
       { key: "clientSignatoryTitle", label: "Client signatory designation" },
     ],
@@ -131,6 +130,10 @@ export function validateDocument(type, values = {}, items = [], template = "") {
   const errors = [];
   for (const field of config.fields) {
     const value = values[field.key];
+    if (field.type === "hostingTable") {
+      if (value != null && value !== "" && (!Array.isArray(value) || value.length > 100 || value.some(row => !row || typeof row.service !== "string" || !row.service.trim() || row.service.length > 200 || typeof row.description !== "string" || !row.description.trim() || row.description.length > 10000 || typeof row.charges !== "string" || row.charges.length > 200))) errors.push(`${field.label} requires up to 100 rows with a service, description and optional charges`);
+      continue;
+    }
     if (field.type === "timeline") {
       if (value != null && value !== "" && (!Array.isArray(value) || value.length > 100 || value.some(row => !row || typeof row.timeline !== "string" || !row.timeline.trim() || row.timeline.length > 200 || typeof row.description !== "string" || !row.description.trim() || row.description.length > 10000 || !["string", "number"].includes(typeof row.amount) || String(row.amount).trim() === "" || !Number.isFinite(Number(row.amount)) || Number(row.amount) < 0 || Number(row.amount) > 1e12))) errors.push(`${field.label} requires up to 100 rows with a timeline, description and non-negative amount`);
       continue;
@@ -158,10 +161,11 @@ export function validateDocument(type, values = {}, items = [], template = "") {
 export function normalizeCommercialDraft(document) {
   if (document.type !== "commercials") return document;
   const values = { ...document.values };
-  for (const key of ["implementationStatus", "terms", "invoiceTerms", "companyTagline", "commercialValue", "taxTerms", "deliveryTimeline"]) delete values[key];
+  if (!Array.isArray(values.hostingItems) && typeof values.hostingNote === "string" && values.hostingNote.trim()) values.hostingItems = [{ service: "Hosting, server infrastructure and AMC", description: values.hostingNote, charges: "" }];
+  for (const key of ["implementationStatus", "terms", "invoiceTerms", "companyTagline", "commercialValue", "taxTerms", "deliveryTimeline", "paymentTerms", "hostingNote"]) delete values[key];
   const template = String(document.template ?? documentTypes.commercials.template)
     .replace(/The final commercial value is INR \{\{commercialValue\}\}\.\s*/g, "")
-    .replace(/\{\{(?:implementationStatus|terms|invoiceTerms|companyTagline|commercialValue|taxTerms|deliveryTimeline)\}\}/g, "")
+    .replace(/\{\{(?:implementationStatus|terms|invoiceTerms|companyTagline|commercialValue|taxTerms|deliveryTimeline|paymentTerms|hostingNote)\}\}/g, "")
     .replace("scope, implementation status, and commercial terms above", "scope and commercial details above");
   return { ...document, values, template };
 }

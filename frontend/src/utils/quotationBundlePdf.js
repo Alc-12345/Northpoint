@@ -162,7 +162,13 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
     row(["Net Total Initial Commercial Value (₹)", `${money(total)} (${amountInWords(total)})`], [WIDTH * 2 / 3, WIDTH / 3], true);
     y -= 15;
   }
-  for (const [label, key] of [["Hosting, Server Infrastructure & Data Management Note", "hostingNote"], ["Payment Schedule & Terms", "paymentTerms"]]) section(label, c[key]);
+  if (c.hostingItems?.length) {
+    heading("Hosting, Server Infrastructure and AMC");
+    const widths = [WIDTH / 3, WIDTH / 3, WIDTH / 3];
+    row(["Service", "Description / Coverage", "Charges / Billing Period"], widths, true);
+    c.hostingItems.forEach(item => row([item.service, item.description, item.charges || ""], widths));
+    y -= 15;
+  }
   section("Closing Note", fillTemplate(commercial.template || documentTypes.commercials.template, c));
   const signatureWidth = WIDTH * .34;
   const signatures = [[c.recipientName, c.clientSignatory, c.clientSignatoryTitle], [commercialIssuer.name, commercialIssuer.signatory, commercialIssuer.title]];

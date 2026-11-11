@@ -29,12 +29,12 @@ export function DocumentManager({ type }) {
   const navigate = useNavigate();
   const linkedQuotation = type === "commercials" ? location.state?.quotation : null;
   const [downloadingBundle, setDownloadingBundle] = useState(false);
-  const initialValues = () => Object.fromEntries(config.fields.map(field => [field.key, field.key === "issueDate" ? today() : field.key === "companyName" ? "ALC" : field.type === "timeline" ? [] : field.type === "number" ? "0" : ""]));
+  const initialValues = () => Object.fromEntries(config.fields.map(field => [field.key, field.key === "issueDate" ? today() : field.key === "companyName" ? "ALC" : ["timeline", "hostingTable"].includes(field.type) ? [] : field.type === "number" ? "0" : ""]));
   const [draftValues, setValues] = useState(() => {
     const initial = location.state?.quotationDraft || initialValues();
     if (!linkedQuotation) return initial;
     const q = linkedQuotation.values;
-    return { ...initial, ...Object.fromEntries(["recipientName", "recipientEmail", "recipientAddress", "signatory", "paymentTerms"].map(key => [key, q[key] || ""])), documentNumber: `${q.documentNumber}-COM` };
+    return { ...initial, ...Object.fromEntries(["recipientName", "recipientEmail", "recipientAddress", "signatory"].map(key => [key, q[key] || ""])), documentNumber: `${q.documentNumber}-COM` };
   });
   const [company, setCompany] = useState(null);
   const [companyError, setCompanyError] = useState("");
@@ -114,9 +114,9 @@ export function DocumentManager({ type }) {
     { title: "Quotation Details", keys: ["documentNumber", "issueDate", "validUntil", "taxRate"] },
   ] : type === "commercials" ? [
     { title: "Issuer & Client", keys: ["documentNumber", "issueDate", "companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "recipientName", "recipientEmail", "recipientAddress", "signatory"] },
-    { title: "Project & Commercial Justification", keys: ["projectName", "projectPeriod", "scope", "overview", "paymentTerms"] },
+    { title: "Project & Commercial Justification", keys: ["projectName", "projectPeriod", "scope", "overview"] },
     { title: "Original Development Phase", keys: ["originalPhase", "originalTimeline"] },
-    { title: "Hosting & Infrastructure", keys: ["hostingNote"] },
+    { title: "Hosting & Infrastructure", keys: ["hostingItems"] },
     { title: "Acceptance & Signature", keys: ["clientSignatory", "clientSignatoryTitle"] },
   ] : [{ title: "Document details", keys: config.fields.map(field => field.key) }];
   const filtered = records.filter(record => `${record.values.recipientName} ${record.values.documentNumber}`.toLowerCase().includes(search.toLowerCase()));
@@ -131,7 +131,7 @@ export function DocumentManager({ type }) {
       <fieldset disabled={saving || downloadingBundle || !companyReady}>
         <div className="grid gap-6 md:grid-cols-2">{fieldGroups.map(group => <section key={group.title}><h3 className="mb-3 font-semibold">{group.title}</h3><div className="grid gap-4">{group.keys.map(key => config.fields.find(field => field.key === key)).map(field => <div key={field.key}>
           <label htmlFor={field.key} className="mb-1 block text-sm">{field.label}{field.required ? " *" : ""}</label>
-          {field.type === "timeline" ? <CommercialTimeline field={field} rows={Array.isArray(values[field.key]) ? values[field.key] : []} onChange={rows => setValues({ ...values, [field.key]: rows })} /> : field.type === "textarea" ? <textarea readOnly={field.readOnly || (sharedCompany && Object.hasOwn(documentCompanyFields, field.key))} id={field.key} required={field.required} maxLength={field.maxLength ?? 10000} rows={field.key === "invoiceTerms" ? 9 : 3} value={values[field.key] || ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} /> : <input readOnly={field.readOnly || (sharedCompany && Object.hasOwn(documentCompanyFields, field.key))} id={field.key} type={field.type || "text"} required={field.required} min={field.type === "number" ? 0 : undefined} max={field.max} step={field.type === "number" ? "0.01" : undefined} value={values[field.key] ?? ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />}{field.type === "date" && values[field.key] && <p className="mt-1 text-sm text-gray-500">{formatDocumentDate(values[field.key])}</p>}
+          {field.type === "hostingTable" ? <HostingTable rows={values[field.key] || []} onChange={rows => setValues({ ...values, [field.key]: rows })} /> : field.type === "timeline" ? <CommercialTimeline field={field} rows={Array.isArray(values[field.key]) ? values[field.key] : []} onChange={rows => setValues({ ...values, [field.key]: rows })} /> : field.type === "textarea" ? <textarea readOnly={field.readOnly || (sharedCompany && Object.hasOwn(documentCompanyFields, field.key))} id={field.key} required={field.required} maxLength={field.maxLength ?? 10000} rows={field.key === "invoiceTerms" ? 9 : 3} value={values[field.key] || ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} /> : <input readOnly={field.readOnly || (sharedCompany && Object.hasOwn(documentCompanyFields, field.key))} id={field.key} type={field.type || "text"} required={field.required} min={field.type === "number" ? 0 : undefined} max={field.max} step={field.type === "number" ? "0.01" : undefined} value={values[field.key] ?? ""} onChange={event => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />}{field.type === "date" && values[field.key] && <p className="mt-1 text-sm text-gray-500">{formatDocumentDate(values[field.key])}</p>}
         </div>)}</div></section>)}</div>
         {type === "quotation" && <div className="mt-6"><h2 className="mb-3 font-semibold">Quotation Items (INR)</h2>
           {items.map((item, index) => <div key={index} className="mb-3 grid gap-2 md:grid-cols-[2fr_1fr_1fr_auto]">
@@ -142,7 +142,7 @@ export function DocumentManager({ type }) {
           <p className="mt-4">Subtotal: INR {totals.subtotal.toLocaleString("en-IN", { maximumFractionDigits: 0 })} · GST (18%): INR {totals.tax.toLocaleString("en-IN", { maximumFractionDigits: 0 })} · <strong>Total: INR {totals.total.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</strong></p>
         </div>}
         {type !== "quotation" && <details open={config.allowBlank || undefined} className="mt-6 rounded-lg border p-4 dark:border-[#243244]"><summary className="cursor-pointer font-semibold">{config.allowBlank ? "Writing space (optional)" : type === "commercials" ? "Closing Note" : "Document Format"}</summary><p className="my-3 text-sm text-gray-500">{config.allowBlank ? "Write freely below or leave empty for a blank printable page. Letterhead includes your company header; Notepad provides a plain writing page." : type === "commercials" ? "The report follows the commercial justification reference: cover, project overview, development scope table, hosting, closing note and acceptance signatures. Edit the closing note below; the other sections use your form values. The phase total is calculated from timeline rows." : "Set the letter text using placeholders. Field values replace these when you download. Company header, document details and quotation pricing are included automatically."}</p>
-          <div className="mb-3 flex flex-wrap gap-2">{config.fields.filter(field => field.type !== "timeline").map(field => <button key={field.key} type="button" onClick={() => setTemplate(current => `${current} {{${field.key}}}`)} className="rounded bg-gray-100 px-2 py-1 text-xs dark:bg-[#243244]">{`{{${field.key}}}`}</button>)}</div>
+          <div className="mb-3 flex flex-wrap gap-2">{config.fields.filter(field => !["timeline", "hostingTable"].includes(field.type)).map(field => <button key={field.key} type="button" onClick={() => setTemplate(current => `${current} {{${field.key}}}`)} className="rounded bg-gray-100 px-2 py-1 text-xs dark:bg-[#243244]">{`{{${field.key}}}`}</button>)}</div>
           <label htmlFor="template" className="mb-1 block text-sm">Template text</label><textarea id="template" required={!config.allowBlank} maxLength={30000} placeholder={config.allowBlank ? "Leave empty for a blank page, or write your notes here…" : undefined} rows={config.allowBlank ? 20 : 12} value={template} onChange={event => setTemplate(event.target.value)} className={inputClass} />
           <button type="button" onClick={() => setTemplate(config.template)} className="mt-2 text-sm text-cyan-500">Reset to standard format</button>
         </details>}
@@ -171,4 +171,11 @@ function CommercialTimeline({ field, rows, onChange }) {
     <button type="button" disabled={rows.length >= 100} onClick={() => onChange([...rows, { timeline: "", description: "", amount: "" }])} className="text-cyan-600 disabled:opacity-50">+ Add timeline row</button>
     <p className="text-sm font-semibold">Phase total: INR {phaseTotal(rows).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
   </div>;
+}
+
+function HostingTable({ rows, onChange }) {
+  const columns = [["service", "Service", 200], ["description", "Description / coverage", 10000], ["charges", "Charges / billing period", 200]];
+  return <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr>{columns.map(([key, label]) => <th key={key} className="border p-2 text-left">{label}</th>)}<th className="border p-2">Action</th></tr></thead><tbody>
+    {rows.map((row, index) => <tr key={index}>{columns.map(([key, label, maxLength]) => <td key={key} className="border p-2"><textarea aria-label={`${label} for hosting row ${index + 1}`} required={key !== "charges"} maxLength={maxLength} rows={3} value={row[key] || ""} onChange={event => onChange(rows.map((item, i) => i === index ? { ...item, [key]: event.target.value } : item))} className={inputClass} /></td>)}<td className="border p-2"><button type="button" onClick={() => onChange(rows.filter((_, i) => i !== index))} className="text-red-500">Remove row {index + 1}</button></td></tr>)}
+  </tbody></table><button type="button" disabled={rows.length >= 100} onClick={() => onChange([...rows, { service: "", description: "", charges: "" }])} className="mt-3 text-cyan-600 disabled:opacity-50">+ Add hosting row</button></div>;
 }
