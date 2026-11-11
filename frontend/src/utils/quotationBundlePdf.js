@@ -162,8 +162,7 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
     row(["Net Total Initial Commercial Value (₹)", `${money(total)} (${amountInWords(total)})`], [WIDTH * 2 / 3, WIDTH / 3], true);
     y -= 15;
   }
-  section("Final Commercial Value", `${money(c.commercialValue)} (${amountInWords(Number(c.commercialValue))})`);
-  for (const [label, key] of [["Hosting, Server Infrastructure & Data Management Note", "hostingNote"], ["Taxes & Applicable Charges", "taxTerms"], ["Payment Schedule & Terms", "paymentTerms"], ["Delivery Timeline", "deliveryTimeline"]]) section(label, c[key]);
+  for (const [label, key] of [["Hosting, Server Infrastructure & Data Management Note", "hostingNote"], ["Payment Schedule & Terms", "paymentTerms"]]) section(label, c[key]);
   section("Closing Note", fillTemplate(commercial.template || documentTypes.commercials.template, c));
   const signatureWidth = WIDTH * .34;
   const signatures = [[c.recipientName, c.clientSignatory, c.clientSignatoryTitle], [commercialIssuer.name, commercialIssuer.signatory, commercialIssuer.title]];

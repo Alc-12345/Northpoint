@@ -34,7 +34,7 @@ export function DocumentManager({ type }) {
     const initial = location.state?.quotationDraft || initialValues();
     if (!linkedQuotation) return initial;
     const q = linkedQuotation.values;
-    return { ...initial, ...Object.fromEntries(["recipientName", "recipientEmail", "recipientAddress", "signatory", "paymentTerms", "deliveryTimeline"].map(key => [key, q[key] || ""])), documentNumber: `${q.documentNumber}-COM`, commercialValue: quotationTotals(linkedQuotation.items, q.taxRate).total };
+    return { ...initial, ...Object.fromEntries(["recipientName", "recipientEmail", "recipientAddress", "signatory", "paymentTerms"].map(key => [key, q[key] || ""])), documentNumber: `${q.documentNumber}-COM` };
   });
   const [company, setCompany] = useState(null);
   const [companyError, setCompanyError] = useState("");
@@ -114,7 +114,7 @@ export function DocumentManager({ type }) {
     { title: "Quotation Details", keys: ["documentNumber", "issueDate", "validUntil", "taxRate"] },
   ] : type === "commercials" ? [
     { title: "Issuer & Client", keys: ["documentNumber", "issueDate", "companyName", "companyAddress", "companyGstin", "companyEmail", "companyPhone", "recipientName", "recipientEmail", "recipientAddress", "signatory"] },
-    { title: "Project & Commercial Justification", keys: ["projectName", "projectPeriod", "scope", "overview", "commercialValue", "taxTerms", "paymentTerms", "deliveryTimeline"] },
+    { title: "Project & Commercial Justification", keys: ["projectName", "projectPeriod", "scope", "overview", "paymentTerms"] },
     { title: "Original Development Phase", keys: ["originalPhase", "originalTimeline"] },
     { title: "Hosting & Infrastructure", keys: ["hostingNote"] },
     { title: "Acceptance & Signature", keys: ["clientSignatory", "clientSignatoryTitle"] },
@@ -141,7 +141,7 @@ export function DocumentManager({ type }) {
           <button type="button" disabled={items.length >= 100} onClick={() => setItems([...items, { description: "", quantity: 1, rate: "" }])} className="text-cyan-500">+ Add Item</button>
           <p className="mt-4">Subtotal: INR {totals.subtotal.toLocaleString("en-IN", { maximumFractionDigits: 0 })} · GST (18%): INR {totals.tax.toLocaleString("en-IN", { maximumFractionDigits: 0 })} · <strong>Total: INR {totals.total.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</strong></p>
         </div>}
-        {type !== "quotation" && <details open={config.allowBlank || undefined} className="mt-6 rounded-lg border p-4 dark:border-[#243244]"><summary className="cursor-pointer font-semibold">{config.allowBlank ? "Writing space (optional)" : type === "commercials" ? "Closing Note" : "Document Format"}</summary><p className="my-3 text-sm text-gray-500">{config.allowBlank ? "Write freely below or leave empty for a blank printable page. Letterhead includes your company header; Notepad provides a plain writing page." : type === "commercials" ? "The report follows the commercial justification reference: cover, project overview, development scope table, hosting, closing note and acceptance signatures. Edit the closing note below; the other sections use your form values. The phase total is calculated from timeline rows; enter the negotiated final value separately." : "Set the letter text using placeholders. Field values replace these when you download. Company header, document details and quotation pricing are included automatically."}</p>
+        {type !== "quotation" && <details open={config.allowBlank || undefined} className="mt-6 rounded-lg border p-4 dark:border-[#243244]"><summary className="cursor-pointer font-semibold">{config.allowBlank ? "Writing space (optional)" : type === "commercials" ? "Closing Note" : "Document Format"}</summary><p className="my-3 text-sm text-gray-500">{config.allowBlank ? "Write freely below or leave empty for a blank printable page. Letterhead includes your company header; Notepad provides a plain writing page." : type === "commercials" ? "The report follows the commercial justification reference: cover, project overview, development scope table, hosting, closing note and acceptance signatures. Edit the closing note below; the other sections use your form values. The phase total is calculated from timeline rows." : "Set the letter text using placeholders. Field values replace these when you download. Company header, document details and quotation pricing are included automatically."}</p>
           <div className="mb-3 flex flex-wrap gap-2">{config.fields.filter(field => field.type !== "timeline").map(field => <button key={field.key} type="button" onClick={() => setTemplate(current => `${current} {{${field.key}}}`)} className="rounded bg-gray-100 px-2 py-1 text-xs dark:bg-[#243244]">{`{{${field.key}}}`}</button>)}</div>
           <label htmlFor="template" className="mb-1 block text-sm">Template text</label><textarea id="template" required={!config.allowBlank} maxLength={30000} placeholder={config.allowBlank ? "Leave empty for a blank page, or write your notes here…" : undefined} rows={config.allowBlank ? 20 : 12} value={template} onChange={event => setTemplate(event.target.value)} className={inputClass} />
           <button type="button" onClick={() => setTemplate(config.template)} className="mt-2 text-sm text-cyan-500">Reset to standard format</button>

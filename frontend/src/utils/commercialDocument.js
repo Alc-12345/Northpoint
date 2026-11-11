@@ -3,7 +3,6 @@ import { fillTemplate, normalizeCommercialDraft } from "../../../backend/shared/
 import { amountInWords } from "./amountInWords.js";
 
 const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
-const money = value => `₹${Number(value || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 export const phaseTotal = rows => (Array.isArray(rows) ? rows : []).reduce((total, row) => total + Math.round(Number(row.amount || 0) * 100), 0) / 100;
 
 export function commercialHtml({ values: v, template }, logo) {
@@ -22,9 +21,8 @@ export function commercialHtml({ values: v, template }, logo) {
   </style></head><body><div class="frame"></div><article class="page cover"><header class="issuer"><div><h2>ISSUED BY</h2><strong>${escape(v.companyName)}</strong><p class="address"><b>Billing Address:</b><br>${escape(v.companyAddress)}</p><div class="contact">${[["GSTIN Number", v.companyGstin], ["Email", v.companyEmail], ["Phone", v.companyPhone]].filter(([, value]) => value).map(([label, value]) => `<div><b>${label}:</b> ${escape(value)}</div>`).join("")}</div></div><img src="${escape(logo)}" alt="${escape(v.companyName)} logo"></header><div><h1>COMMERCIAL JUSTIFICATION REPORT</h1><p>This document presents the scope, development journey, operational expansion, and commercial justification for <strong>${escape(v.projectName)}</strong>, prepared for <strong>${escape(v.recipientName)}</strong>${v.projectPeriod ? ` for ${escape(v.projectPeriod)}` : ""}.</p><div class="prose">${escape(v.scope)}</div><div class="meta">Reference: ${escape(v.documentNumber)} · Issued: ${escape(v.issueDate)}${v.recipientEmail ? `<br>Client email: ${escape(v.recipientEmail)}` : ""}${v.recipientAddress ? `<br><b>Client Address:</b><br><span class="address">${escape(v.recipientAddress)}</span>` : ""}</div></div></article><article class="page">
   ${section("Project Overview & Commercial Justification", v.overview)}
   ${phase("Original Development Phase", v.originalPhase, v.originalTimeline)}
-  <section><h2>Final Commercial Value</h2><div class="commercial-value"><strong>${money(v.commercialValue)}</strong><br>${escape(amountInWords(Number(v.commercialValue || 0)))}</div></section>
   ${section("Hosting, Server Infrastructure & Data Management Note", v.hostingNote)}
-  ${section("Taxes & Applicable Charges", v.taxTerms)}${section("Payment Schedule & Terms", v.paymentTerms)}${section("Delivery Timeline", v.deliveryTimeline)}
+  ${section("Payment Schedule & Terms", v.paymentTerms)}
   ${section("Closing Note", fillTemplate(template || "", v))}
   <section class="acceptance"><h2>ACCEPTANCE &amp; SIGNATURE</h2><div class="signature-columns"><div><div class="signature-line"></div><p><strong>For ${escape(v.recipientName)}</strong></p><strong>${escape(v.clientSignatory)}</strong><br>${escape(v.clientSignatoryTitle)}</div><div><div class="signature-line"></div><p><strong>For ${commercialIssuer.name}</strong></p><strong>${commercialIssuer.signatory}</strong><br>${commercialIssuer.title}</div></div></section></article></body></html>`;
 }

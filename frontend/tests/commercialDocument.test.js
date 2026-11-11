@@ -4,9 +4,9 @@ import { commercialHtml, phaseTotal } from "../src/utils/commercialDocument.js";
 import { documentTypes, validateDocument } from "../../backend/shared/hrDocuments.js";
 const values = Object.fromEntries(documentTypes.commercials.fields.filter(field => field.required).map(field => [field.key, field.type === "number" ? "150000" : field.type === "date" ? "2026-11-04" : field.type === "email" ? "client@example.com" : "Example"]));
 const rows = [{ timeline: "April 2026", description: "Scope <review> & delivery", amount: "240000" }];
-test("commercial report includes reference sections, escaped content, phase totals and negotiated final value", () => {
+test("commercial report includes reference sections, escaped content, phase totals", () => {
   const html = commercialHtml({ values: { ...values, originalTimeline: rows, revisedTimeline: [{ ...rows[0], amount: "160000" }], implementationStatus: "Awaiting approval", hostingNote: "AMC separately agreed", overview: "Project journey", invoiceTerms: "1. Invoice terms & conditions" }, template: documentTypes.commercials.template }, "data:image/png;base64,example");
-  for (const text of ["COMMERCIAL JUSTIFICATION REPORT", "Original Development Phase", "Hosting, Server Infrastructure", "Closing Note", "ACCEPTANCE &amp; SIGNATURE", "Austin Legacy Corp LLP", "Ashish Patrick Austin", "Founder & Chief Executive Officer", "For Example", "4th Nov 2026", "₹2,40,000", "₹1,50,000.00", "Scope &lt;review&gt; &amp; delivery", 'src="data:image/png;base64,example"']) assert.ok(html.includes(text), text);
+  for (const text of ["COMMERCIAL JUSTIFICATION REPORT", "Original Development Phase", "Hosting, Server Infrastructure", "Closing Note", "ACCEPTANCE &amp; SIGNATURE", "Austin Legacy Corp LLP", "Ashish Patrick Austin", "Founder & Chief Executive Officer", "For Example", "4th Nov 2026", "₹2,40,000", "Scope &lt;review&gt; &amp; delivery", 'src="data:image/png;base64,example"']) assert.ok(html.includes(text), text);
   for (const removed of ["Implementation Status Note", "Awaiting approval", "Terms & Conditions", "Invoice terms &amp; conditions", "Additional Commercial Terms"]) assert.ok(!html.includes(removed), removed);
   assert.ok(!html.includes("{{"));
   assert.ok(!html.includes("Revised Project Scope"));
@@ -33,16 +33,17 @@ test("acceptance uses escaped client details and fixed issuer", () => {
 
 test("older commercial drafts adopt current fields and closing note without losing client details", async () => {
   const { normalizeCommercialDraft } = await import("../../backend/shared/hrDocuments.js");
-  const draft = { type: "commercials", values: { ...values, implementationStatus: "Pending", terms: "Old terms", invoiceTerms: "Invoice terms" }, template: "Review scope, implementation status, and commercial terms above. {{implementationStatus}}{{terms}}{{invoiceTerms}} {{recipientName}}" };
+  const draft = { type: "commercials", values: { ...values, implementationStatus: "Pending", terms: "Old terms", invoiceTerms: "Invoice terms", commercialValue: "150000", taxTerms: "Old taxes", deliveryTimeline: "Old delivery" }, template: "Review scope, implementation status, and commercial terms above. {{implementationStatus}}{{terms}}{{invoiceTerms}} {{recipientName}}" };
   const updated = normalizeCommercialDraft(draft);
   assert.equal(updated.values.recipientName, values.recipientName);
-  for (const key of ["implementationStatus", "terms", "invoiceTerms"]) assert.ok(!(key in updated.values));
+  for (const key of ["implementationStatus", "terms", "invoiceTerms", "commercialValue", "taxTerms", "deliveryTimeline"]) assert.ok(!(key in updated.values));
   assert.equal(updated.template, "Review scope and commercial details above.  {{recipientName}}");
   assert.deepEqual(validateDocument("commercials", updated.values, [], updated.template), []);
   assert.equal(draft.values.implementationStatus, "Pending");
   const html = commercialHtml(draft, "logo");
   assert.ok(html.includes("ACCEPTANCE &amp; SIGNATURE"));
   assert.ok(!html.includes("Old terms"));
+  for (const text of ["Final Commercial Value", "Taxes & Applicable Charges", "Delivery Timeline", "Old taxes", "Old delivery"]) assert.ok(!html.includes(text), text);
   assert.ok(!html.includes("implementation status"));
   assert.equal(normalizeCommercialDraft({ type: "quotation", values }).values, values);
 });

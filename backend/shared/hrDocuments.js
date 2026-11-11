@@ -55,14 +55,11 @@ export const documentTypes = {
       { key: "hostingNote", label: "Hosting, server infrastructure and AMC", type: "textarea" },
       { key: "projectName", label: "Project / service name", required: true },
       { key: "scope", label: "Scope and deliverables", type: "textarea", required: true },
-      { key: "commercialValue", label: "Commercial value (INR)", type: "number", required: true },
-      { key: "taxTerms", label: "Taxes and applicable charges", type: "textarea", required: true },
       { key: "paymentTerms", label: "Payment schedule and terms", type: "textarea", required: true },
-      { key: "deliveryTimeline", label: "Delivery timeline", required: true },
       { key: "clientSignatory", label: "Client authorized signatory" },
       { key: "clientSignatoryTitle", label: "Client signatory designation" },
     ],
-    template: "This report presents the project journey, scope expansion, development effort, and commercial justification for {{projectName}}, prepared for {{recipientName}}.\n\nThe final commercial value is INR {{commercialValue}}. Please review the scope and commercial details above for approval and payment processing.\n\nThank you for your trust and collaboration.",
+    template: "This report presents the project journey, scope expansion, development effort, and commercial justification for {{projectName}}, prepared for {{recipientName}}.\n\nPlease review the scope and commercial details above for approval and payment processing.\n\nThank you for your trust and collaboration.",
   },
   "experience-letter": {
     title: "Experience Letter",
@@ -161,9 +158,10 @@ export function validateDocument(type, values = {}, items = [], template = "") {
 export function normalizeCommercialDraft(document) {
   if (document.type !== "commercials") return document;
   const values = { ...document.values };
-  for (const key of ["implementationStatus", "terms", "invoiceTerms", "companyTagline"]) delete values[key];
+  for (const key of ["implementationStatus", "terms", "invoiceTerms", "companyTagline", "commercialValue", "taxTerms", "deliveryTimeline"]) delete values[key];
   const template = String(document.template ?? documentTypes.commercials.template)
-    .replace(/\{\{(?:implementationStatus|terms|invoiceTerms|companyTagline)\}\}/g, "")
+    .replace(/The final commercial value is INR \{\{commercialValue\}\}\.\s*/g, "")
+    .replace(/\{\{(?:implementationStatus|terms|invoiceTerms|companyTagline|commercialValue|taxTerms|deliveryTimeline)\}\}/g, "")
     .replace("scope, implementation status, and commercial terms above", "scope and commercial details above");
   return { ...document, values, template };
 }
