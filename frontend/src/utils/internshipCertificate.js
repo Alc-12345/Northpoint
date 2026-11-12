@@ -9,8 +9,11 @@ export function completionDate(startDate, months) {
 
 export const certificateDate = value => value ? new Date(`${value}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) : "[Date]";
 
-// One renderer supplies both the on-screen preview and the downloaded A4 PDF.
-export function renderCertificate(values) {
+// Load the bundled logo before drawing so it is included in the downloaded PDF.
+export async function renderCertificate(values) {
+  const logo = new Image();
+  logo.src = new URL("../assets/austin-legacy-corp.png", import.meta.url).href;
+  await logo.decode();
   const canvas = document.createElement("canvas");
   canvas.width = 1684; canvas.height = 1190;
   const ctx = canvas.getContext("2d");
@@ -28,8 +31,10 @@ export function renderCertificate(values) {
     do { ctx.font = `${weight} ${actual}px ${font}`; if (ctx.measureText(value).width <= maxWidth) break; actual -= 1; } while (actual > 12);
     ctx.fillText(value, x, y, maxWidth);
   };
-  text(values.companyName || "ALC", 842, 165, 76, 1180, "Arial", "bold", "center", "#17648b");
-  text("INTERNSHIP COMPLETION", 842, 214, 22, 1100, "Arial", "normal", "center", "#8d6b3e");
+  const logoHeight = 220;
+  const logoWidth = logoHeight * logo.naturalWidth / logo.naturalHeight;
+  ctx.drawImage(logo, (canvas.width - logoWidth) / 2, 65, logoWidth, logoHeight);
+  text("INTERNSHIP COMPLETION", 842, 325, 22, 1100, "Arial", "normal", "center", "#8d6b3e");
   text("CERTIFICATE", 458, 480, 93, 720, "Arial", "bold");
   text("O F   I N T E R N S H I P", 458, 530, 32, 700);
   ctx.strokeStyle = "#a3a3a3"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(854, 365); ctx.lineTo(854, 575); ctx.stroke();
@@ -52,7 +57,8 @@ export async function downloadCertificate(values) {
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Internship Completion Certificate – ${values.candidateName}`);
   const page = pdf.addPage([841.89, 595.28]);
-  const artwork = await pdf.embedPng(renderCertificate(values).toDataURL("image/png"));
+  const canvas = await renderCertificate(values);
+  const artwork = await pdf.embedPng(canvas.toDataURL("image/png"));
   page.drawImage(artwork, { x: 0, y: 0, width: 841.89, height: 595.28 });
   const bytes = await pdf.save();
   const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
