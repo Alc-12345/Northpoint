@@ -80,3 +80,12 @@ test("AMC predefined services and billing calculate additional GST", () => {
   const html = commercialHtml({ values: { ...values, hostingItems: [item] }, template: "" }, "logo");
   for (const text of [amcHeaders[0], "Quarterly", "₹1,000.00", "₹180.00", "₹1,180.00", "GST (18%)", "AMC charges are payable"]) assert.ok(html.includes(text), text);
 });
+
+ test("commercial content flows continuously without a forced cover page or oversized signature gap", () => {
+  const html = commercialHtml({ values: { ...values, overview: "Project journey", originalTimeline: rows }, template: "" }, "logo");
+  assert.equal((html.match(/<article /g) || []).length, 1);
+  assert.ok(!html.includes("break-after:page"));
+  assert.ok(!html.includes("min-height:273mm"));
+  assert.ok(!html.includes("margin:85px"));
+  assert.ok(html.indexOf("Project journey") < html.indexOf("ACCEPTANCE &amp; SIGNATURE"));
+});
