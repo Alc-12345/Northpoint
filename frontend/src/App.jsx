@@ -22,6 +22,7 @@ import AddTask from "./Pages/AddTask";
 import ProjectManagement from "./Pages/ProjectManagement";
 import Locker from "./Pages/Locker";
 import HrDocuments from "./Pages/HrDocuments";
+import SalarySlip from "./Pages/SalarySlip";
 import AssignProject from "./Pages/AssignProject";
 import AdminProjectProgress from "./Pages/AdminProjectProgress";
 import AddProject from "./Pages/AddProject";
@@ -95,6 +96,7 @@ function App() {
       <Route path="/assign-project" element={<MainLayout><AssignProject /></MainLayout>} />
       <Route path="/projects/progress" element={<MainLayout><AdminProjectProgress /></MainLayout>} />
       <Route path="/projects/:id/progress" element={<MainLayout><AdminProjectProgress /></MainLayout>} />
+      <Route path="/hr/salary-slip" element={<MainLayout><FinanceAccess><SalarySlip /></FinanceAccess></MainLayout>} />
       <Route path="/hr/locker" element={<MainLayout><Locker /></MainLayout>} />
       <Route path="/hr/:type" element={<MainLayout><HrDocuments /></MainLayout>} />
       {/* Dashboard */}

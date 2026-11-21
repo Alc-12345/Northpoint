@@ -98,7 +98,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
           {[
             { key: "employees", label: "Employees", icon: <FiUsers />, links: [["Attendance", "/employees/attendance"], ["Add Employee", "/employees/add"], ["Salary", "/payroll"]] },
             { key: "projects", label: "Projects", icon: <FiFolder />, links: [["Add Project", "/projects"], ["Assign Project", "/assign-project"], ["Progress", "/projects/progress"]] },
-            { key: "hr", label: "HR", icon: <FiFileText />, links: [["Locker", "/hr/locker"], ["Internship", "/hr/internship"], ["Offer Letter", "/hr/offer-letter"], ["Quotation", "/hr/quotation"], ["Commercials", "/hr/commercials"], ["Experience Letter", "/hr/experience-letter"], ["Appointment Letter", "/hr/appointment-letter"], ["Letterhead", "/hr/letterhead"], ["Notepad", "/hr/notepad"]] },
+            { key: "hr", label: "HR", icon: <FiFileText />, links: [["Locker", "/hr/locker"], ["Salary Slip", "/hr/salary-slip"], ["Internship", "/hr/internship"], ["Offer Letter", "/hr/offer-letter"], ["Quotation", "/hr/quotation"], ["Commercials", "/hr/commercials"], ["Experience Letter", "/hr/experience-letter"], ["Appointment Letter", "/hr/appointment-letter"], ["Letterhead", "/hr/letterhead"], ["Notepad", "/hr/notepad"]] },
           ].map(({ key, label, icon, links }) => (
             <div key={key}>
               <button type="button" onClick={() => toggleMenu(key)} aria-expanded={activeMenu === key}
@@ -107,7 +107,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
                 <FiChevronDown className={activeMenu === key ? "rotate-180" : ""} />
               </button>
               {activeMenu === key && <div className="nav-submenu ml-6 mt-2 space-y-1 text-sm">
-                {links.filter(([, to]) => to !== "/payroll" || financeAllowed).map(([text, to]) => <NavLink key={to} to={to} end className={({ isActive }) => `block px-3 py-2 rounded ${isActive ? activeClass : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}>{text}</NavLink>)}
+                {links.filter(([, to]) => !["/payroll", "/hr/salary-slip"].includes(to) || financeAllowed).map(([text, to]) => <NavLink key={to} to={to} end className={({ isActive }) => `block px-3 py-2 rounded ${isActive ? activeClass : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}>{text}</NavLink>)}
               </div>}
             </div>
           ))}
