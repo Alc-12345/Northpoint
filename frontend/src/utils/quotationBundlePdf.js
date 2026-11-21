@@ -5,14 +5,12 @@ import fontkit from "@pdf-lib/fontkit";
 import { amountInWords } from "./amountInWords.js";
 import { documentTypes, fillTemplate, normalizeCommercialDraft, quotationTotals } from "../../../backend/shared/hrDocuments.js";
 import { phaseTotal } from "./commercialDocument.js";
-import { withDocumentCompany } from "../../../backend/shared/documentCompany.js";
 
 const money = value => `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 const W = 595.28, H = 841.89, M = 28, WIDTH = W - M * 2;
 
 export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
-  quotation = withDocumentCompany(quotation, quotation.company);
-  commercial = normalizeCommercialDraft(withDocumentCompany(commercial, commercial.company));
+  commercial = normalizeCommercialDraft(commercial);
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
   const fonts = await Promise.all(["latin-400", "latin-ext-400", "latin-700", "latin-ext-700"].map(async (name, i) => {
@@ -62,13 +60,13 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
     text(label, M + 5, y - 3, 10, true); y -= 25;
   };
   const section = (label, value) => { if (value) { heading(label); paragraph(value, 9, false, WIDTH - 10, M + 5); y -= 5; } };
-  const logo = async (source, maxWidth = 260, maxHeight = 95) => {
+  const logo = async source => {
     if (!source) return;
     const response = await fetch(source);
     if (!response.ok) throw new Error("Unable to load the company logo.");
     const bytes = await response.arrayBuffer();
     const image = bytes.byteLength && new Uint8Array(bytes)[0] === 137 ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
-    const scale = Math.min(maxWidth / image.width, maxHeight / image.height);
+    const scale = Math.min(260 / image.width, 95 / image.height);
     page.drawImage(image, { x: M, y: y - image.height * scale, width: image.width * scale, height: image.height * scale });
     y -= image.height * scale + 12;
   };
@@ -77,9 +75,7 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
     let offset = 0;
     const count = Math.max(...lines.map(cell => cell.length));
     while (offset < count) {
-      // Keep ordinary rows together; split only rows taller than a full page.
-      const remainingHeight = (count - offset) * size * 1.4 + 12;
-      ensure(remainingHeight <= H - 2 * M ? remainingHeight : size * 1.4 + 12);
+      ensure(size * 1.4 + 12);
       const available = quoteMode ? count : Math.max(1, Math.floor((y - M - 12) / (size * 1.4)));
       const take = Math.min(count - offset, available);
       const height = take * size * 1.4 + 12;
@@ -95,32 +91,20 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
   };
   nextPage();
   const q = formatDocumentValues(quotation.values);
-  const headerTop = y;
-  await logo(quotation.company?.logo, WIDTH * .57, 85);
-  const headerBottom = Math.min(y, headerTop - 42);
-  text("QUOTATION", W - M - measure("QUOTATION", 21, true), headerTop - 15, 21, true);
-  page.drawLine({ start: { x: M, y: headerBottom }, end: { x: W - M, y: headerBottom }, thickness: .6, color: rgb(.8, .82, .85) });
-  y = headerBottom - 12;
+  await logo(quotation.company?.logo);
+  paragraph("QUOTATION", 21, true);
   const top = y;
-  const columnWidths = [WIDTH * 1.3 / 3.3, WIDTH / 3.3, WIDTH / 3.3];
   const columns = [
-    ["FROM", [["Company name", q.companyName], ["Company address", q.companyAddress], ["GSTIN", q.companyGstin], ["Email", q.companyEmail], ["Phone", q.companyPhone]]],
-    ["BILL TO", [["Client name", q.recipientName], ["Client address", q.recipientAddress], ["Client email", q.recipientEmail]]],
-    ["QUOTATION DETAILS", [["Quotation no.", q.documentNumber], ["Issued", q.issueDate], ["Valid until", q.validUntil]]],
+    ["FROM", [q.companyName, q.companyAddress, q.companyGstin && `GSTIN: ${q.companyGstin}`, q.companyEmail, q.companyPhone].filter(Boolean).join("\n")],
+    ["BILL TO", [q.recipientName, q.recipientAddress, q.recipientEmail].filter(Boolean).join("\n")],
+    ["QUOTATION DETAILS", `${q.documentNumber}\nIssued: ${q.issueDate}\nValid until: ${q.validUntil}`],
   ];
-  let lowest = top, columnX = M;
-  columns.forEach(([title, fields], i) => {
-    y = top;
-    const x = columnX, width = columnWidths[i] - 12;
-    page.drawRectangle({ x, y: y - 18, width, height: 18, color: rgb(.93, .94, .96) });
-    text(title, x + 5, y - 4, 8, true);
-    y -= 24;
-    fields.filter(([, value]) => value).forEach(([label, value]) => {
-      paragraph(label.toUpperCase(), 7, true, width - 10, x + 5);
-      paragraph(value, 9, false, width - 10, x + 5);
-    });
+  let lowest = top;
+  columns.forEach(([title, body], i) => {
+    y = top; const x = M + i * WIDTH / 3;
+    paragraph(title, 9, true, WIDTH / 3 - 12, x);
+    paragraph(body, 9, false, WIDTH / 3 - 12, x);
     lowest = Math.min(lowest, y);
-    columnX += columnWidths[i];
   });
   y = lowest - 10;
   const widths = [WIDTH * .52, WIDTH * .1, WIDTH * .18, WIDTH * .2];
@@ -128,23 +112,8 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
   quotation.items.forEach(item => row([item.description, item.quantity, money(item.rate), money(Number(item.quantity) * Number(item.rate))], widths));
   y -= 12;
   const totals = quotationTotals(quotation.items, q.taxRate);
-  const summaryTop = y;
-  const summaryWidth = (WIDTH - 18) / 2;
-  page.drawRectangle({ x: M, y: y - 18, width: summaryWidth, height: 18, color: rgb(.93, .94, .96) });
-  text("AMOUNT IN WORDS", M + 5, y - 4, 8, true);
-  y -= 25;
-  paragraph(amountInWords(Math.round(totals.total)), 9, false, summaryWidth - 10, M + 5);
-  const wordsBottom = y;
-  y = summaryTop;
-  const totalsX = M + summaryWidth + 18;
-  for (const [label, value, bold] of [["Subtotal", totals.subtotal, false], [`GST (${q.taxRate}%)`, totals.tax, false], ["Total", totals.total, true]]) {
-    if (bold) page.drawRectangle({ x: totalsX, y: y - 23, width: summaryWidth, height: 23, color: rgb(.93, .94, .96) });
-    text(label, totalsX + 5, y - 5, 9, bold);
-    const amount = money(value);
-    text(amount, W - M - 5 - measure(amount, 9, bold), y - 5, 9, bold);
-    y -= 23;
-  }
-  y = Math.min(wordsBottom, y) - 12;
+  section("AMOUNT IN WORDS", amountInWords(Math.round(totals.total)));
+  paragraph(`Subtotal: ${money(totals.subtotal)}     GST (${q.taxRate}%): ${money(totals.tax)}     Total: ${money(totals.total)}`, 10, true);
   const termsTop = y;
   const gap = 16, paymentWidth = WIDTH * .36, termsWidth = WIDTH - paymentWidth - gap;
   const columnHeading = (title, x, width) => {
@@ -164,12 +133,7 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
   columnHeading("TERMS & CONDITIONS", termsX, termsWidth);
   paragraph(String(q.invoiceTerms || "").replace(/\n\s*\n/g, "\n").trim(), 8, false, termsWidth - 10, termsX + 5);
   y = Math.min(paymentBottom, y) - 12;
-  page.drawLine({ start: { x: M, y }, end: { x: W - M, y }, thickness: .6, color: rgb(.8, .82, .85) });
-  y -= 12;
-  for (const [line, bold] of [["AUTHORIZED SIGNATORY", true], [q.signatory, false], [`For ${q.companyName}`, false]]) {
-    text(line, W - M - measure(line, 9, bold), y, 9, bold);
-    y -= 15;
-  }
+  paragraph(`Authorized signatory: ${q.signatory}\nFor ${q.companyName}`, 9, true);
   const quotePage = page;
   const used = quotePage.getHeight() - M - y;
   const scale = Math.min(1, (H - 2 * M) / used);
@@ -184,7 +148,6 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
   paragraph("COMMERCIAL JUSTIFICATION REPORT", 18, true);
   paragraph(`${c.companyName}\n${c.companyAddress}\n${[c.companyGstin && `GSTIN: ${c.companyGstin}`, c.companyEmail, c.companyPhone].filter(Boolean).join(" | ")}`);
   paragraph(`Prepared for ${c.recipientName}\n${c.documentNumber} | ${c.issueDate}\n${c.projectName}${c.projectPeriod ? ` | ${c.projectPeriod}` : ""}`, 10, true);
-  if (c.recipientEmail) paragraph(`Client email: ${c.recipientEmail}`);
   if (c.recipientAddress) {
     paragraph("Client Address:", 10, true);
     paragraph(c.recipientAddress);
@@ -211,11 +174,11 @@ export async function quotationBundlePdf(quotation, commercial, suppliedFonts) {
   section("Closing Note", fillTemplate(commercial.template || documentTypes.commercials.template, c));
   const signatureWidth = WIDTH * .34;
   const signatures = [[c.recipientName, c.clientSignatory, c.clientSignatoryTitle], [commercialIssuer.name, commercialIssuer.signatory, commercialIssuer.title]];
-  const signatureHeight = Math.max(...signatures.map(([name, person, title]) => wrap(`For ${name}`, signatureWidth, 10, true).length * 14.5 + wrap(person || "", signatureWidth, 10, true).length * 14.5 + wrap(title || "", signatureWidth, 10).length * 14.5)) + 105;
+  const signatureHeight = Math.max(...signatures.map(([name, person, title]) => wrap(`For ${name}`, signatureWidth, 10, true).length * 14.5 + wrap(person || "", signatureWidth, 10, true).length * 14.5 + wrap(title || "", signatureWidth, 10).length * 14.5)) + 150;
   ensure(signatureHeight);
-  y -= 8;
+  y -= 20;
   paragraph("ACCEPTANCE & SIGNATURE", 12, true);
-  y -= 28;
+  y -= 85;
   const signatureTop = y;
   signatures.forEach(([name, person, title], index) => {
     const x = index ? W - M - signatureWidth : M;
