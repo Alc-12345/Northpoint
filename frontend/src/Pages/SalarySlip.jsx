@@ -23,8 +23,8 @@ async function makePdf(values, gross, deducted) {
   };
   const rule = (x1, x2, y) => page.drawLine({ start: { x: x1, y }, end: { x: x2, y }, thickness: 0.6, color: line });
   const imageBytes = await fetch(logo).then(r => { if (!r.ok) throw new Error("Company logo could not be loaded."); return r.arrayBuffer(); });
-  const image = await pdf.embedPng(imageBytes), scaled = image.scaleToFit(75, 55);
-  page.drawImage(image, { x: 550 - scaled.width, y: 775, width: scaled.width, height: scaled.height });
+  const image = await pdf.embedPng(imageBytes), scaled = image.scaleToFit(125, 70);
+  page.drawImage(image, { x: 550 - scaled.width, y: 817 - scaled.height / 2, width: scaled.width, height: scaled.height });
   text("Austin Legacy Corp", 35, 810, 18, bold, black, 420);
   if (values.companyAddress) text(values.companyAddress, 35, 790, 9, font, muted, 420);
   rule(30, 565, 762);
