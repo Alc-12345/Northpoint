@@ -11,6 +11,7 @@ import { documentTypes, normalizeCommercialDraft, quotationTotals, validateDocum
 import { documentHtml, downloadDocument, printDocument } from "../utils/hrDocumentDownload";
 import Interns from "./Interns.jsx";
 import OfferEmployees from "./OfferEmployees.jsx";
+import { completionDate } from "../utils/internshipCertificate";
 
 const inputClass = "w-full rounded-lg border border-gray-300 bg-white p-2 text-gray-800 dark:border-[#243244] dark:bg-[#0b1220] dark:text-gray-200";
 const buttonClass = "rounded-lg bg-blue-600 px-4 py-2 text-white disabled:opacity-50";
@@ -18,13 +19,13 @@ const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kol
 
 export default function HrDocuments() {
   const { type } = useParams();
-  if (type === "internship") return <Interns />;
+  if (type === "internship") return <Interns renderInternshipOffer={(intern, onBack) => <DocumentManager key={intern._id} type="internship" intern={intern} onBack={onBack} />} />;
   if (type === "offer-letter") return <OfferEmployees />;
   if (!Object.hasOwn(documentTypes, type)) return <p className="text-gray-700 dark:text-gray-200">Unknown HR document type.</p>;
   return <DocumentManager key={type} type={type} />;
 }
 
-export function DocumentManager({ type }) {
+export function DocumentManager({ type, intern, onBack }) {
   const config = documentTypes[type];
   const location = useLocation();
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export function DocumentManager({ type }) {
   const [downloadingBundle, setDownloadingBundle] = useState(false);
   const initialValues = () => Object.fromEntries(config.fields.map(field => [field.key, field.key === "issueDate" ? today() : field.key === "companyName" ? "ALC" : ["timeline", "hostingTable"].includes(field.type) ? [] : field.type === "number" ? "0" : ""]));
   const [draftValues, setValues] = useState(() => {
-    const initial = location.state?.quotationDraft || initialValues();
+    const initial = location.state?.quotationDraft || { ...initialValues(), ...(intern ? { recipientName: intern.candidateName, position: intern.role, companyName: intern.companyName, startDate: intern.startDate, endDate: completionDate(intern.startDate, intern.duration) } : {}) };
     if (!linkedQuotation) return initial;
     const q = linkedQuotation.values;
     return { ...initial, ...Object.fromEntries(["recipientName", "recipientEmail", "recipientAddress", "signatory"].map(key => [key, q[key] || ""])), documentNumber: `${q.documentNumber}-COM` };
@@ -122,6 +123,7 @@ export function DocumentManager({ type }) {
   ] : [{ title: "Document details", keys: config.fields.map(field => field.key) }];
   const filtered = records.filter(record => `${record.values.recipientName} ${record.values.documentNumber}`.toLowerCase().includes(search.toLowerCase()));
   return <div className="text-gray-800 dark:text-gray-200">
+    {onBack && <button type="button" onClick={onBack} className="mb-4 text-sm text-blue-500">← Back to interns</button>}
     <div className="mb-6 flex items-center justify-between gap-4"><div><h1 className="text-2xl font-bold">{config.title}</h1><p className="mt-2 text-sm text-gray-500">Fill the fields, set the document format, and save. Saved documents can be edited or downloaded anytime.</p></div><button type="button" disabled={saving} onClick={reset} className={buttonClass}>New Document</button></div>
     {error && <p role="alert" className="mb-4 text-red-500">{error}</p>}
     {sharedCompany && <div className="mb-4 rounded-lg border p-4"><p className="text-sm">Company details and logo come from <a href="/finance/invoices" className="text-cyan-600 underline">Invoice → Company Settings</a>. Changes apply to previews and exports of all quotations and commercials.</p>{companyError ? <p role="alert" className="mt-2 text-red-500">Company settings could not load: {companyError}. Reload to retry.</p> : !company ? <p>Loading company settings...</p> : company.logo ? <img src={company.logo} alt="Company logo" className="mt-3 max-h-24 max-w-72 object-contain" /> : null}</div>}

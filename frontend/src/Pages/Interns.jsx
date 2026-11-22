@@ -5,13 +5,12 @@ import { Award, FileText, Plus, Search } from "lucide-react";
 import { hrDocumentApi } from "../services/api";
 import { certificateDate, completionDate } from "../utils/internshipCertificate";
 import InternshipCertificate from "./InternshipCertificate.jsx";
-import OfferLetter from "./OfferLetter.jsx";
 import { isPanelPreview } from "../utils/auth";
 
 const inputClass = "w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 dark:border-[#243244] dark:bg-[#0b1220] dark:text-gray-200";
 const emptyIntern = () => ({ candidateName: "", role: "", companyName: "ALC", startDate: "", duration: "3" });
 
-export default function Interns({ offerLetters = false }) {
+export default function Interns({ offerLetters = false, renderInternshipOffer }) {
   let canAdd = false;
   try { canAdd = ["admin", "superadmin"].includes(JSON.parse(localStorage.getItem("authUser") || "null")?.role); } catch { /* Invalid session data does not grant access. */ }
   const [interns, setInterns] = useState([]);
@@ -44,7 +43,7 @@ export default function Interns({ offerLetters = false }) {
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
   };
-  if (offerSelected) return <OfferLetter key={offerSelected._id} intern={offerSelected} onBack={() => setOfferSelected(null)} />;
+  if (offerSelected && renderInternshipOffer) return renderInternshipOffer(offerSelected, () => setOfferSelected(null));
   if (selected) return <InternshipCertificate key={selected._id} intern={selected} onBack={() => setSelected(null)} />;
   const filtered = interns.filter(intern => `${intern.candidateName} ${intern.role} ${intern.companyName}`.toLowerCase().includes(search.trim().toLowerCase()));
   return <div className="text-gray-800 dark:text-gray-200">
