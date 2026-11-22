@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import logo from "../assets/austin-legacy-corp.png";
+import { hrDocumentApi } from "../services/api";
 
 const details = [["employeeName", "Employee Name"], ["designation", "Designation"], ["joiningDate", "Date of Joining", "date"], ["payPeriod", "Pay Period", "month"], ["payDate", "Pay Date", "date"], ["pfNumber", "PF / A Number"], ["uan", "UAN"], ["esiNumber", "ESI Number"], ["pan", "PAN"], ["bankAccount", "Bank Account No"]];
 const earnings = [["basic", "Basic"], ["hra", "House Rent Allowance"], ["conveyance", "Conveyance Allowance"], ["telephone", "Telephone/Internet Allowance"], ["leaveTravel", "Leave Travel Allowance"], ["incentives", "Performance Incentives"]];
@@ -10,7 +11,7 @@ const date = value => value ? new Date(`${value}T00:00:00`).toLocaleDateString("
 const period = value => value ? new Date(`${value}-01T00:00:00`).toLocaleDateString("en-IN", { month: "long", year: "numeric" }) : "—";
 const input = "mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 dark:border-[#243244] dark:bg-[#0b1220] dark:text-gray-200";
 
-async function makePdf(values, gross, deducted) {
+async function makePdf(values, gross, deducted, company) {
   const pdf = await PDFDocument.create();
   const page = pdf.addPage([595.28, 841.89]);
   const font = await pdf.embedFont(StandardFonts.Helvetica), bold = await pdf.embedFont(StandardFonts.HelveticaBold);
@@ -25,8 +26,8 @@ async function makePdf(values, gross, deducted) {
   const imageBytes = await fetch(logo).then(r => { if (!r.ok) throw new Error("Company logo could not be loaded."); return r.arrayBuffer(); });
   const image = await pdf.embedPng(imageBytes), scaled = image.scaleToFit(125, 70);
   page.drawImage(image, { x: 550 - scaled.width, y: 817 - scaled.height / 2, width: scaled.width, height: scaled.height });
-  text("Austin Legacy Corp", 35, 810, 18, bold, black, 420);
-  if (values.companyAddress) text(values.companyAddress, 35, 790, 9, font, muted, 420);
+  text(company.name, 35, 810, 18, bold, black, 380);
+  if (company.address) text(company.address.replace(/\s+/g, " ").trim(), 35, 790, 9, font, muted, 380);
   rule(30, 565, 762);
   text(`Payslip For the month of ${period(values.payPeriod)}`, 35, 738, 14, bold);
   text("Employee Pay Summary", 35, 718, 11, bold);
@@ -55,16 +56,28 @@ export default function SalarySlip() {
   const [values, setValues] = useState({});
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [company, setCompany] = useState(null);
+  const [companyError, setCompanyError] = useState("");
+  useEffect(() => {
+    let active = true;
+    const refresh = () => hrDocumentApi.getCompanySettings()
+      .then(data => { if (active) { setCompany(data); setCompanyError(""); } })
+      .catch(err => { if (active) { setCompany(null); setCompanyError(err.message || "Unable to load company settings."); } });
+    refresh();
+    window.addEventListener("focus", refresh);
+    return () => { active = false; window.removeEventListener("focus", refresh); };
+  }, []);
   const update = e => setValues(current => ({ ...current, [e.target.name]: e.target.value }));
   const total = rows => rows.reduce((sum, [key]) => sum + Math.round(Number(values[key] || 0) * 100), 0) / 100;
   const gross = total(earnings), deducted = total(deductions);
   const field = ([key, label, type = "text"], required = false) => <label key={key} className="text-sm">{label}{required && " *"}<input className={input} name={key} type={type} value={values[key] || ""} onChange={update} required={required} maxLength={type === "text" ? 120 : undefined} min={type === "number" ? "0" : undefined} max={type === "number" ? "1000000000" : undefined} step={type === "number" ? "0.01" : undefined} /></label>;
-  const download = async e => { e.preventDefault(); setError(""); if (deducted > gross) { setError("Total deductions cannot exceed gross earnings."); return; } setBusy(true); try { await makePdf(values, gross, deducted); } catch (err) { setError(err.message || "Unable to generate the PDF."); } finally { setBusy(false); } };
-  return <div className="text-gray-800 dark:text-gray-200"><h1 className="text-2xl font-bold">Salary Slip</h1><p className="mb-6 mt-2 text-sm text-gray-500">Enter the payslip details to download an Austin Legacy Corp salary slip. Details are not saved.</p>
+  const download = async e => { e.preventDefault(); setError(""); if (!company) { setError("Load the Invoice company settings before downloading."); return; } if (deducted > gross) { setError("Total deductions cannot exceed gross earnings."); return; } setBusy(true); try { await makePdf(values, gross, deducted, company); } catch (err) { setError(err.message || "Unable to generate the PDF."); } finally { setBusy(false); } };
+  return <div className="text-gray-800 dark:text-gray-200"><h1 className="text-2xl font-bold">Salary Slip</h1><p className="mb-6 mt-2 text-sm text-gray-500">Enter the payslip details to download a salary slip. Details are not saved.</p>
+    <div className="mb-4 rounded-lg border p-4 text-sm"><p>Company name and address come from <a href="/finance/invoices" className="text-cyan-600 underline">Invoice → Company Settings</a>.</p>{companyError ? <p role="alert" className="mt-2 text-red-500">Company settings could not load: {companyError}. Reload to retry.</p> : !company ? <p>Loading company settings...</p> : <p className="mt-2 whitespace-pre-line">{company.name}<br />{company.address}</p>}</div>
     <form onSubmit={download} className="space-y-6 rounded-xl border bg-white p-6 dark:border-[#243244] dark:bg-[#111C2D]">
-      <section><h2 className="mb-4 text-lg font-semibold">Company and employee pay summary</h2><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{field(["companyAddress", "Company address"])}{details.map(item => field(item, ["employeeName", "payPeriod"].includes(item[0])))}{field(["paidDays", "Paid Days", "number"])}{field(["lopDays", "LOP Days", "number"])}</div></section>
+      <section><h2 className="mb-4 text-lg font-semibold">Employee pay summary</h2><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{details.map(item => field(item, ["employeeName", "payPeriod"].includes(item[0])))}{field(["paidDays", "Paid Days", "number"])}{field(["lopDays", "LOP Days", "number"])}</div></section>
       <section className="grid gap-6 border-t pt-5 md:grid-cols-2 dark:border-[#243244]"><div><h2 className="mb-4 text-lg font-semibold">Earnings (INR)</h2><div className="grid gap-4">{earnings.map(([key, label]) => field([key, label, "number"]))}</div><p className="mt-4 font-semibold">Gross Earnings: ₹{money(gross)}</p></div><div><h2 className="mb-4 text-lg font-semibold">Deductions (INR)</h2><div className="grid gap-4">{deductions.map(([key, label]) => field([key, label, "number"]))}</div><p className="mt-4 font-semibold">Total Deductions: ₹{money(deducted)}</p></div></section>
       <div className="rounded-lg bg-green-50 p-4 text-green-900"><strong>Total Net Payable: ₹{money(gross - deducted)}</strong><p className="mt-1 text-sm">Gross earnings minus total deductions</p></div>
-      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}<div className="flex justify-end"><button disabled={busy} className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white disabled:opacity-50">{busy ? "Generating PDF…" : "Download Salary Slip PDF"}</button></div>
+      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}<div className="flex justify-end"><button disabled={busy || !company} className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white disabled:opacity-50">{busy ? "Generating PDF…" : "Download Salary Slip PDF"}</button></div>
     </form></div>;
 }
