@@ -28,7 +28,7 @@
   background: transparent;
   flex-shrink: 0;
 }
-.nav-brand-logo { width: 32px; height: 32px; object-fit: contain; }
+.nav-brand-logo { width: 48px; height: 48px; flex-shrink: 0; object-fit: contain; }
 .nav-brand-copy { display: flex; flex-direction: column; gap: 2px; white-space: nowrap; }
 .nav-brand-copy strong { font-size: 15px; font-weight: 600; letter-spacing: -.025em; }
 .nav-brand-copy span { font-size: 11px; color: var(--nav-muted); }
