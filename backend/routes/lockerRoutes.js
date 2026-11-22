@@ -1,57 +1,10 @@
 import express from 'express';
-import crypto from 'node:crypto';
-import { promisify } from 'node:util';
 import mongoose from 'mongoose';
-import rateLimit from 'express-rate-limit';
 import { protect, requireAdmin } from '../middleware/authMiddleware.js';
-import User from '../models/User.js';
-import { LockerSettings, LockerSession, LockerFolder, LockerFile } from '../models/Locker.js';
+import { LockerFolder, LockerFile } from '../models/Locker.js';
 const router = express.Router();
-const derive = promisify(crypto.scrypt);
-const digest = value => crypto.createHash('sha256').update(value).digest('hex');
-const credentials = async password => {
-  const salt = crypto.randomBytes(16).toString('hex');
-  return { salt, hash: (await derive(password, salt, 64)).toString('hex') };
-};
-const settings = async () => {
-  let value = await LockerSettings.findById('locker');
-  if (!value) {
-    const initial = await credentials(process.env.LOCKER_INITIAL_PASSWORD || 'ashish');
-    value = await LockerSettings.findOneAndUpdate({ _id: 'locker' }, { $setOnInsert: initial }, { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true });
-  }
-  return value;
-};
 router.use(protect, requireAdmin);
 router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
-const attempts = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, keyGenerator: req => String(req.user._id), message: { message: 'Too many attempts. Try again in 15 minutes.' } });
-router.post('/unlock', attempts, async (req, res) => {
-  if (typeof req.body.password !== 'string' || req.body.password.length > 256) return res.status(400).json({ message: 'Enter a valid password' });
-  const config = await settings();
-  const hash = await derive(req.body.password, config.salt, 64);
-  if (!crypto.timingSafeEqual(hash, Buffer.from(config.hash, 'hex'))) return res.status(403).json({ message: 'Incorrect locker password' });
-  const token = crypto.randomBytes(32).toString('hex');
-  await LockerSession.create({ tokenHash: digest(token), user: req.user._id, version: config.version, expiresAt: new Date(Date.now() + 30 * 60 * 1000) });
-  res.json({ token });
-});
-router.post('/reset-password', attempts, async (req, res) => {
-  const { accountPassword, newPassword } = req.body;
-  if (typeof accountPassword !== 'string' || accountPassword.length > 256 || typeof newPassword !== 'string' || newPassword.length < 8 || newPassword.length > 256) return res.status(400).json({ message: 'Account password is required; new locker password must be 8–256 characters' });
-  const user = await User.findById(req.user._id).select('+passwordHash +passwordSalt');
-  if (!user.matchPassword(accountPassword)) return res.status(403).json({ message: 'Incorrect account password' });
-  await settings();
-  await LockerSettings.updateOne({ _id: 'locker' }, { $set: await credentials(newPassword), $inc: { version: 1 } });
-  await LockerSession.deleteMany({});
-  res.json({ message: 'Password reset. Unlock with your new password.' });
-});
-router.use(async (req, res, next) => {
-  const token = req.get('X-Locker-Token');
-  const config = await settings();
-  const session = token && await LockerSession.findOne({ tokenHash: digest(token), user: req.user._id, version: config.version, expiresAt: { $gt: new Date() } });
-  if (!session) return res.status(423).json({ message: 'Locker is locked. Unlock to continue.' });
-  req.lockerSession = session;
-  next();
-});
-router.post('/lock', async (req, res) => { await LockerSession.deleteOne({ _id: req.lockerSession._id }); res.json({ message: 'Locked' }); });
 const access = req => ({ $or: [{ kind: 'client' }, { kind: 'personal', owner: req.user._id }] });
 router.get('/folders', async (req, res) => res.json(await LockerFolder.find(access(req)).sort({ name: 1 })));
 router.post('/folders', async (req, res) => {
