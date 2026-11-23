@@ -6,7 +6,7 @@ import { hrDocumentApi } from "../services/api";
 const details = [["employeeName", "Employee Name"], ["designation", "Designation"], ["joiningDate", "Date of Joining", "date"], ["payPeriod", "Pay Period", "month"], ["payDate", "Pay Date", "date"], ["pfNumber", "PF / A Number"], ["uan", "UAN"], ["esiNumber", "ESI Number"], ["pan", "PAN"], ["bankAccount", "Bank Account No"]];
 const earnings = [["basic", "Basic"], ["hra", "House Rent Allowance"], ["conveyance", "Conveyance Allowance"], ["telephone", "Telephone/Internet Allowance"], ["leaveTravel", "Leave Travel Allowance"], ["incentives", "Performance Incentives"]];
 const deductions = [["epf", "EPF Contribution"], ["professionalTax", "Professional Tax"]];
-const money = value => Number(value || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = value => Number(value || 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 const date = value => value ? new Date(`${value}T00:00:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 const period = value => value ? new Date(`${value}-01T00:00:00`).toLocaleDateString("en-IN", { month: "long", year: "numeric" }) : "—";
 const input = "mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 dark:border-[#243244] dark:bg-[#0b1220] dark:text-gray-200";
@@ -30,8 +30,8 @@ async function makePdf(values, gross, deducted, company) {
   const imageBytes = await fetch(company.logo || logo).then(r => { if (!r.ok) throw new Error("Company logo could not be loaded."); return r.arrayBuffer(); });
   const signature = new Uint8Array(imageBytes);
   const image = signature[0] === 0xff && signature[1] === 0xd8 ? await pdf.embedJpg(imageBytes) : await pdf.embedPng(imageBytes);
-  const scaled = image.scaleToFit(95, 65);
-  page.drawImage(image, { x: 555 - scaled.width, y: 765 + (65 - scaled.height) / 2, width: scaled.width, height: scaled.height });
+  const scaled = image.scaleToFit(125, 75);
+  page.drawImage(image, { x: 555 - scaled.width, y: 765 + (75 - scaled.height) / 2, width: scaled.width, height: scaled.height });
   text(company.name, 35, 810, 18, bold, black, 380);
   if (company.address) {
     const words = company.address.trim().split(/\s+/);
@@ -62,7 +62,12 @@ async function makePdf(values, gross, deducted, company) {
   page.drawRectangle({ x: 0, y: 180, width: 595, height: 36, color: rgb(0.88, 0.96, 0.87) });
   text(`Total Net Payable   INR ${money(gross - deducted)}`, 35, 192, 12, bold);
   text("Total Net Payable = Gross Earnings - Total Deductions.", 35, 155, 9);
-  text("This document has been electronically generated and does not require a signature.", 95, 80, 9, font, muted, 410);
+  centeredText("This document has been electronically generated and does not require a signature.", 297.64, 80, 9, font, muted);
+  rule(30, 565, 65);
+  if (company.phone) text(company.phone, 30, 45, 8, font, muted, 165);
+  if (values.companyWebsite) centeredText(values.companyWebsite, 297.64, 45, 8, font, muted);
+  const gst = company.taxId ? `GST: ${company.taxId}` : "";
+  if (gst) text(gst, 565 - font.widthOfTextAtSize(gst, 8), 45, 8, font, muted, 165);
   return new Blob([await pdf.save()], { type: "application/pdf" });
 }
 
@@ -75,6 +80,19 @@ export default function SalarySlip() {
   const [previewUrl, setPreviewUrl] = useState("");
   useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
   const [companyError, setCompanyError] = useState("");
+  const [draftMessage, setDraftMessage] = useState("");
+  useEffect(() => {
+    try {
+      const draft = JSON.parse(localStorage.getItem("salary-slip-draft") || "null");
+      if (draft) { setValues(draft.values || {}); setFileName(draft.fileName || ""); }
+    } catch { setDraftMessage("Could not load the saved draft."); }
+  }, []);
+  const saveDraft = () => {
+    try {
+      localStorage.setItem("salary-slip-draft", JSON.stringify({ values, fileName }));
+      setDraftMessage("Draft saved in this browser.");
+    } catch { setDraftMessage("Could not save the draft in this browser."); }
+  };
   useEffect(() => {
     let active = true;
     const refresh = () => hrDocumentApi.getCompanySettings()
@@ -105,13 +123,15 @@ export default function SalarySlip() {
       }
     } catch (err) { setError(err.message || "Unable to generate the PDF."); } finally { setBusy(false); }
   };
-  return <div className="text-gray-800 dark:text-gray-200"><h1 className="text-2xl font-bold">Salary Slip</h1><p className="mb-6 mt-2 text-sm text-gray-500">Enter the payslip details to download a salary slip. Details are not saved.</p>
+  return <div className="text-gray-800 dark:text-gray-200"><h1 className="text-2xl font-bold">Salary Slip</h1><p className="mb-6 mt-2 text-sm text-gray-500">Enter the payslip details to download a salary slip. Save a draft in this browser to continue later.</p>
     <div className="mb-4 rounded-lg border p-4 text-sm"><p>Company name and address come from <a href="/finance/invoices" className="text-cyan-600 underline">Invoice → Company Settings</a>.</p>{companyError ? <p role="alert" className="mt-2 text-red-500">Company settings could not load: {companyError}. Reload to retry.</p> : !company ? <p>Loading company settings...</p> : <p className="mt-2 whitespace-pre-line">{company.name}<br />{company.address}</p>}</div>
     <form onSubmit={e => generate(e)} className="space-y-6 rounded-xl border bg-white p-6 dark:border-[#243244] dark:bg-[#111C2D]">
       <section><h2 className="mb-4 text-lg font-semibold">Employee pay summary</h2><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{details.map(item => field(item, ["employeeName", "payPeriod"].includes(item[0])))}{field(["paidDays", "Paid Days", "number"])}{field(["lopDays", "LOP Days", "number"])}</div></section>
       <section className="grid gap-6 border-t pt-5 md:grid-cols-2 dark:border-[#243244]"><div><h2 className="mb-4 text-lg font-semibold">Earnings (INR)</h2><div className="grid gap-4">{earnings.map(([key, label]) => field([key, label, "number"]))}</div><p className="mt-4 font-semibold">Gross Earnings: ₹{money(gross)}</p></div><div><h2 className="mb-4 text-lg font-semibold">Deductions (INR)</h2><div className="grid gap-4">{deductions.map(([key, label]) => field([key, label, "number"]))}</div><p className="mt-4 font-semibold">Total Deductions: ₹{money(deducted)}</p></div></section>
       <div className="rounded-lg bg-green-50 p-4 text-green-900"><strong>Total Net Payable: ₹{money(gross - deducted)}</strong><p className="mt-1 text-sm">Gross earnings minus total deductions</p></div>
+      <label className="block text-sm">Company website<input className={input} name="companyWebsite" value={values.companyWebsite || ""} onChange={update} maxLength={120} placeholder="www.example.com" /></label>
       <label className="block text-sm">Download file name (optional)<input className={input} value={fileName} onChange={e => setFileName(e.target.value)} placeholder="Default: salary-slip-employee-pay-period" maxLength={150} /><span className="mt-1 block text-gray-500">The .pdf extension is added automatically.</span></label>
-      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}<div className="flex flex-wrap justify-end gap-3"><button type="button" onClick={e => { if (e.currentTarget.form.reportValidity()) generate(e, true); }} disabled={busy || !company} className="rounded-lg border border-blue-600 px-6 py-3 font-semibold text-blue-600 disabled:opacity-50">Preview Salary Slip</button><button disabled={busy || !company} className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white disabled:opacity-50">{busy ? "Generating PDF…" : "Download Salary Slip PDF"}</button></div>
+      {draftMessage && <p role="status" className="text-sm">{draftMessage}</p>}
+      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}<div className="flex flex-wrap justify-end gap-3"><button type="button" onClick={saveDraft} className="rounded-lg border border-blue-600 px-6 py-3 font-semibold text-blue-600">Save Draft</button><button type="button" onClick={e => { if (e.currentTarget.form.reportValidity()) generate(e, true); }} disabled={busy || !company} className="rounded-lg border border-blue-600 px-6 py-3 font-semibold text-blue-600 disabled:opacity-50">Preview Salary Slip</button><button disabled={busy || !company} className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white disabled:opacity-50">{busy ? "Generating PDF…" : "Download Salary Slip PDF"}</button></div>
     </form>{previewUrl && <section className="mt-6 rounded-xl border bg-white p-4 dark:border-[#243244] dark:bg-[#111C2D]"><div className="mb-3 flex items-center justify-between"><h2 className="text-lg font-semibold">Salary Slip Preview</h2><button type="button" onClick={() => setPreviewUrl("")} className="rounded border px-3 py-1">Close preview</button></div><iframe title="Salary slip preview" src={previewUrl} className="h-[75vh] w-full rounded border" /></section>}</div>;
 }
