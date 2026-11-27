@@ -142,8 +142,8 @@ export async function invoicePdf(invoice, suppliedFonts) {
     });
   }
   text(
-    "INVOICE",
-    right - measure("INVOICE", 30, true),
+    "TAX INVOICE",
+    right - measure("TAX INVOICE", 30, true),
     y - Math.max(0, (logoHeight - 34) / 2),
     30,
     true,
@@ -424,7 +424,7 @@ export async function invoicePdf(invoice, suppliedFonts) {
       color: gray,
     }),
   );
-  doc.setTitle(`Invoice ${invoice.invoiceNumber}`);
+  doc.setTitle(`Tax Invoice ${invoice.invoiceNumber}`);
   return new Blob([await doc.save()], { type: "application/pdf" });
 }
 export async function downloadInvoice(invoice) {

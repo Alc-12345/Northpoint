@@ -71,7 +71,7 @@ test("PDF is a valid A4 document with embedded selectable text fonts without an 
   assert.equal(doc.getPageCount(), 1);
   assert.equal(doc.getPage(0).getWidth(), 595.28);
   assert.equal(doc.getPage(0).getHeight(), 841.89);
-  assert.equal(doc.getTitle(), "Invoice ALC-2026-0001");
+  assert.equal(doc.getTitle(), "Tax Invoice ALC-2026-0001");
   assert.ok(doc.getPage(0).node.Resources().get);
 });
 test("long descriptions, 150 items, and long terms paginate", async () => {
@@ -134,7 +134,7 @@ test("invoice with labeled company and client entries and all default terms fits
   assert.equal(find("INVOICE DETAILS").x, find("INVOICE NO.").x);
   assert.equal(find("DESCRIPTION").x, find("Project service 1").x);
   assert.equal(find("QTY").x, find("1").x);
-  assert.equal(find("INVOICE").y, 765);
+  assert.equal(find("TAX INVOICE").y, 765);
   assert.equal(find("INVOICE NO.").x, 425);
   assert.equal(find("ISSUED").x, 425);
   assert.equal(find("DUE").x, 425);

@@ -338,7 +338,7 @@ export default function Invoices() {
       <Toaster richColors position="top-right" />
       <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Invoices</h1>
+          <h1 className="text-2xl font-bold">Tax Invoices</h1>
           <p className="text-sm text-gray-500 mt-1">
             Manage client invoices and payment details.
           </p>

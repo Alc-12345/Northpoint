@@ -133,7 +133,7 @@ const [activeMenu, setActiveMenu] = useState(routeMenu);
                   className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
                 > Finance
                 </NavLink>
-                <NavLink to="/finance/invoices" className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">Invoices</NavLink>
+                <NavLink to="/finance/invoices" className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">Tax Invoices</NavLink>
               </div>
             )}
             {activeMenu === "Finance" && (
